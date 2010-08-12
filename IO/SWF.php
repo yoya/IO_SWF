@@ -4,7 +4,7 @@
  * 2010/8/11- (c) yoya@awm.jp
  */
 
-class UI_SWF {
+class IO_SWF {
     var $_headers = array();
     var $_tags = array();
 
