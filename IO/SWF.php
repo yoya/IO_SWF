@@ -4,12 +4,14 @@
  * 2010/8/11- (c) yoya@awm.jp
  */
 
+require_once 'IO/Bit.php';
+
 class IO_SWF {
     var $_headers = array();
     var $_tags = array();
 
     function parse($swfdata) {
-        $reader = new BitIO();
+        $reader = new IO_Bit();
         $reader->input($swfdata);
 
         /* SWF Header */
@@ -72,7 +74,7 @@ class IO_SWF {
         }
     }
     function build() {
-        $writer = new BitIO();
+        $writer = new IO_Bit();
 
         /* SWF Header */
         $writer->putData($this->_headers['Signature']);
