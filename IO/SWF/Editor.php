@@ -24,15 +24,37 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $count;
     }
-    function replaceTagContentByCharacterId($tagCode, $characterId, $content) {
+    function getTagContent($tagCode) {
+        $count = 0;
+        foreach ($this->_tags as &$tag) {
+            if ($tag['Code'] == $tagCode) {
+                return $tag['Content'];
+            }
+        }
+        return null;
+    }
+    
+    function replaceTagContentByCharacterId($tagCode, $characterId, $content_after_character_id) {
         foreach ($this->_tags as &$tag) {
             if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
+                
                 if ($tag['CharacterId'] == $characterId) {
-                    $tag['Length'] = strlen($content);
-                    $tag['Content'] = $content;
+                    $tag['Length'] = 2 + strlen($content_after_character_id);
+                    $tag['Content'] = pack('v', $characterId).$content_after_character_id;
                     break;
                 }
             }
         }
+    }
+    function getTagContentByCharacterId($tagCode, $characterId) {
+        foreach ($this->_tags as $tag) {
+            if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
+                if ($tag['CharacterId'] == $characterId) {
+                    return $tag['Content'];
+                    break;
+                }
+            }
+        }
+        return null;
     }
 }
