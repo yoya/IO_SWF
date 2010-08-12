@@ -7,8 +7,9 @@
 require_once 'IO/Bit.php';
 
 class IO_SWF {
-    var $_headers = array();
-    var $_tags = array();
+    // instance variable
+    var $_headers = array(); // protected
+    var $_tags = array();    // protected
 
     function parse($swfdata) {
         $reader = new IO_Bit();
@@ -50,29 +51,8 @@ class IO_SWF {
             }
         }
     }
+    // function dump() => IO_SWF_Dumper
     
-    function dump() {
-        /* SWF Header */
-        echo 'Signature: '.$this->_headers['Signature'].PHP_EOL;
-        echo 'Version: '.$this->_headers['Version'].PHP_EOL;
-        echo 'FileLength: '.$this->_headers['FileLength'].PHP_EOL;
-        echo 'FrameSize: '.PHP_EOL;
-        echo "\tXmin: ".($this->_headers['FrameSize']['Xmin'] / 20).PHP_EOL;
-        echo "\tXmax: ".($this->_headers['FrameSize']['Xmax'] / 20).PHP_EOL;
-        echo "\tYmin: ".($this->_headers['FrameSize']['Ymin'] / 20).PHP_EOL;
-        echo "\tYmax: ".($this->_headers['FrameSize']['Ymax'] / 20).PHP_EOL;
-        echo 'FrameRate: '.($this->_headers['FrameRate'] / 0x100).PHP_EOL;
-        echo 'FrameCount: '.$this->_headers['FrameCount'].PHP_EOL;
-
-        /* SWF Tags */
-        
-        echo 'Tags:'.PHP_EOL;
-        foreach ($this->_tags as $tag) {
-            $code = $tag['Code'];
-            $length = $tag['Length'];
-            echo "\tCode: $code  Length: $length".PHP_EOL;
-        }
-    }
     function build() {
         $writer = new IO_Bit();
 
@@ -106,6 +86,9 @@ class IO_SWF {
             }
             $writer->putData($tag['Content']);
         }
+        list($fileLength, $bit_offset_dummy) = $writer->getOffset();
+        $this->_headers['FileLength'] = $fileLength;
+        $writer->setUI32LE($fileLength, 4);
         return $writer->output();
     }
 }

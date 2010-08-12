@@ -10,6 +10,35 @@ class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
     // var $_tags = array();    // protected
 
+    function setCharacterId() {
+        foreach ($this->_tags as &$tag) {
+            $content_reader = new IO_Bit();
+            $content_reader->input($tag['Content']);
+            switch ($tag['Code']) {
+              case 4:  // PlaceObject
+              case 5:  // RemoveObject
+              case 6:  // DefineBits
+              case 21: // DefineBitsJPEG2
+              case 35: // DefineBitsJPEG3
+              case 20: // DefineBitsLossless
+              case 46: // DefineMorphShape
+              case 2:  // DefineShape (ShapeId)
+              case 22: // DefineShape2 (ShapeId)
+              case 11: // DefineText
+              case 33: // DefineText
+              case 37: // DefineTextEdit
+                $tag['CharacterId'] = $content_reader->getUI16LE();
+                break;
+              case 26: // PlaceObject2 (PlaceFlagHasCharacter)
+                $tag['PlaceFlag'] = $content_reader->getUI8();
+                if ($tag['PlaceFlag'] & 0x02) {
+                    $tag['CharacterId'] = $content_reader->getUI16LE();
+                }
+                break;
+            }
+        }
+    }
+
     function replaceTagContent($tagCode, $content, $limit = 1) {
         $count = 0;
         foreach ($this->_tags as &$tag) {
