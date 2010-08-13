@@ -22,7 +22,6 @@ $swf->setCharacterId($swfdata);
 $erroreous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
 $jpegdata = file_get_contents($argv[2]);
 
-$swf->replaceTagContentByCharacterId(21, 1, $jpegdata);
 $swf->replaceTagContentByCharacterId(21, 1, $erroreous_header.$jpegdata);
 
 echo $swf->build();
