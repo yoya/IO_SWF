@@ -23,10 +23,10 @@ class IO_SWF {
         $frameSize = array();
         $nBits = $reader->getUIBits(5);
         $frameSize['NBits'] = $nBits;
-        $frameSize['Xmin'] = $reader->getUIBits($nBits);
-        $frameSize['Xmax'] = $reader->getUIBits($nBits);
-        $frameSize['Ymin'] = $reader->getUIBits($nBits);
-        $frameSize['Ymax'] = $reader->getUIBits($nBits) ;
+        $frameSize['Xmin'] = $reader->getSIBits($nBits);
+        $frameSize['Xmax'] = $reader->getSIBits($nBits);
+        $frameSize['Ymin'] = $reader->getSIBits($nBits);
+        $frameSize['Ymax'] = $reader->getSIBits($nBits) ;
         $this->_headers['FrameSize'] = $frameSize;
         $reader->byteAlign();
         $this->_headers['FrameRate'] = $reader->getUI16LE();
@@ -64,10 +64,10 @@ class IO_SWF {
         $nBits = $this->_headers['FrameSize']['NBits'];
         // nBits check
         $writer->putUIBits($nBits, 5);
-        $writer->putUIBits($this->_headers['FrameSize']['Xmin'], $nBits);
-        $writer->putUIBits($this->_headers['FrameSize']['Xmax'], $nBits);
-        $writer->putUIBits($this->_headers['FrameSize']['Ymin'], $nBits);
-        $writer->putUIBits($this->_headers['FrameSize']['Ymax'], $nBits);
+        $writer->putSIBits($this->_headers['FrameSize']['Xmin'], $nBits);
+        $writer->putSIBits($this->_headers['FrameSize']['Xmax'], $nBits);
+        $writer->putSIBits($this->_headers['FrameSize']['Ymin'], $nBits);
+        $writer->putSIBits($this->_headers['FrameSize']['Ymax'], $nBits);
         $writer->byteAlign();
         $writer->putUI16LE($this->_headers['FrameRate']);
         $writer->putUI16LE($this->_headers['FrameCount']);
