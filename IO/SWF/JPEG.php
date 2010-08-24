@@ -137,7 +137,8 @@ class IO_SWF_JPEG {
                 echo "$marker_name:".PHP_EOL;
             } else {
                 $length = strlen($chunk['data']);
-                echo "$marker_name: length=$length".PHP_EOL;
+                $md5 = md5($chunk['data']);
+                echo "$marker_name: length=$length md5=$md5".PHP_EOL;
             }
         }
     }
