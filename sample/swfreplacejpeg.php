@@ -19,11 +19,17 @@ $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
 $swf->setCharacterId($swfdata);
 
-$erroreous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
+$erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
 $jpegdata = file_get_contents($argv[3]);
 
 // 21: DefineBitsJPEG2
-$swf->replaceTagContentByCharacterId(21, $image_id, $erroreous_header.$jpegdata);
+$tag_code = 21;
+$ret = $swf->replaceTagContentByCharacterId($tag_code, $image_id, $erroneous_header.$jpegdata);
+
+if ($ret == 0) {
+    echo "Error: not found tag_code=$tag_code and image_id=$image_id tag".PHP_EOL;
+    exit (1);
+}
 
 echo $swf->build();
 
