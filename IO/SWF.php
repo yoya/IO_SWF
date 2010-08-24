@@ -19,7 +19,16 @@ class IO_SWF {
         $this->_headers['Signature'] = $reader->getData(3);
         $this->_headers['Version'] = $reader->getUI8();
         $this->_headers['FileLength'] = $reader->getUI32LE();
-        $this->_headers['FrameSize'] = array();
+        if ($this->_headers['Signature']{0} == 'C') {
+            // CWS の場合、FileLength の後ろが zlib 圧縮されている
+            $uncompressed_data = gzuncompress(substr($swfdata, 8));
+            if ($uncompressed_data === false) {
+                return false;
+            }
+            $reader = new IO_Bit();
+            $reader->input($uncompressed_data);
+        }
+        /* SWF Movie Header */
         $frameSize = array();
         $nBits = $reader->getUIBits(5);
         $frameSize['NBits'] = $nBits;
@@ -50,19 +59,21 @@ class IO_SWF {
                 break;
             }
         }
+        return true;
     }
     // function dump() => IO_SWF_Dumper
     
     function build() {
+        $writer_head = new IO_Bit();
         $writer = new IO_Bit();
 
         /* SWF Header */
-        $writer->putData($this->_headers['Signature']);
-        $writer->putUI8($this->_headers['Version']);
-        $writer->putUI32LE($this->_headers['FileLength']);
+        $writer_head->putData($this->_headers['Signature']);
+        $writer_head->putUI8($this->_headers['Version']);
+        $writer_head->putUI32LE($this->_headers['FileLength']);
 
+        /* SWF Movie Header */
         $nBits = $this->_headers['FrameSize']['NBits'];
-        // nBits check
         $writer->putUIBits($nBits, 5);
         $writer->putSIBits($this->_headers['FrameSize']['Xmin'], $nBits);
         $writer->putSIBits($this->_headers['FrameSize']['Xmax'], $nBits);
@@ -87,8 +98,12 @@ class IO_SWF {
             $writer->putData($tag['Content']);
         }
         list($fileLength, $bit_offset_dummy) = $writer->getOffset();
+        $fileLength += 8; // swf header
         $this->_headers['FileLength'] = $fileLength;
-        $writer->setUI32LE($fileLength, 4);
-        return $writer->output();
+        $writer_head->setUI32LE($fileLength, 4);
+        if ($this->_headers['Signature']{0} == 'C') {
+            return $writer_head->output() . gzcompress($writer->output());
+        }
+        return $writer_head->output().$writer->output();
     }
 }
