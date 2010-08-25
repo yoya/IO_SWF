@@ -1,6 +1,7 @@
 <?php
 
-require 'IO/SWF/Editor.php';
+require_once 'IO/SWF/Editor.php';
+require_once 'IO/SWF/JPEG.php';
 
 if ($argc != 4) {
     echo "Usage: php swfreplacejpeg.php <swf_file> <image_id> <jpeg_file>\n";
@@ -24,7 +25,17 @@ $jpegdata = file_get_contents($argv[3]);
 
 // 21: DefineBitsJPEG2
 $tag_code = 21;
-$ret = $swf->replaceTagContentByCharacterId($tag_code, $image_id, $erroneous_header.$jpegdata);
+
+if (true) {
+    $swf_jpeg = new IO_SWF_JPEG();
+    $swf_jpeg->input($jpegdata);
+    $jpeg_table = $swf_jpeg->getEncodingTables();
+    $jpeg_image =  $swf_jpeg->getImageData();
+    // 21: DefineBitsJPEG2
+    $ret = $swf->replaceTagContentByCharacterId($tag_code, $image_id, $jpeg_table.$jpeg_image);
+} else {
+    $ret = $swf->replaceTagContentByCharacterId($tag_code, $image_id, $erroneous_header.$jpegdata);
+}
 
 if ($ret == 0) {
     echo "Error: not found tag_code=$tag_code and image_id=$image_id tag".PHP_EOL;
