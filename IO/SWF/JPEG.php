@@ -1,6 +1,6 @@
 <?php
 
-require 'IO/Bit.php';
+require_once 'IO/Bit.php';
 
 class IO_SWF_JPEG {
     var $marker_name_table = array(
@@ -14,7 +14,7 @@ class IO_SWF_JPEG {
         0xC0 => 'SOF0', 0xC1 => 'SOF1',  0xC2 => 'SOF2',  0xC3 => 'SOF3',
         0xC5 => 'SOF5', 0xC6 => 'SOF6',  0xC7 => 'SOF7',
         0xC8 => 'JPG',  0xC9 => 'SOF9',  0xCA => 'SOF10', 0xCB => 'SOF11',
-        0xCC => 'dAC',  0xCD => 'SOF13', 0xCE => 'SOF14', 0xCF => 'SOF15',
+        0xCC => 'DAC',  0xCD => 'SOF13', 0xCE => 'SOF14', 0xCF => 'SOF15',
         0xC4 => 'DHT',
         0xDA => 'SOS',
         0xD0 => 'RST0', 0xD1 => 'RST1', 0xD2 => 'RST2', 0xD3 => 'RST3',
