@@ -43,10 +43,10 @@ class IO_SWF_JPEG {
             $marker2 = $bitin->getUI8();
             switch ($marker2) {
             case 0xD8: // SOI (Start of Image)
-                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null);
+                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
                 continue;
             case 0xD9: // EOE (End of Image)
-                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null);
+                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
                 break 2; // while break;
             case 0xDA: // SOS
             case 0xD0: case 0xD1: case 0xD2: case 0xD3: // RST
@@ -62,17 +62,17 @@ class IO_SWF_JPEG {
                         continue;
                     }
                     
-                    $bitin->incrementOffset(-2, 0); // XXX
+                    $bitin->incrementOffset(-2, 0); // back from next marker
                     list($next_chunk_offset, $dummy) = $bitin->getOffset();
                     $length = $next_chunk_offset - $chunk_data_offset;
                     $bitin->setOffset($chunk_data_offset, 0);
-                    $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $bitin->getData($length));
+                    $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $bitin->getData($length), 'length' => null);
                     break;
                 }
                 break;
             default:
                 $length = $bitin->getUI16BE();
-                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $bitin->getData($length - 2));
+                $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $bitin->getData($length - 2), 'length' => $length);
                 continue;
             }
         }
@@ -94,8 +94,9 @@ class IO_SWF_JPEG {
             if (is_null($chunk['data'])) { // SOI or EOI
                 ; // nothing to do
             } else {
-                $length = strlen($chunk['data']);
-                $bitout->putUI16BE($length + 2);
+                if (! is_null($chunk['length'])) {
+                    $bitout->putUI16BE($chunk['length']);
+                }
                 $bitout->putData($chunk['data']);
             }
         }
@@ -117,8 +118,7 @@ class IO_SWF_JPEG {
             }
             $bitout->putUI8(0xFF);
             $bitout->putUI8($marker);
-            $length = strlen($chunk['data']);
-            $bitout->putUI16BE($length + 2);
+            $bitout->putUI16BE($chunk['length']);
             $bitout->putData($chunk['data']);
         }
         $bitout->putUI8(0xFF);
