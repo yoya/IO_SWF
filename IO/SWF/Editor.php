@@ -64,16 +64,19 @@ class IO_SWF_Editor extends IO_SWF {
     }
     
     function replaceTagContentByCharacterId($tagCode, $characterId, $content_after_character_id) {
+        $ret = 0;
         foreach ($this->_tags as &$tag) {
             if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
                 
                 if ($tag['CharacterId'] == $characterId) {
                     $tag['Length'] = 2 + strlen($content_after_character_id);
                     $tag['Content'] = pack('v', $characterId).$content_after_character_id;
+                    $ret = 1;
                     break;
                 }
             }
         }
+        return $ret;
     }
     function getTagContentByCharacterId($tagCode, $characterId) {
         foreach ($this->_tags as $tag) {
