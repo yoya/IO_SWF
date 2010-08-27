@@ -78,6 +78,23 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $ret;
     }
+
+    function replaceTagByCharacterId($tagCode, $characterId, $replaceTag) {
+        $ret = 0;
+        foreach ($this->_tags as &$tag) {
+            if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
+                if ($tag['CharacterId'] == $characterId) {
+                    $tag['Code'] = $replaceTag['Code'];
+                    $tag['Length'] = strlen($replaceTag['Content']);
+                    $tag['Content'] = $replaceTag['Content'];
+                    $ret = 1;
+                    break;
+                }
+            }
+        }
+        return $ret;
+    }
+
     function getTagContentByCharacterId($tagCode, $characterId) {
         foreach ($this->_tags as $tag) {
             if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
