@@ -64,10 +64,12 @@ class IO_SWF_Editor extends IO_SWF {
     }
     
     function replaceTagContentByCharacterId($tagCode, $characterId, $content_after_character_id) {
+        if (! is_array($tagCode)) {
+            $tagCode = array($tagCode);
+        }
         $ret = 0;
         foreach ($this->_tags as &$tag) {
-            if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
-                
+            if (in_array($tag['Code'], $tagCode) && isset($tag['CharacterId'])) {
                 if ($tag['CharacterId'] == $characterId) {
                     $tag['Length'] = 2 + strlen($content_after_character_id);
                     $tag['Content'] = pack('v', $characterId).$content_after_character_id;
@@ -80,11 +82,16 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function replaceTagByCharacterId($tagCode, $characterId, $replaceTag) {
+        if (! is_array($tagCode)) {
+            $tagCode = array($tagCode);
+        }
         $ret = 0;
         foreach ($this->_tags as &$tag) {
-            if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
+            if (in_array($tag['Code'], $tagCode) && isset($tag['CharacterId'])) {
                 if ($tag['CharacterId'] == $characterId) {
-                    $tag['Code'] = $replaceTag['Code'];
+                    if (isset($replaceTag['Code'])) {
+                        $tag['Code'] = $replaceTag['Code'];
+                    }
                     $tag['Length'] = strlen($replaceTag['Content']);
                     $tag['Content'] = $replaceTag['Content'];
                     $ret = 1;
