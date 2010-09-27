@@ -34,11 +34,26 @@ $colormap_num = imagecolorstotal($im);
 
 $colormap = '';
 
-for ($i = 0 ; $i < $colormap_num ; $i++) {
-    $rgb = imagecolorsforindex($im, $i);
-    $colormap .=  chr($rgb['red']);
-    $colormap .=  chr($rgb['green']);
-    $colormap .=  chr($rgb['blue']);
+$transparent_index = imagecolortransparent($im);
+
+if ($transparent_index < 0) {
+    for ($i = 0 ; $i < $colormap_num ; $i++) {
+        $colormap .=  chr($rgb['red']);
+        $colormap .=  chr($rgb['green']);
+        $colormap .=  chr($rgb['blue']);
+    }
+} else {
+    for ($i = 0 ; $i < $colormap_num ; $i++) {
+        $rgb = imagecolorsforindex($im, $i);
+        $colormap .=  chr($rgb['red']);
+        $colormap .=  chr($rgb['green']);
+        $colormap .=  chr($rgb['blue']);
+        if ($i == $transparent_index) {
+            $colormap .=  chr(0);
+        } else {
+            $colormap .=  chr(255);
+        }
+    }
 }
 
 $indices = '';
@@ -60,14 +75,19 @@ for ($y = 0 ; $y < $height ; $y++) {
 // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
 $tag_code = array(6, 21, 35, 20, 36);
 
+if ($transparent_index < 0) {
+    $tagCode = 20; // DefineBitsLossless
+} else {
+    $tagCode = 36; // DefineBitsLossless2
+}
 $format = chr(3); // palett format
 $content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
 $content .= chr($colormap_num - 1).gzcompress($colormap.$indices);
 
 // 20: DefineBitsLossless
-$tag = array('Code' => 20,
+$tag = array('Code' => $tagCode,
              'Content' => $content);
-$ret = $swf->replaceTagByCharacterId($tag_code, $image_id, $tag);   
+$ret = $swf->replaceTagByCharacterId($tag_code, $image_id, $tag);
 
 if ($ret == 0) {
     echo "Error: not found tag_code=".implode(',',$tag_code)." and image_id=$image_id tag".PHP_EOL;
