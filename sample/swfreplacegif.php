@@ -75,16 +75,15 @@ for ($y = 0 ; $y < $height ; $y++) {
 // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
 $tag_code = array(6, 21, 35, 20, 36);
 
+$format = chr(3); // palett format
+$content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
+$content .= chr($colormap_num - 1).gzcompress($colormap.$indices);
+
 if ($transparent_index < 0) {
     $tagCode = 20; // DefineBitsLossless
 } else {
     $tagCode = 36; // DefineBitsLossless2
 }
-$format = chr(3); // palett format
-$content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
-$content .= chr($colormap_num - 1).gzcompress($colormap.$indices);
-
-// 20: DefineBitsLossless
 $tag = array('Code' => $tagCode,
              'Content' => $content);
 $ret = $swf->replaceTagByCharacterId($tag_code, $image_id, $tag);
