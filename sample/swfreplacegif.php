@@ -29,11 +29,11 @@ if ($im === false) {
     echo "$giffile is not GIF file\n";
     exit (1);
 }
+
 $colormap_num = imagecolorstotal($im);
+$transparent_index = imagecolortransparent($im);
 
 $colormap = '';
-
-$transparent_index = imagecolortransparent($im);
 
 if ($transparent_index < 0) {
     for ($i = 0 ; $i < $colormap_num ; $i++) {
