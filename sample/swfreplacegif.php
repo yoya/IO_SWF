@@ -38,6 +38,7 @@ $transparent_index = imagecolortransparent($im);
 
 if ($transparent_index < 0) {
     for ($i = 0 ; $i < $colormap_num ; $i++) {
+        $rgb = imagecolorsforindex($im, $i);
         $colormap .=  chr($rgb['red']);
         $colormap .=  chr($rgb['green']);
         $colormap .=  chr($rgb['blue']);
