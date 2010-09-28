@@ -19,7 +19,6 @@ $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
 $swf->setCharacterId($swfdata);
 
-$erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
 $giffile = $argv[3];
 
 // gif2lossless format translation
@@ -72,7 +71,7 @@ for ($y = 0 ; $y < $height ; $y++) {
 // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
 $tag_code = array(6, 21, 35, 20, 36);
 
-$format = chr(3); // palett format
+$format = chr(3); // palette format
 $content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
 $content .= chr($colormap_num - 1).gzcompress($colormap.$indices);
 
