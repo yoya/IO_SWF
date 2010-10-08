@@ -71,8 +71,8 @@ for ($y = 0 ; $y < $height ; $y++) {
 // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
 $tag_code = array(6, 21, 35, 20, 36);
 
-$format = chr(3); // palette format
-$content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
+$format = 3; // palette format
+$content = pack('v', $image_id).chr($format).pack('v', $width).pack('v', $height);
 $content .= chr($colortable_num - 1).gzcompress($colortable.$pixeldata);
 
 if ($transparent_index < 0) {
