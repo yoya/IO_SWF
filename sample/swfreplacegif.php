@@ -30,40 +30,40 @@ if ($im === false) {
     exit (1);
 }
 
-$colormap_num = imagecolorstotal($im);
+$colortable_num = imagecolorstotal($im);
 $transparent_index = imagecolortransparent($im);
 
-$colormap = '';
+$colortable = '';
 
 if ($transparent_index < 0) {
-    for ($i = 0 ; $i < $colormap_num ; $i++) {
+    for ($i = 0 ; $i < $colortable_num ; $i++) {
         $rgb = imagecolorsforindex($im, $i);
-        $colormap .= chr($rgb['red']);
-        $colormap .= chr($rgb['green']);
-        $colormap .= chr($rgb['blue']);
+        $colortable .= chr($rgb['red']);
+        $colortable .= chr($rgb['green']);
+        $colortable .= chr($rgb['blue']);
     }
 } else {
-    for ($i = 0 ; $i < $colormap_num ; $i++) {
+    for ($i = 0 ; $i < $colortable_num ; $i++) {
         $rgb = imagecolorsforindex($im, $i);
-        $colormap .= chr($rgb['red']);
-        $colormap .= chr($rgb['green']);
-        $colormap .= chr($rgb['blue']);
-        $colormap .= ($i == $transparent_index)?chr(0):chr(255);
+        $colortable .= chr($rgb['red']);
+        $colortable .= chr($rgb['green']);
+        $colortable .= chr($rgb['blue']);
+        $colortable .= ($i == $transparent_index)?chr(0):chr(255);
     }
 }
 
-$indices = '';
+$pixeldata = '';
 $i = 0;
 $width  = imagesx($im);
 $height = imagesy($im);
 
 for ($y = 0 ; $y < $height ; $y++) {
     for ($x = 0 ; $x < $width ; $x++) {
-        $indices .= chr(imagecolorat($im, $x, $y));
+        $pixeldata .= chr(imagecolorat($im, $x, $y));
         $i++;
     }
     while (($i % 4) != 0) {
-        $indices .= chr(0);
+        $pixeldata .= chr(0);
         $i++;
     }
 }
@@ -73,7 +73,7 @@ $tag_code = array(6, 21, 35, 20, 36);
 
 $format = chr(3); // palette format
 $content = pack('v', $image_id).$format.pack('v', $width).pack('v', $height);
-$content .= chr($colormap_num - 1).gzcompress($colormap.$indices);
+$content .= chr($colortable_num - 1).gzcompress($colortable.$pixeldata);
 
 if ($transparent_index < 0) {
     $tagCode = 20; // DefineBitsLossless
