@@ -94,6 +94,7 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
             for ($x = 0 ; $x < $width ; $x++) {
                 $i = imagecolorat($im, $x, $y);
                 $rgb = imagecolorsforindex($im, $i);
+                $colortable .= $alpha;
                 $colortable .= chr($rgb['red']);
                 $colortable .= chr($rgb['green']);
                 $colortable .= chr($rgb['blue']);
@@ -105,10 +106,10 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
                 $i = imagecolorat($im, $x, $y);
                 $rgba = imagecolorsforindex($im, $i);
                 $alpha = chr($rgba['alpha']);
+                $colortable .= $alpha;
                 $colortable .= chr($rgba['red'])   * $alpha / 255;
                 $colortable .= chr($rgba['green']) * $alpha / 255;
                 $colortable .= chr($rgba['blue'])  * $alpha / 255;
-                $colortable .= $alpha;
             }
         }
     }
