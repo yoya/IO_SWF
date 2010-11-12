@@ -68,6 +68,8 @@ for ($y = 0 ; $y < $height ; $y++) {
     }
 }
 
+imagedestroy($im);
+
 // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
 $tag_code = array(6, 21, 35, 20, 36);
 
