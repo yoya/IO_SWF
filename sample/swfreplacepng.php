@@ -37,7 +37,7 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
     $transparent_exists = false;
     for ($i = 0 ; $i < $colortable_num ; $i++) {
         $rgba = imagecolorsforindex($im, $i);
-        if (array_key_exists('alpha', $rgba) && ($rgba['alpha'] < 255)) {
+        if (array_key_exists('alpha', $rgba) && ($rgba['alpha'] > 0)) {
             $transparent_exists = true;
             break;
         }
@@ -53,10 +53,12 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
     } else {
         for ($i = 0 ; $i < $colortable_num ; $i++) {
             $rgba = imagecolorsforindex($im, $i);
-            $colortable .= chr($rgba['red']);
-            $colortable .= chr($rgba['green']);
-            $colortable .= chr($rgba['blue']);
-            $colortable .= chr($rgba['alpha']);
+            $alpha = $rgba['alpha'];
+            $alpha = 2 * (127 - $alpha);
+            $colortable .= chr($rgba['red']  * $alpha / 255);
+            $colortable .= chr($rgba['green']* $alpha / 255);
+            $colortable .= chr($rgba['blue'] * $alpha / 255);
+            $colortable .= chr($alpha);
         }
     }
     
@@ -78,26 +80,29 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
 } else { // truecolor
     $format = 5; // trurcolor format
     $transparent_exists = false;
+
+    $width  = imagesx($im);
+    $height = imagesy($im);
     for ($y = 0 ; $y < $height ; $y++) {
         for ($x = 0 ; $x < $width ; $x++) {
             $i = imagecolorat($im, $x, $y);
             $rgba = imagecolorsforindex($im, $i);
-            if (array_key_exists('alpha', $rgba) && ($rgba['alpha'] < 255)) {
+            if (array_key_exists('alpha', $rgba) && ($rgba['alpha'] > 0)) {
                 $transparent_exists = true;
                 break;
             }
         }
     }
     $pixeldata = '';
-    if ($transparent_exists == false) {
+    if ($transparent_exists === false) {
         for ($y = 0 ; $y < $height ; $y++) {
             for ($x = 0 ; $x < $width ; $x++) {
                 $i = imagecolorat($im, $x, $y);
                 $rgb = imagecolorsforindex($im, $i);
-                $colortable .= $alpha;
-                $colortable .= chr($rgb['red']);
-                $colortable .= chr($rgb['green']);
-                $colortable .= chr($rgb['blue']);
+                $pixeldata .= 0; // Always 0
+                $pixeldata .= chr($rgb['red']);
+                $pixeldata .= chr($rgb['green']);
+                $pixeldata .= chr($rgb['blue']);
             }
         }
     } else {
@@ -105,11 +110,12 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
             for ($x = 0 ; $x < $width ; $x++) {
                 $i = imagecolorat($im, $x, $y);
                 $rgba = imagecolorsforindex($im, $i);
-                $alpha = chr($rgba['alpha']);
-                $colortable .= $alpha;
-                $colortable .= chr($rgba['red'])   * $alpha / 255;
-                $colortable .= chr($rgba['green']) * $alpha / 255;
-                $colortable .= chr($rgba['blue'])  * $alpha / 255;
+                $alpha = $rgba['alpha'];
+                $alpha = 2 * (127 - $alpha);
+                $pixeldata .= chr($alpha);
+                $pixeldata .= chr($rgba['red']  * $alpha / 255);
+                $pixeldata .= chr($rgba['green']* $alpha / 255);
+                $pixeldata .= chr($rgba['blue'] * $alpha / 255);
             }
         }
     }
@@ -124,10 +130,10 @@ $content = pack('v', $image_id).chr($format).pack('v', $width).pack('v', $height
 if ($format == 3) {
     $content .= chr($colortable_num - 1).gzcompress($colortable.$pixeldata);
 } else {
-    $content .= chr($colortable_num - 1).gzcompress($pixeldata);
+    $content .= gzcompress($pixeldata);
 }
 
-if ($transparent_index < 0) {
+if ($transparent_exists === false) {
     $tagCode = 20; // DefineBitsLossless
 } else {
     $tagCode = 36; // DefineBitsLossless2
