@@ -30,12 +30,12 @@ if ($im === false) {
     exit (1);
 }
 
-$colortable_num = imagecolorstotal($im);
+$colortable_size = imagecolorstotal($im);
 
-if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
+if ((imageistruecolor($im) === false) && ($colortable_size <= 256)) {
     $format = 3; // palette format
     $transparent_exists = false;
-    for ($i = 0 ; $i < $colortable_num ; $i++) {
+    for ($i = 0 ; $i < $colortable_size ; $i++) {
         $rgba = imagecolorsforindex($im, $i);
         if (array_key_exists('alpha', $rgba) && ($rgba['alpha'] > 0)) {
             $transparent_exists = true;
@@ -44,14 +44,14 @@ if ((imageistruecolor($im) === false) && ($colortable_num <= 256)) {
     }
     $colortable = '';
     if ($transparent_exists == false) {
-        for ($i = 0 ; $i < $colortable_num ; $i++) {
+        for ($i = 0 ; $i < $colortable_size ; $i++) {
             $rgb = imagecolorsforindex($im, $i);
             $colortable .= chr($rgb['red']);
             $colortable .= chr($rgb['green']);
             $colortable .= chr($rgb['blue']);
         }
     } else {
-        for ($i = 0 ; $i < $colortable_num ; $i++) {
+        for ($i = 0 ; $i < $colortable_size ; $i++) {
             $rgba = imagecolorsforindex($im, $i);
             $alpha = $rgba['alpha'];
             $alpha = 2 * (127 - $alpha);
@@ -128,7 +128,7 @@ $tag_code = array(6, 21, 35, 20, 36);
 
 $content = pack('v', $image_id).chr($format).pack('v', $width).pack('v', $height);
 if ($format == 3) {
-    $content .= chr($colortable_num - 1).gzcompress($colortable.$pixeldata);
+    $content .= chr($colortable_size - 1).gzcompress($colortable.$pixeldata);
 } else {
     $content .= gzcompress($pixeldata);
 }
