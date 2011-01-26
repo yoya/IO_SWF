@@ -12,6 +12,7 @@ class IO_SWF_Shape {
 	$reader->input($content);
         $this->_shapeId = $reader->getUI16LE();
     	$this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
+	// FillStyle
 	$fillStyleCount = $reader->getUI8();
 	if (($tagCode > 2) && ($fillStyleCount == 0xff)) {
 	   // DefineShape2 以降は 0xffff サイズまで扱える
@@ -32,14 +33,36 @@ class IO_SWF_Shape {
 	      case 0x10: // linear gradient fill
 	      case 0x12: // radianar gradient fill
 	      case 0x12: // radianar gradient fill
+     // TODO
 	      // case 0x13: // focal gradient fill // 8 and later
 	      case 0x40: // repeating bitmap fill
 	      case 0x41: // clipped bitmap fill
 	      case 0x42: // non-smoothed repeating bitmap fill
 	      case 0x43: // non-smoothed clipped bitmap fill
+	        $fillStyle['BitmapId'] = $reader->getUI16LE();
+	        $fillStyle['BitmapMatrix'] = IO_SWF_Type::parseMATRIX($reader);
+	        break;
+	      default:
+	        break 2; // XXX
 	    }
 	    $this->_fillStyles[] = $fillStyle;
 	}
+	// LineStyle
+	$lineStyleCount = $reader->getUI8();
+	if (($tagCode > 2) && ($lineStyleCount == 0xff)) {
+	   // DefineShape2 以降は 0xffff サイズまで扱える
+	   $lineStyleCount = $reader->getUI16LE();
+	}
+	for ($i = 0 ; $i < $lineStyleCount ; $i++) {
+	    $lineStyle = array();
+	    $lineStyle['Width'] = $reader->getUI16LE();
+	    if ($tagCode < 32 ) { // 32:DefineShape3
+	        $lineStyle['Color'] = IO_SWF_Type::parseRGB($reader);
+	    } else {
+	        $lineStyle['Color'] = IO_SWF_Type::parseRGBA($reader);
+	    }
+	    $this->_lineStyles[] = $lineStyle;
+        }
 	$numfillBits = 0;
 	$numLineBits = 0;
 
@@ -47,14 +70,14 @@ class IO_SWF_Shape {
     function dump() {
     	echo "ShapeId: {$this->_shapeId}\n";
     	echo "ShapeBounds: ";
-    	var_export($this->_shapeBounds);
+    	print_r($this->_shapeBounds);
     	echo "Shapes: ";
     	echo "FillStyles: ";
-    	var_export($this->_fillStyles);
+    	print_r($this->_fillStyles);
     	echo "LineStyles: ";
-    	var_export($this->_lineStyles);
+    	print_r($this->_lineStyles);
     	echo "ShapeRecords: ";
-    	var_export($this->_shapeRecords);
+    	print_r($this->_shapeRecords);
     }
     function build() {
         $tagData = '';
