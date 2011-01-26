@@ -4,7 +4,7 @@
  * 2010/8/12- (c) yoya@awm.jp
  */
 
-require_once 'IO/SWF.php';
+require_once dirname(__FILE__).'/../SWF.php';
 
 class IO_SWF_Former extends IO_SWF {
     // var $_headers = array(); // protected
