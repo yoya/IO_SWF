@@ -5,6 +5,7 @@
  */
 
 require_once dirname(__FILE__).'/../SWF.php';
+require_once dirname(__FILE__).'/Shape.php';
 
 class IO_SWF_Dumper extends IO_SWF {
     // instance variable
@@ -31,6 +32,15 @@ class IO_SWF_Dumper extends IO_SWF {
             $code = $tag['Code'];
             $length = $tag['Length'];
             echo "\tCode: $code  Length: $length".PHP_EOL;
+	    switch ($code) {
+	      case 2: // DefineShape
+	      case 22: // DefineShape2
+	      case 32: // DefineShape3
+		$shape = new IO_SWF_Shape();
+		$shape->parse($code, $tag['Content']);
+		$shape->dump();
+		break;
+	    }
         }
     }
 }
