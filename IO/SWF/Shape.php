@@ -71,7 +71,6 @@ class IO_SWF_Shape {
     	echo "ShapeId: {$this->_shapeId}\n";
     	echo "ShapeBounds: ";
     	print_r($this->_shapeBounds);
-    	echo "Shapes: ";
     	echo "FillStyles: ";
     	print_r($this->_fillStyles);
     	echo "LineStyles: ";
