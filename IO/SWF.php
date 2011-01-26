@@ -5,6 +5,7 @@
  */
 
 require_once 'IO/Bit.php';
+require_once dirname(__FILE__).'/SWF/Type.php';
 
 class IO_SWF {
     // instance variable
@@ -29,14 +30,7 @@ class IO_SWF {
             $reader->input($uncompressed_data);
         }
         /* SWF Movie Header */
-        $frameSize = array();
-        $nBits = $reader->getUIBits(5);
-        $frameSize['NBits'] = $nBits;
-        $frameSize['Xmin'] = $reader->getSIBits($nBits);
-        $frameSize['Xmax'] = $reader->getSIBits($nBits);
-        $frameSize['Ymin'] = $reader->getSIBits($nBits);
-        $frameSize['Ymax'] = $reader->getSIBits($nBits) ;
-        $this->_headers['FrameSize'] = $frameSize;
+        $this->_headers['FrameSize'] = IO_SWF_Type::parseRECT($reader);
         $reader->byteAlign();
         $this->_headers['FrameRate'] = $reader->getUI16LE();
         $this->_headers['FrameCount'] = $reader->getUI16LE();
