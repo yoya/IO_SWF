@@ -33,8 +33,24 @@ class IO_SWF_Shape {
 	      case 0x10: // linear gradient fill
 	      case 0x12: // radianar gradient fill
 	      case 0x12: // radianar gradient fill
-     // TODO
+	      $fillStyle['SpreadMode'] = $reader->getUIBits(2);
+	      $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
+	      $numGradients = $reader->getUIBits(4);
+	      $fillStyle['NumGradients'] = $numGradients;
+	      $fillStyle['GradientRecords'] = array();
+	      for ($i = 0 ; $i < $numGradients ; $i++) {
+	          $gradientRecords = array();
+		  $gradientRecords['Ratio'] = $reader->getUI8();
+		  if ($tagCode < 32 ) { // 32:DefineShape3
+		      $gradientRecords['Color'] = IO_SWF_Type::parseRGB($reader);
+		  } else {
+		      $gradientRecords['Color'] = IO_SWF_Type::parseRGBA($reader);
+		  }
+	          $fillStyle['GradientRecords'] []= $gradientRecords;
+	      }
+	      break;
 	      // case 0x13: // focal gradient fill // 8 and later
+	      // break;
 	      case 0x40: // repeating bitmap fill
 	      case 0x41: // clipped bitmap fill
 	      case 0x42: // non-smoothed repeating bitmap fill
