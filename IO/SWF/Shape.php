@@ -16,6 +16,7 @@ class IO_SWF_Shape {
 	$this->_parseFILLSTYLEARRAY($reader);
 	$this->_parseLINESTYLEARRAY($reader);
 
+	$reader->byteAlign();
 	$numFillBits = $reader->getUIBits(4);
 	$numLineBits = $reader->getUIBits(4);
 	$currentDrawingPositionX = 0;
@@ -70,7 +71,8 @@ class IO_SWF_Shape {
 		    if ($stateNewStyles) {
 		    	$this->_parseFILLSTYLEARRAY($reader);
 			$this->_parseLINESTYLEARRAY($reader);
-// align
+
+			$reader->byteAlign();
 			$numFillBits = $reader->getUIBits(4);
 			$numLineBits = $reader->getUIBits(4);
 		    }
@@ -235,7 +237,7 @@ class IO_SWF_Shape {
 	    $color_str = IO_SWF_Type::stringRGBorRGBA($color);
 	    echo "\tWitdh: $width Color: $color_str\n";
 	}
-    	echo "ShapeRecords: ";
+    	echo "ShapeRecords:\n";
     	foreach ($this->_shapeRecords as $shapeRecord) {
 		$typeFlag = $shapeRecord['TypeFlag'];
 		if ($typeFlag == 0) {
