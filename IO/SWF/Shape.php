@@ -47,8 +47,8 @@ class IO_SWF_Shape {
 		    if ($stateMoveTo) {
 		        $moveBits = $reader->getUIBits(5);
 //		    	$shapeRecord['(MoveBits)'] = $moveBits;
-			$moveDeltaX = $reader->getUIBits($moveBits);
-			$moveDeltaY = $reader->getUIBits($moveBits);
+			$moveDeltaX = $reader->getSIBits($moveBits);
+			$moveDeltaY = $reader->getSIBits($moveBits);
 //			$currentDrawingPositionX += $moveDeltaX;
 //			$currentDrawingPositionY += $moveDeltaY;
 			$currentDrawingPositionX = $moveDeltaX;
@@ -89,12 +89,12 @@ class IO_SWF_Shape {
 //		       $shapeRecord['(VertLineFlag)'] = $vertLineFlag;
 		    }
 		    if ($generalLineFlag || ($vertLineFlag == 0)) {
-		       $deltaX = $reader->getUIBits($numBits + 2);
+		       $deltaX = $reader->getSIBits($numBits + 2);
 //		       $shapeRecord['(DeltaX)'] = $deltaX;
        		       $currentDrawingPositionX += $deltaX;
 		    }
 		    if ($generalLineFlag || $vertLineFlag) {
-       		       $deltaY = $reader->getUIBits($numBits + 2);
+       		       $deltaY = $reader->getSIBits($numBits + 2);
 //     		       $shapeRecord['(DeltaY)'] = $deltaY;
 		       $currentDrawingPositionY += $deltaY;
 		    }
@@ -103,16 +103,16 @@ class IO_SWF_Shape {
 		} else { // Curved Edge
 		    $numBits = $reader->getUIBits(4);
 //    	            $shapeRecord['(NumBits)'] = $numBits;
-		    $controlDeltaX = $reader->getUIBits($numBits + 2);
-		    $controlDeltaY = $reader->getUIBits($numBits + 2);
+		    $controlDeltaX = $reader->getSIBits($numBits + 2);
+		    $controlDeltaY = $reader->getSIBits($numBits + 2);
 //		    $shapeRecord['(ControlDeltaX)'] = $controlDeltaX;
 //		    $shapeRecord['(ControlDeltaY)'] = $controlDeltaY;
 		    $currentDrawingPositionX += $controlDeltaX;
 		    $currentDrawingPositionY += $controlDeltaY;
 		    $shapeRecord['ControlX'] = $currentDrawingPositionX;
 		    $shapeRecord['ControlY'] = $currentDrawingPositionY;
-		    $anchorDeltaX = $reader->getUIBits($numBits + 2);
-		    $anchorDeltaY = $reader->getUIBits($numBits + 2);
+		    $anchorDeltaX = $reader->getSIBits($numBits + 2);
+		    $anchorDeltaY = $reader->getSIBits($numBits + 2);
 //		    $shapeRecord['(AnchorDeltaX)'] = $anchorDeltaX;
 //		    $shapeRecord['(AnchorDeltaY)'] = $anchorDeltaY;
 		    $currentDrawingPositionX += $anchorDeltaX;
@@ -244,8 +244,8 @@ class IO_SWF_Shape {
 		   if (isset($shapeRecord['EndOfShape'])) {
 		       break;
 		   } else {
-		       $moveX = $shapeRecord['MoveX'];
-		       $moveY = $shapeRecord['MoveY'];
+		       $moveX = $shapeRecord['MoveX'] / 20;
+		       $moveY = $shapeRecord['MoveY'] / 20;
 		       echo "\tChangeStyle: MoveTo: ($moveX, $moveY)\n";
 		       $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
 		       foreach ($style_list as $style) {
