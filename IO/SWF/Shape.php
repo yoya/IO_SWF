@@ -21,6 +21,9 @@ class IO_SWF_Shape {
 	$numLineBits = $reader->getUIBits(4);
 	$currentDrawingPositionX = 0;
 	$currentDrawingPositionY = 0;
+	$currentFillStyle0 = 0;
+	$currentFillStyle1 = 0;
+	$currentLineStyle = 0;
 	$done = false;
 	while ($done === false) {
 	    $shapeRecord = array();
@@ -60,14 +63,17 @@ class IO_SWF_Shape {
 
 		    }
 		    if ($stateFillStyle0) {
-		        $shapeRecord['FillStyle0'] = $reader->getUIBits($numFillBits);
+		    	$currentFillStyle0 = $reader->getUIBits($numFillBits);
 		    }
 		    if ($stateFillStyle1) {
-		        $shapeRecord['FillStyle1'] = $reader->getUIBits($numFillBits);
+			$currentFillStyle1 = $reader->getUIBits($numFillBits);
 		    }
 		    if ($stateLineStyle) {
-		        $shapeRecord['LineStyle'] = $reader->getUIBits($numLineBits);
+		    	$currentLineStyle = $reader->getUIBits($numLineBits);
 		    }
+		    $shapeRecord['FillStyle0'] = $currentFillStyle0;
+		    $shapeRecord['FillStyle1'] = $currentFillStyle1;
+		    $shapeRecord['LineStyle']  = $currentLineStyle;
 		    if ($stateNewStyles) {
 		    	$this->_parseFILLSTYLEARRAY($reader);
 			$this->_parseLINESTYLEARRAY($reader);
@@ -246,13 +252,11 @@ class IO_SWF_Shape {
 		   } else {
 		       $moveX = $shapeRecord['MoveX'] / 20;
 		       $moveY = $shapeRecord['MoveY'] / 20;
-		       echo "\tChangeStyle: MoveTo: ($moveX, $moveY)\n";
+		       echo "\tChangeStyle: MoveTo: ($moveX, $moveY)";
 		       $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
-		       foreach ($style_list as $style) {
-		       	   if (isset($shapeRecord[$style])) {
-			      echo "\t\t$style: ".$shapeRecord[$style]."\n";
-			   }
-		       }
+		       echo "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
+		       echo "  LineStyle: ".$shapeRecord['LineStyle']."\n";
+
 		   }
 		} else {
 		    $straightFlag = $shapeRecord['StraightFlag'];
