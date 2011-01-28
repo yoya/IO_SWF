@@ -62,6 +62,9 @@ class IO_SWF_Type {
 //	    $matrix['(NScaleBits)'] = $nScaleBits;
 	    $matrix['ScaleX'] = $reader->getSIBits($nScaleBits);
 	    $matrix['ScaleY'] = $reader->getSIBits($nScaleBits);
+	} else {
+	    $matrix['ScaleX'] = 20;
+	    $matrix['ScaleY'] = 20;
 	}
         $hasRotate = $reader->getUIBit();
 	if ($hasRotate) {
@@ -69,6 +72,9 @@ class IO_SWF_Type {
 //	    $matrix['(NRotateBits)'] = $nRotateBits;
 	    $matrix['RotateSkew0'] = $reader->getSIBits($nRotateBits);
 	    $matrix['RotateSkew1'] = $reader->getSIBits($nRotateBits);
+	} else  {
+	    $matrix['RotateSkew0'] = 0;
+	    $matrix['RotateSkew1'] = 0;
 	}
         $nTranslateBits = $reader->getUIBits(5);
 	$matrix['TranslateX'] = $reader->getSIBits($nTranslateBits);
@@ -77,5 +83,20 @@ class IO_SWF_Type {
     }
     static function buildMATRIX($d) {
     	   return '';
+    }
+    static function stringMATRIX($matrix, $indent) {
+	   $text_fmt = <<< EOS
+%s| %3.2f %3.2f |  %3.2f
+%s| %3.2f %3.2f |  %3.2f
+EOS;
+	return 	sprintf($text_fmt, 
+		str_repeat("\t", $indent),
+		$matrix['ScaleX'] / 0x10000 / 20 ,
+		$matrix['RotateSkew0'],
+		$matrix['TranslateX'] / 0x10000 / 20,
+		str_repeat("\t", $indent),
+		$matrix['RotateSkew1'],
+		$matrix['ScaleY'] / 0x10000 / 20,
+		$matrix['TranslateY'] / 0x10000 / 20);
     }
 }
