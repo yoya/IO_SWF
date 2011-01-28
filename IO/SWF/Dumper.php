@@ -37,7 +37,8 @@ class IO_SWF_Dumper extends IO_SWF {
 	      case 22: // DefineShape2
 	      case 32: // DefineShape3
 		$shape = new IO_SWF_Shape();
-		$shape->parse($code, $tag['Content']);
+		$opts = array('hasShapeId' => true);
+		$shape->parse($code, $tag['Content'], $opts);
 		$shape->dump();
 		break;
 	    }
