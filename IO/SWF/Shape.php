@@ -3,28 +3,35 @@
 require_once 'IO/Bit.php';
 
 class IO_SWF_Shape {
-    var $_shapeId;
+    var $_shapeId = null;
     var $_shapeBounds;
     var $_fillStyles = array(), $_lineStyles = array();
     var $_shapeRecords = array();
-    function parse($tagCode, $content) {
+    function parse($tagCode, $content, $opts) {
         $reader = new IO_Bit();
 	$reader->input($content);
-        $this->_shapeId = $reader->getUI16LE();
+	if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
+	        $this->_shapeId = $reader->getUI16LE();
+	}
+	// 描画枠
     	$this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
 
+	// 描画スタイル
 	$this->_parseFILLSTYLEARRAY($reader);
 	$this->_parseLINESTYLEARRAY($reader);
 
 	$reader->byteAlign();
+	// 描画スタイルを参照するインデックスのビット幅
 	$numFillBits = $reader->getUIBits(4);
 	$numLineBits = $reader->getUIBits(4);
+
 	$currentDrawingPositionX = 0;
 	$currentDrawingPositionY = 0;
 	$currentFillStyle0 = 0;
 	$currentFillStyle1 = 0;
 	$currentLineStyle = 0;
 	$done = false;
+	// ShapeRecords
 	while ($done === false) {
 	    $shapeRecord = array();
 	    $typeFlag = $reader->getUIBit();
@@ -32,9 +39,11 @@ class IO_SWF_Shape {
 	    if ($typeFlag == 0) {
 	        $endOfShape = $reader->getUIBits(5); // XXX not 4 ?
 		if ($endOfShape == 0) {
+		    // EndShapeRecord
 		    $shapeRecord['EndOfShape'] = $endOfShape;
 		    $done = true;
 		} else {
+		    // StyleChangeRecord
 		    $reader->incrementOffset(0, -5); // XXX not 4 ?
 		    $stateNewStyles = $reader->getUIBit();
 		    $stateLineStyle = $reader->getUIBit();
@@ -83,9 +92,10 @@ class IO_SWF_Shape {
 			$numLineBits = $reader->getUIBits(4);
 		    }
 		}
-	    } else { // Edge
+	    } else { // Edge records
 	        $shapeRecord['StraightFlag'] = $reader->getUIBit();
-		if ($shapeRecord['StraightFlag']) { // Straight Edge
+		if ($shapeRecord['StraightFlag']) {
+		    // StraightEdgeRecord
 		    $numBits = $reader->getUIBits(4);
 //	            $shapeRecord['(NumBits)'] = $numBits;
 		    $generalLineFlag = $reader->getUIBit();
@@ -106,7 +116,8 @@ class IO_SWF_Shape {
 		    }
 		    $shapeRecord['X'] = $currentDrawingPositionX;
 		    $shapeRecord['Y'] = $currentDrawingPositionY;
-		} else { // Curved Edge
+		} else {
+		    // CurvedEdgeRecord
 		    $numBits = $reader->getUIBits(4);
 //    	            $shapeRecord['(NumBits)'] = $numBits;
 		    $controlDeltaX = $reader->getSIBits($numBits + 2);
@@ -201,7 +212,9 @@ class IO_SWF_Shape {
         }
     }
     function dump() {
-    	echo "ShapeId: {$this->_shapeId}\n";
+    	if (is_null($this->_shapeId) === false) {
+	    	echo "ShapeId: {$this->_shapeId}\n";
+	}
     	echo "ShapeBounds:\n";
 	$Xmin = $this->_shapeBounds['Xmin'] / 20;
 	$Xmax = $this->_shapeBounds['Xmax'] / 20;
