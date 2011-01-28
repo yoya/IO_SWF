@@ -141,9 +141,9 @@ class IO_SWF_Shape {
 	for ($i = 0 ; $i < $fillStyleCount ; $i++) {
 	    $fillStyle = array();
 	    $fillStyleType = $reader->getUI8();
+	    $fillStyle['FillStyleType'] = $fillStyleType;
 	    switch ($fillStyleType) {
 	      case 0x00: // solid fill
-	      	$fillStyle['FillStyleType'] = $fillStyleType;
 		if ($tagCode < 32 ) { // 32:DefineShape3
 		    $fillStyle['Color'] = IO_SWF_Type::parseRGB($reader);
 		} else {
@@ -233,7 +233,18 @@ class IO_SWF_Shape {
 		    echo "\t\tRatio: $radio Color:$color_str\n";
 		}
       	        break;
-
+	      case 0x40: // repeating bitmap fill
+	      case 0x41: // clipped bitmap fill
+	      case 0x42: // non-smoothed repeating bitmap fill
+	      case 0x43: // non-smoothed clipped bitmap fill
+	      	   echo "\tBigmap($fillStyleType): ";
+		   echo "  BitmapId: ".$fillStyle['BitmapId']."\n";
+		   echo "\tBitmapMatrix:\n";
+		   $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['BitmapMatrix'], 2);
+		   echo $matrix_str . "\n";
+      	        break;
+	      default:
+      	        echo "Unknown FillStyleType($fillStyleType)\n";
 	    }
 	}
     	echo "LineStyles:\n";
@@ -256,7 +267,6 @@ class IO_SWF_Shape {
 		       $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
 		       echo "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
 		       echo "  LineStyle: ".$shapeRecord['LineStyle']."\n";
-
 		   }
 		} else {
 		    $straightFlag = $shapeRecord['StraightFlag'];
