@@ -31,7 +31,7 @@ class IO_SWF_Dumper extends IO_SWF {
         foreach ($this->_tags as $tag) {
             $code = $tag['Code'];
             $length = $tag['Length'];
-            echo "\tCode: $code  Length: $length".PHP_EOL;
+            echo "Code: $code  Length: $length".PHP_EOL;
 	    switch ($code) {
 	      case 2: // DefineShape
 	      case 22: // DefineShape2

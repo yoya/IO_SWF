@@ -10,15 +10,23 @@ class IO_SWF_Type {
     static function parseRECT($reader) {
         $frameSize = array();
         $nBits = $reader->getUIBits(5);
-//        $frameSize['(NBits)'] = $nBits;
         $frameSize['Xmin'] = $reader->getSIBits($nBits);
         $frameSize['Xmax'] = $reader->getSIBits($nBits);
         $frameSize['Ymin'] = $reader->getSIBits($nBits);
         $frameSize['Ymax'] = $reader->getSIBits($nBits) ;
     	return $frameSize; 
     }
-    static function buildRECT($data) {
-    	   return '';
+    static function buildRECT($writer, $frameSize) {
+        $nBits = 0;
+	foreach ($frameSize as $size) {
+	    $bits = $writer->need_bits_signed($size);
+	    $nBits = max($nBits, $bits);
+	}
+	$writer->putUIBits($MaxWidth, 5);
+        $writer->putSIBits($frameSize['Xmin'], $nBits);
+        $writer->putSIBits($frameSize['Xmax'], $nBits);
+        $writer->putSIBits($frameSize['Ymin'], $nBits);
+        $writer->putSIBits($frameSize['Ymax'], $nBits);
     }
     static function parseRGB($reader) {
     	$rgb = array();
@@ -27,8 +35,8 @@ class IO_SWF_Type {
     	$rgb['Blue'] = $reader->getUI8();
 	return $rgb;
     }
-    static function buildRGB($d) {
-    	   return '';
+    static function buildRGB($writer, $rgb) {
+
     }
     static function stringRGB($color) {
 	return sprintf("#%02x%02x%02x", $color['Red'], $color['Green'], $color['Blue']);
@@ -41,7 +49,7 @@ class IO_SWF_Type {
     	$rgba['Alpha'] = $reader->getUI8();
 	return $rgba;
     }
-    static function buildRGBA($d) {
+    static function buildRGBA($writer, $rgba) {
     	   return '';
     }
     static function stringRGBA($color) {
@@ -81,8 +89,35 @@ class IO_SWF_Type {
 	$matrix['TranslateY'] = $reader->getSIBits($nTranslateBits);
 	return $matrix;
     }
-    static function buildMATRIX($d) {
-    	   return '';
+    static function buildMATRIX($writer, $matrix) {
+        if (isset($matrix['ScaleX']) || isset($matrix['ScaleY'])) {
+	    $writer->putUIBit(1); // HasScale;
+	    $xNBits = $writer->need_bits_signed($matrix['ScaleX']);
+	    $yNBits = $writer->need_bits_signed($matrix['ScaleY']);
+	    $nScaleBits = max($xNBits, $yNBits);
+	    $writer->putUIBits($nScaleBits, 5);
+	    $writer->putSIBits($matrix['ScaleX'], $nScaleBits);
+	    $writer->putSIBits($matrix['ScaleY'], $nScaleBits);
+	} else {
+	    $writer->putUIBit(0); // HasScale;
+	}
+	if (isset($matrix['RotateSkew0']) || isset($matrix['RotateSkew1'])) {
+	    $writer->putUIBit(1); // HasRotate
+	    $rs0NBits = $writer->need_bits_signed($matrix['RotateSkew0']);
+	    $rs1NBits = $writer->need_bits_signed($matrix['RotateSkew1']);
+	    $nRotateBits = max($rs0NBits, $rs1NBits);
+	    $writer->putUIBits($nRotateBits, 5);
+	    $writer->putSIBits($matrix['RotateSkew0'], $nRotateBits);
+	    $writer->putSIBits($matrix['RotateSkew1'], $nRotateBits);
+	} else {
+	    $writer->putUIBit(0); // HasRotate
+        }
+	$xNTranslateBits = $writer->need_bits_signed($matrix['TranslateX']);
+	$yNTranslateBits = $writer->need_bits_signed($matrix['TranslateY']);
+	$nTranslateBits = max($xNTranslateBits, $yNTranslateBits);
+	$writer->putUIBits($nTranslateBits, 5);
+	$writer->putSIBits($matrix['TranslateX'], $nTranslateBits);
+	$writer->putSIBits($matrix['TranslateY'], $nTranslateBits);
     }
     static function stringMATRIX($matrix, $indent) {
 	   $text_fmt = <<< EOS

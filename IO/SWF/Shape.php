@@ -17,8 +17,8 @@ class IO_SWF_Shape {
     	$this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
 
 	// 描画スタイル
-	$this->_parseFILLSTYLEARRAY($reader);
-	$this->_parseLINESTYLEARRAY($reader);
+	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
+	$this->_parseLINESTYLEARRAY($tagCode, $reader);
 
 	$reader->byteAlign();
 	// 描画スタイルを参照するインデックスのビット幅
@@ -142,7 +142,7 @@ class IO_SWF_Shape {
 	}
 
     }
-    function _parseFILLSTYLEARRAY($reader) {
+    function _parseFILLSTYLEARRAY($tagCode, $reader) {
 	// FillStyle
 	$fillStyleCount = $reader->getUI8();
 	if (($tagCode > 2) && ($fillStyleCount == 0xff)) {
@@ -166,7 +166,7 @@ class IO_SWF_Shape {
 	        $fillStyle['SpreadMode'] = $reader->getUIBits(2);
 	        $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
 	   	$numGradients = $reader->getUIBits(4);
-	   	$fillStyle['NumGradients'] = $numGradients;
+//	   	$fillStyle['(NumGradients)'] = $numGradients;
 	        $fillStyle['GradientRecords'] = array();
 	        for ($i = 0 ; $i < $numGradients ; $i++) {
 	            $gradientRecord = array();
@@ -194,7 +194,7 @@ class IO_SWF_Shape {
 	    $this->_fillStyles[] = $fillStyle;
 	}
     }
-    function _parseLINESTYLEARRAY($reader) {
+    function _parseLINESTYLEARRAY($tagCode, $reader) {
 	$lineStyleCount = $reader->getUI8();
 	if (($tagCode > 2) && ($lineStyleCount == 0xff)) {
 	   // DefineShape2 以降は 0xffff サイズまで扱える
@@ -213,15 +213,15 @@ class IO_SWF_Shape {
     }
     function dump() {
     	if (is_null($this->_shapeId) === false) {
-	    	echo "ShapeId: {$this->_shapeId}\n";
+	    	echo "    ShapeId: {$this->_shapeId}\n";
 	}
-    	echo "ShapeBounds:\n";
+    	echo "    ShapeBounds:";
 	$Xmin = $this->_shapeBounds['Xmin'] / 20;
 	$Xmax = $this->_shapeBounds['Xmax'] / 20;
 	$Ymin = $this->_shapeBounds['Xmin'] / 20;
 	$Ymax = $this->_shapeBounds['Ymax'] / 20;
-    	echo "\t($Xmin, $Ymin) - ($Xmax, $Ymax)\n";
-    	echo "FillStyles:\n";
+    	echo "  ($Xmin, $Ymin) - ($Xmax, $Ymax)\n";
+    	echo "    FillStyles:\n";
 	foreach ($this->_fillStyles as $fillStyle) {
 	    $fillStyleType = $fillStyle['FillStyleType'];
 	    switch ($fillStyleType) {
@@ -260,14 +260,14 @@ class IO_SWF_Shape {
       	        echo "Unknown FillStyleType($fillStyleType)\n";
 	    }
 	}
-    	echo "LineStyles:\n";
+    	echo "    LineStyles:\n";
 	foreach ($this->_lineStyles as $lineStyle) {
 	    $witdh = $lineStyle['Width'];
 	    $color = $lineStyle['Color'];
 	    $color_str = IO_SWF_Type::stringRGBorRGBA($color);
 	    echo "\tWitdh: $width Color: $color_str\n";
 	}
-    	echo "ShapeRecords:\n";
+    	echo "    ShapeRecords:\n";
     	foreach ($this->_shapeRecords as $shapeRecord) {
 		$typeFlag = $shapeRecord['TypeFlag'];
 		if ($typeFlag == 0) {
@@ -297,9 +297,93 @@ class IO_SWF_Shape {
 		}
 	}
     }
-    function build() {
-        $tagData = '';
-	return $tagData;
+    function build($tagCode, $opts) {
+	$writer = new IO_Bit();
+	if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
+	    $writer->putUI16LE($this->_shapeId);
+	}
+	IO_SWF_Type::buildRECT($writer, $this->_shapeBounds);
+	// 描画スタイル
+	$this->_buildFILLSTYLEARRAY($writer, $tagCode);
+	$this->_buildLINESTYLEARRAY($writer, $tagCode);
+	;
+	return $writer->output();
     }
-
+    function _buildFILLSTYLEARRAY($writer, $tagCode) {
+    	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
+	$fillStyleCount = count($this->_fillStyles);
+	if ($fillStyleCount < 0xff) {
+	    $writer->putUI8($fillStyleCount);
+	} else {
+	    $writer->putUI8(0xff);
+	    $writer->putUI16LE($fillStyleCount);
+	}
+	for ($i = 0 ; $i < $fillStyleCount ; $i++) {
+	    $fillStyleType = $fillStyle['FillStyleType'];
+	    $writer->putUI8($fillStyleType);
+	    switch ($fillStyleType) {
+	      case 0x00: // solid fill
+		if ($tagCode < 32 ) { // 32:DefineShape3
+		    IO_SWF_Type::buildRGB($writer, $fillStyle['Color']);
+		} else {
+		    IO_SWF_Type::buildRGBA($writer, $fillStyle['Color']);
+		}
+	      	break;
+	      case 0x10: // linear gradient fill
+	      case 0x12: // radianar gradient fill
+	        $writer->putUIBits($fillStyle['SpreadMode'], 2);
+	        $writer->putUIBits($fillStyle['InterpolationMode'], 2);
+	   	$numGradients = count($fillStyle['GradientRecords']);
+	   	$writer->putUIBits($numGradients , 4);
+	        for ($i = 0 ; $i < $numGradients ; $i++) {
+   		    $writer->putUI8($gradientRecord['Ratio']);
+    		    if ($tagCode < 32 ) { // 32:DefineShape3
+		        IO_SWF_Type::buildRGB($writer, $gradientRecord['Color']);
+		    } else {
+		        IO_SWF_Type::buildRGBA($writer, $gradientRecord['Color']);
+		    }
+		}
+	      // case 0x13: // focal gradient fill // 8 and later
+	      // break;
+	      case 0x40: // repeating bitmap fill
+	      case 0x41: // clipped bitmap fill
+	      case 0x42: // non-smoothed repeating bitmap fill
+	      case 0x43: // non-smoothed clipped bitmap fill
+      	        $writer->putUI16LE($fillStyle['BitmapId']);
+	        IO_SWF_Type::buildMATRIX($writer, $fillStyle['BitmapMatrix']);
+		break;
+	    }
+	}
+    }
+    function _buildLINESTYLEARRAY($writer, $tagCode) {
+    	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
+	$lineStyleCount = count($this->_lineStyles);
+	if ($lineStyleCount < 0xff) {
+	    $writer->putUI8($lineStyleCount);
+	} else {
+	    $writer->putUI8(0xff);
+	    $writer->putUI16LE($lineStyleCount);
+	}
+	for ($i = 0 ; $i < $lineStyleCount ; $i++) {
+	    $writer->putUI16LE($lineStyle['Width']);
+    	    if ($tagCode < 32 ) { // 32:DefineShape3
+    	        IO_SWF_Type::buildRGB($writer, $lineStyle['Color']);
+	    } else {
+    	        IO_SWF_Type::buildRGBA($writer, $lineStyle['Color']);
+	    }
+	}
+	foreach ($this->_shapeRecords as $shapeRecord) {
+	    $straightFlag = $shapeRecord['StraightFlag'];
+	    $writer->putUIBit($straightFlag);
+	    if ($straightFlag) {
+	        // StraightEdgeRecord
+		
+	    } else {
+		// CurvedEdgeRecord
+	    }
+	}
+    }
+    function deforme() {
+    	; // todo...
+    }
 }
