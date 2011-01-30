@@ -391,11 +391,27 @@ class IO_SWF_Shape {
 		    $currentDrawingPositionX = $shapeRecord['X'];
 		    $currentDrawingPositionY = $shapeRecord['Y'];
 		} else {
-		    ;		  
+		    $controlDeltaX = $shapeRecord['ControlX'] - $currentDrawingPositionX;
+		    $contrilDeltaY = $shapeRecord['ControlY'] - $currentDrawingPositionY;
+		    $currentDrawingPositionX = $shapeRecord['ControlX'];
+		    $currentDrawingPositionY = $shapeRecord['ControlY'];
+		    $anchorDeltaX = $shapeRecord['AnchorX'] - $currentDrawingPositionY;
+		    $anchorDeltaY = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
+		    $currentDrawingPositionX = $shapeRecord['AnchorX'];
+		    $currentDrawingPositionY = $shapeRecord['AnchorY'];
+		    $numBitsControlDeltaX = $writer->need_bits_signed($controlDeltaX);
+		    $numBitsControlDeltaY = $writer->need_bits_signed($aontrolDeltaY);
+		    $numBitsAnchorDeltaX = $writer->need_bits_signed($anchorDeltaX);
+		    $numBitsAnchorDeltaY = $writer->need_bits_signed($anchorDeltaY);
+		    $numBits = max($numBitsControlDeltaX, $numBitsControlDeltaY, $numBitsAnchorDeltaX, $numBitsAnchorDeltaY);
+		    $writer->putUIBits($numBits, 4);
+		    $writer->putSIBits($controlDeltaX, $numBits + 2);
+		    $writer->putSIBits($controlDeltaY, $numBits + 2);
+		    $writer->putSIBits($anchorDeltaX, $numBits + 2);
+		    $writer->putSIBits($anchorDeltaY, $numBits + 2);
 		}
 	    }
 	}
-
 	;
 	return $writer->output();
     }
