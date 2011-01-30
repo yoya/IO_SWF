@@ -304,8 +304,98 @@ class IO_SWF_Shape {
 	}
 	IO_SWF_Type::buildRECT($writer, $this->_shapeBounds);
 	// 描画スタイル
-	$this->_buildFILLSTYLEARRAY($writer, $tagCode);
-	$this->_buildLINESTYLEARRAY($writer, $tagCode);
+	$fillStyleCount = $this->_buildFILLSTYLEARRAY($writer, $tagCode);
+	$lineStyleCount = $this->_buildLINESTYLEARRAY($writer, $tagCode);
+
+	$numFillBits = $writer->need_bits_unsigned($fillStyleCount + 1);
+	$numLineBits = $writer->need_bits_unsigned($lineStyleCount + 1);
+	$writer->putUIBits($numFillBits, 4);
+	$writer->putUIBits($numLineBits, 4);
+	$currentDrawingPositionX = 0;
+	$currentDrawingPositionY = 0;
+	$currentFillStyle0 = 0;
+	$currentFillStyle1 = 0;
+	$currentLineStyle = 0;
+	foreach ($this->_shapeRecords as $shapeRecord) {
+	    $typeFlag = $shapeRecord['TypeFlag'];
+	    $writer->putUIBit($typeFlag);
+	    if($typeFlag == 0) {
+	        if (isset($shapeRecord['EndOfShape']) && ($shapeRecord['EndOfShape']) == 0) {
+		    // EndShapeRecord
+   	            $writer->putUIBits(0, 5); // XXX not 4 ?
+		} else {
+    		    // StyleChangeRecord
+		    $stateNewStyles = 0;
+		    $stateLineStyle = ($shapeRecord['LineStyle'] == $currentLineStyle)?0:1;
+		    $stateFillStyle1 = ($shapeRecord['FillStyle1'] == $currentFillStyle1)?0:1;
+		    $stateFillStyle0 = ($shapeRecord['FillStyle0'] == $currentFillStyle0)?0:1;
+		    $writer->putUIBit($stateNewStyles);
+		    $writer->putUIBit($stateLineStyle);
+		    $writer->putUIBit($stateFillStyle1);
+		    $writer->putUIBit($stateFillStyle0);
+
+		    $stateMoveTo = isset($shapeRecord['MoveX'])?1:0;
+		    $writer->putUIBit($stateMoveTo);
+		    if ($stateMoveTo) {
+		        $moveX = $shapeRecord['MoveX'];
+			$moveY = $shapeRecord['MoveY'];
+		    	$currentDrawingPositionX = $moveX;
+			$currentDrawingPositionY = $moveY;
+			$XmoveBits = $writer->need_bits_signed($moveX);
+			$YmoveBits = $writer->need_bits_signed($moveY);
+			$moveBits = max($XmoveBits, $YmoveBits);
+			$writer->putSIBits($moveX, $moveBits);
+			$writer->putSIBits($moveY, $moveBits);
+		    }
+		    if ($stateFillStyle0) {
+	 	        $currentFillStyle0 = $shapeRecord['FillStyle0'];
+		    	$writer->putUIBits($currentFillStyle0, $numFillBits);
+		    }
+		    if ($stateFillStyle1) {
+	 	        $currentFillStyle1 = $shapeRecord['FillStyle1'];
+		    	$writer->putUIBits($currentFillStyle1, $numFillBits);
+		    }
+		    if ($stateLineStyle) {
+	 	        $currentLineStyle = $shapeRecord['LineStyle'];
+		    	$writer->putUIBits($currentLineStyle, $numLineBits);
+		    }
+		    if ($stateNewStyles) {
+		       // not implemented yet.
+		       abort();
+		    }
+		}
+	    } else {
+       	        $straightFlag = $shapeRecord['StraightFlag'];
+		$writer->putUIBit($straightFlag);
+		if ($straightFlag) {
+		    $deltaX = $shapeRecord['X'] - $currentDrawingPositionX;
+		    $deltaY = $shapeRecord['Y'] - $currentDrawingPositionY;
+   		    $XNumBits = $writer->need_bits_signed($deltaX);
+   		    $YNumBits = $writer->need_bits_signed($deltaY);
+   		    $numBits = max($XNumBits, $YNumBits);
+		    $writer->putUIBits($numBits, 4);
+		    if ($deltaX && $deltaY) {
+		        $writer->putUIBit(1); // GeneralLineFlag
+			$writer->putSIBits($deltaX, $numBits + 2);
+			$writer->putSIBits($deltaY, $numBits + 2);
+		    } else {
+		        $writer->putUIBit(0); // GeneralLineFlag
+			if ($deltaX) {
+			   $writer->putUIBit(0); // VertLineFlag
+			   $writer->putSIBits($deltaX, $numBits + 2);
+			} else {
+			   $writer->putUIBit(1); // VertLineFlag
+			   $writer->putSIBits($deltaY, $numBits + 2);
+			}
+		    }
+		    $currentDrawingPositionX = $shapeRecord['X'];
+		    $currentDrawingPositionY = $shapeRecord['Y'];
+		} else {
+		    ;		  
+		}
+	    }
+	}
+
 	;
 	return $writer->output();
     }
@@ -354,6 +444,7 @@ class IO_SWF_Shape {
 		break;
 	    }
 	}
+	return $fillStyleCount;
     }
     function _buildLINESTYLEARRAY($writer, $tagCode) {
     	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
@@ -382,6 +473,7 @@ class IO_SWF_Shape {
 		// CurvedEdgeRecord
 	    }
 	}
+	return $lineStyleCount;
     }
     function deforme() {
     	; // todo...
