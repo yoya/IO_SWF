@@ -67,12 +67,7 @@ class IO_SWF {
         $writer_head->putUI32LE($this->_headers['FileLength']);
 
         /* SWF Movie Header */
-        $nBits = $this->_headers['FrameSize']['NBits'];
-        $writer->putUIBits($nBits, 5);
-        $writer->putSIBits($this->_headers['FrameSize']['Xmin'], $nBits);
-        $writer->putSIBits($this->_headers['FrameSize']['Xmax'], $nBits);
-        $writer->putSIBits($this->_headers['FrameSize']['Ymin'], $nBits);
-        $writer->putSIBits($this->_headers['FrameSize']['Ymax'], $nBits);
+	IO_SWF_Type::buildRECT($writer, $this->_headers['FrameSize']);
         $writer->byteAlign();
         $writer->putUI16LE($this->_headers['FrameRate']);
         $writer->putUI16LE($this->_headers['FrameCount']);

@@ -22,7 +22,7 @@ class IO_SWF_Type {
 	    $bits = $writer->need_bits_signed($size);
 	    $nBits = max($nBits, $bits);
 	}
-	$writer->putUIBits($MaxWidth, 5);
+	$writer->putUIBits($nBits, 5);
         $writer->putSIBits($frameSize['Xmin'], $nBits);
         $writer->putSIBits($frameSize['Xmax'], $nBits);
         $writer->putSIBits($frameSize['Ymin'], $nBits);
