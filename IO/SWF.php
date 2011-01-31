@@ -75,6 +75,7 @@ class IO_SWF {
         /* SWF Tags */
         foreach ($this->_tags as $tag) {
             $code = $tag['Code'];
+            $tag['Length'] = strlen($tag['Content']);
             $length = $tag['Length'];
             if (empty($tag['LongFormat']) && ($length < 0x3f)) {
                 $tagAndLength = ($code << 6) | $length;
