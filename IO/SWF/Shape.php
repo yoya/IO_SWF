@@ -62,8 +62,10 @@ class IO_SWF_Shape {
 			$currentDrawingPositionY = $moveDeltaY;
 			$shapeRecord['MoveX'] = $currentDrawingPositionX;
 			$shapeRecord['MoveY'] = $currentDrawingPositionY;
-
 		    }
+		    $shapeRecord['MoveX'] = $currentDrawingPositionX;
+		    $shapeRecord['MoveY'] = $currentDrawingPositionY;
+
 		    if ($stateFillStyle0) {
 		    	$currentFillStyle0 = $reader->getUIBits($numFillBits);
 		    }
@@ -227,10 +229,10 @@ class IO_SWF_Shape {
 	        $spreadMode = $fillStyle['SpreadMode'];
 		$interpolationMode = $fillStyle['InterpolationMode'];
 		foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
-		    $ratio = $gradientRecords['Ratio'];
-		    $color = $gradientRecords['Color'];
+		    $ratio = $gradientRecord['Ratio'];
+		    $color = $gradientRecord['Color'];
 		    $color_str = IO_SWF_Type::stringRGBorRGBA($color);
-		    echo "\t\tRatio: $radio Color:$color_str\n";
+		    echo "\t\tRatio: $ratio Color:$color_str\n";
 		}
       	        break;
 	      case 0x40: // repeating bitmap fill
@@ -329,16 +331,24 @@ class IO_SWF_Shape {
 		    $writer->putUIBit($stateFillStyle1);
 		    $writer->putUIBit($stateFillStyle0);
 
-		    $stateMoveTo = isset($shapeRecord['MoveX'])?1:0;
+		    if (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY)) {
+    		        $stateMoveTo = true;
+		    } else {
+    		        $stateMoveTo = false;
+		    }
 		    $writer->putUIBit($stateMoveTo);
 		    if ($stateMoveTo) {
 		        $moveX = $shapeRecord['MoveX'];
 			$moveY = $shapeRecord['MoveY'];
 		    	$currentDrawingPositionX = $moveX;
 			$currentDrawingPositionY = $moveY;
-			$XmoveBits = $writer->need_bits_signed($moveX);
-			$YmoveBits = $writer->need_bits_signed($moveY);
-			$moveBits = max($XmoveBits, $YmoveBits);
+			if ($moveX | $moveY) { 
+			    $XmoveBits = $writer->need_bits_signed($moveX);
+			    $YmoveBits = $writer->need_bits_signed($moveY);
+			    $moveBits = max($XmoveBits, $YmoveBits);
+			} else {
+			   $moveBits = 0;
+			}
 			$writer->putUIBits($moveBits, 5);
 			$writer->putSIBits($moveX, $moveBits);
 			$writer->putSIBits($moveY, $moveBits);
@@ -366,9 +376,13 @@ class IO_SWF_Shape {
 		if ($straightFlag) {
 		    $deltaX = $shapeRecord['X'] - $currentDrawingPositionX;
 		    $deltaY = $shapeRecord['Y'] - $currentDrawingPositionY;
-   		    $XNumBits = $writer->need_bits_signed($deltaX);
-   		    $YNumBits = $writer->need_bits_signed($deltaY);
-   		    $numBits = max($XNumBits, $YNumBits);
+		    if ($deltaX | $deltaY) {
+   		        $XNumBits = $writer->need_bits_signed($deltaX);
+   		        $YNumBits = $writer->need_bits_signed($deltaY);
+   		        $numBits = max($XNumBits, $YNumBits);
+		    } else {
+			$numBits = 0;
+		    }
 		    if ($numBits < 2) {
 		       $numBits = 2;
 		    }
