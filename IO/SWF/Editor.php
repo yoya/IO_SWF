@@ -126,8 +126,6 @@ class IO_SWF_Editor extends IO_SWF {
 		$shape->parse($code, $tag['Content'], $opts);
 		$shape->deforme();
 		$tag['Content'] = $shape->build($code, $opts);
-var_dump(bin2hex($tag['Content']));
-exit(0);
 		break;
 	    }
 	}
