@@ -36,7 +36,9 @@ class IO_SWF_Type {
 	return $rgb;
     }
     static function buildRGB($writer, $rgb) {
-
+	$writer->putUI8($rgb['Red']);
+	$writer->putUI8($rgb['Green']);
+	$writer->putUI8($rgb['Blue']);
     }
     static function stringRGB($color) {
 	return sprintf("#%02x%02x%02x", $color['Red'], $color['Green'], $color['Blue']);
@@ -50,7 +52,10 @@ class IO_SWF_Type {
 	return $rgba;
     }
     static function buildRGBA($writer, $rgba) {
-    	   return '';
+	$writer->putUI8($rgba['Red']);
+	$writer->putUI8($rgba['Green']);
+	$writer->putUI8($rgba['Blue']);
+	$writer->putUI8($rgba['Alpha']);
     }
     static function stringRGBA($color) {
 	return sprintf("#%02x%02x%02x(02x)", $color['Red'], $color['Green'], $color['Blue'], $color['Alpha']);
