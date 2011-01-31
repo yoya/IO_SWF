@@ -19,7 +19,11 @@ class IO_SWF_Type {
     static function buildRECT($writer, $frameSize) {
         $nBits = 0;
 	foreach ($frameSize as $size) {
-	    $bits = $writer->need_bits_signed($size);
+	    if ($size == 0){
+	        $bits = 0;
+	    } else {
+	        $bits = $writer->need_bits_signed($size);
+	    }
 	    $nBits = max($nBits, $bits);
 	}
 	$writer->putUIBits($nBits, 5);
@@ -95,31 +99,43 @@ class IO_SWF_Type {
 	return $matrix;
     }
     static function buildMATRIX($writer, $matrix) {
-        if (isset($matrix['ScaleX']) || isset($matrix['ScaleY'])) {
+        if ($matrix['ScaleX'] | $matrix['ScaleY']) {
 	    $writer->putUIBit(1); // HasScale;
-	    $xNBits = $writer->need_bits_signed($matrix['ScaleX']);
-	    $yNBits = $writer->need_bits_signed($matrix['ScaleY']);
-	    $nScaleBits = max($xNBits, $yNBits);
+	    if ($matrix['ScaleX'] | $matrix['ScaleY']) {
+	        $xNBits = $writer->need_bits_signed($matrix['ScaleX']);
+	        $yNBits = $writer->need_bits_signed($matrix['ScaleY']);
+	        $nScaleBits = max($xNBits, $yNBits);
+	    } else {
+	        $nScaleBits = 0;
+	    }
 	    $writer->putUIBits($nScaleBits, 5);
 	    $writer->putSIBits($matrix['ScaleX'], $nScaleBits);
 	    $writer->putSIBits($matrix['ScaleY'], $nScaleBits);
 	} else {
 	    $writer->putUIBit(0); // HasScale;
 	}
-	if (isset($matrix['RotateSkew0']) || isset($matrix['RotateSkew1'])) {
+	if ($matrix['RotateSkew0'] | $matrix['RotateSkew1']) {
 	    $writer->putUIBit(1); // HasRotate
-	    $rs0NBits = $writer->need_bits_signed($matrix['RotateSkew0']);
-	    $rs1NBits = $writer->need_bits_signed($matrix['RotateSkew1']);
-	    $nRotateBits = max($rs0NBits, $rs1NBits);
+	    if ($matrix['RotateSkew0'] | $matrix['RotateSkew1']) {
+	        $rs0NBits = $writer->need_bits_signed($matrix['RotateSkew0']);
+	        $rs1NBits = $writer->need_bits_signed($matrix['RotateSkew1']);
+	        $nRotateBits = max($rs0NBits, $rs1NBits);
+	    } else {
+	        $nRotateBits = 0;
+	    }
 	    $writer->putUIBits($nRotateBits, 5);
 	    $writer->putSIBits($matrix['RotateSkew0'], $nRotateBits);
 	    $writer->putSIBits($matrix['RotateSkew1'], $nRotateBits);
 	} else {
 	    $writer->putUIBit(0); // HasRotate
         }
-	$xNTranslateBits = $writer->need_bits_signed($matrix['TranslateX']);
-	$yNTranslateBits = $writer->need_bits_signed($matrix['TranslateY']);
-	$nTranslateBits = max($xNTranslateBits, $yNTranslateBits);
+	if ($matrix['TranslateX'] | $matrix['TranslateY']) {
+	    $xNTranslateBits = $writer->need_bits_signed($matrix['TranslateX']);
+	    $yNTranslateBits = $writer->need_bits_signed($matrix['TranslateY']);
+	    $nTranslateBits = max($xNTranslateBits, $yNTranslateBits);
+	} else {
+	    $nTranslateBits = 0;
+	}
 	$writer->putUIBits($nTranslateBits, 5);
 	$writer->putSIBits($matrix['TranslateX'], $nTranslateBits);
 	$writer->putSIBits($matrix['TranslateY'], $nTranslateBits);
