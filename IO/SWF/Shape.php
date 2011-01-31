@@ -49,13 +49,8 @@ class IO_SWF_Shape {
 		    $stateLineStyle = $reader->getUIBit();
 		    $stateFillStyle1 = $reader->getUIBit();
 		    $stateFillStyle0 = $reader->getUIBit();
-//		    $shapeRecord['(StateNewStyles)'] = $stateNewStyles;
-//		    $shapeRecord['(StateLineStyle)'] = $stateLineStyle;
-//		    $shapeRecord['(StateFillStyle1)'] = $stateFillStyle1;
-//		    $shapeRecord['(StateFillStyle0)'] = $stateFillStyle0;
-		    //
+
 		    $stateMoveTo = $reader->getUIBit();
-//		    $shapeRecord['(StateMoveTo)'] = $stateMoveTo;
 		    if ($stateMoveTo) {
 		        $moveBits = $reader->getUIBits(5);
 //		    	$shapeRecord['(MoveBits)'] = $moveBits;
@@ -65,8 +60,6 @@ class IO_SWF_Shape {
 //			$currentDrawingPositionY += $moveDeltaY;
 			$currentDrawingPositionX = $moveDeltaX;
 			$currentDrawingPositionY = $moveDeltaY;
-//			$shapeRecord['(MoveDeltaX)'] = $moveDeltaX;
-//			$shapeRecord['(MoveDeltaY)'] = $moveDeltaY;
 			$shapeRecord['MoveX'] = $currentDrawingPositionX;
 			$shapeRecord['MoveY'] = $currentDrawingPositionY;
 
@@ -84,8 +77,8 @@ class IO_SWF_Shape {
 		    $shapeRecord['FillStyle1'] = $currentFillStyle1;
 		    $shapeRecord['LineStyle']  = $currentLineStyle;
 		    if ($stateNewStyles) {
-		    	$this->_parseFILLSTYLEARRAY($reader);
-			$this->_parseLINESTYLEARRAY($reader);
+		    	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
+			$this->_parseLINESTYLEARRAY($tagCode, $reader);
 
 			$reader->byteAlign();
 			$numFillBits = $reader->getUIBits(4);
@@ -99,19 +92,15 @@ class IO_SWF_Shape {
 		    $numBits = $reader->getUIBits(4);
 //	            $shapeRecord['(NumBits)'] = $numBits;
 		    $generalLineFlag = $reader->getUIBit();
-//	            $shapeRecord['(GeneralLineFlag)'] = $generalLineFlag;
 		    if ($generalLineFlag == 0) {
 		       $vertLineFlag = $reader->getUIBit();
-//		       $shapeRecord['(VertLineFlag)'] = $vertLineFlag;
 		    }
 		    if ($generalLineFlag || ($vertLineFlag == 0)) {
 		       $deltaX = $reader->getSIBits($numBits + 2);
-//		       $shapeRecord['(DeltaX)'] = $deltaX;
        		       $currentDrawingPositionX += $deltaX;
 		    }
 		    if ($generalLineFlag || $vertLineFlag) {
        		       $deltaY = $reader->getSIBits($numBits + 2);
-//     		       $shapeRecord['(DeltaY)'] = $deltaY;
 		       $currentDrawingPositionY += $deltaY;
 		    }
 		    $shapeRecord['X'] = $currentDrawingPositionX;
@@ -119,19 +108,18 @@ class IO_SWF_Shape {
 		} else {
 		    // CurvedEdgeRecord
 		    $numBits = $reader->getUIBits(4);
-//    	            $shapeRecord['(NumBits)'] = $numBits;
+//		    $shapeRecord['(NumBits)'] = $numBits;
+
 		    $controlDeltaX = $reader->getSIBits($numBits + 2);
 		    $controlDeltaY = $reader->getSIBits($numBits + 2);
-//		    $shapeRecord['(ControlDeltaX)'] = $controlDeltaX;
-//		    $shapeRecord['(ControlDeltaY)'] = $controlDeltaY;
+		    $anchorDeltaX = $reader->getSIBits($numBits + 2);
+		    $anchorDeltaY = $reader->getSIBits($numBits + 2);
+
 		    $currentDrawingPositionX += $controlDeltaX;
 		    $currentDrawingPositionY += $controlDeltaY;
 		    $shapeRecord['ControlX'] = $currentDrawingPositionX;
 		    $shapeRecord['ControlY'] = $currentDrawingPositionY;
-		    $anchorDeltaX = $reader->getSIBits($numBits + 2);
-		    $anchorDeltaY = $reader->getSIBits($numBits + 2);
-//		    $shapeRecord['(AnchorDeltaX)'] = $anchorDeltaX;
-//		    $shapeRecord['(AnchorDeltaY)'] = $anchorDeltaY;
+
 		    $currentDrawingPositionX += $anchorDeltaX;
 		    $currentDrawingPositionY += $anchorDeltaY;
 		    $shapeRecord['AnchorX'] = $currentDrawingPositionX;
@@ -166,7 +154,6 @@ class IO_SWF_Shape {
 	        $fillStyle['SpreadMode'] = $reader->getUIBits(2);
 	        $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
 	   	$numGradients = $reader->getUIBits(4);
-//	   	$fillStyle['(NumGradients)'] = $numGradients;
 	        $fillStyle['GradientRecords'] = array();
 	        for ($i = 0 ; $i < $numGradients ; $i++) {
 	            $gradientRecord = array();
@@ -292,7 +279,7 @@ class IO_SWF_Shape {
 		        $controlY = $shapeRecord['ControlY'] / 20;
 		        $anchorX = $shapeRecord['AnchorX'] / 20;
 		        $anchorY = $shapeRecord['AnchorY'] / 20;
-			echo "\tCurvedEdge: MoveTo: ($anchorX, $anchorY) Control($controlX, $controlY)\n";
+			echo "\tCurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)\n";
 		    }
 		}
 	}
@@ -307,8 +294,16 @@ class IO_SWF_Shape {
 	$fillStyleCount = $this->_buildFILLSTYLEARRAY($writer, $tagCode);
 	$lineStyleCount = $this->_buildLINESTYLEARRAY($writer, $tagCode);
 
-	$numFillBits = $writer->need_bits_unsigned($fillStyleCount + 1);
-	$numLineBits = $writer->need_bits_unsigned($lineStyleCount + 1);
+	if ($fillStyleCount == 0) {
+	    $numFillBits = 0;
+	} else {
+	    $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
+        }
+	if ($lineStyleCount == 0) {
+	    $numLineBits = 0;
+	} else {
+	    $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
+	}
 	$writer->putUIBits($numFillBits, 4);
 	$writer->putUIBits($numLineBits, 4);
 	$currentDrawingPositionX = 0;
@@ -344,6 +339,7 @@ class IO_SWF_Shape {
 			$XmoveBits = $writer->need_bits_signed($moveX);
 			$YmoveBits = $writer->need_bits_signed($moveY);
 			$moveBits = max($XmoveBits, $YmoveBits);
+			$writer->putUIBits($moveBits, 5);
 			$writer->putSIBits($moveX, $moveBits);
 			$writer->putSIBits($moveY, $moveBits);
 		    }
@@ -373,46 +369,52 @@ class IO_SWF_Shape {
    		    $XNumBits = $writer->need_bits_signed($deltaX);
    		    $YNumBits = $writer->need_bits_signed($deltaY);
    		    $numBits = max($XNumBits, $YNumBits);
-		    $writer->putUIBits($numBits, 4);
+		    if ($numBits < 2) {
+		       $numBits = 2;
+		    }
+		    $writer->putUIBits($numBits - 2, 4);
 		    if ($deltaX && $deltaY) {
 		        $writer->putUIBit(1); // GeneralLineFlag
-			$writer->putSIBits($deltaX, $numBits + 2);
-			$writer->putSIBits($deltaY, $numBits + 2);
+			$writer->putSIBits($deltaX, $numBits);
+			$writer->putSIBits($deltaY, $numBits);
 		    } else {
 		        $writer->putUIBit(0); // GeneralLineFlag
 			if ($deltaX) {
 			   $writer->putUIBit(0); // VertLineFlag
-			   $writer->putSIBits($deltaX, $numBits + 2);
+			   $writer->putSIBits($deltaX, $numBits);
 			} else {
 			   $writer->putUIBit(1); // VertLineFlag
-			   $writer->putSIBits($deltaY, $numBits + 2);
+			   $writer->putSIBits($deltaY, $numBits);
 			}
 		    }
 		    $currentDrawingPositionX = $shapeRecord['X'];
 		    $currentDrawingPositionY = $shapeRecord['Y'];
 		} else {
 		    $controlDeltaX = $shapeRecord['ControlX'] - $currentDrawingPositionX;
-		    $contrilDeltaY = $shapeRecord['ControlY'] - $currentDrawingPositionY;
+		    $controlDeltaY = $shapeRecord['ControlY'] - $currentDrawingPositionY;
 		    $currentDrawingPositionX = $shapeRecord['ControlX'];
 		    $currentDrawingPositionY = $shapeRecord['ControlY'];
-		    $anchorDeltaX = $shapeRecord['AnchorX'] - $currentDrawingPositionY;
+		    $anchorDeltaX = $shapeRecord['AnchorX'] - $currentDrawingPositionX;
 		    $anchorDeltaY = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
 		    $currentDrawingPositionX = $shapeRecord['AnchorX'];
 		    $currentDrawingPositionY = $shapeRecord['AnchorY'];
+
 		    $numBitsControlDeltaX = $writer->need_bits_signed($controlDeltaX);
-		    $numBitsControlDeltaY = $writer->need_bits_signed($aontrolDeltaY);
+		    $numBitsControlDeltaY = $writer->need_bits_signed($controlDeltaY);
 		    $numBitsAnchorDeltaX = $writer->need_bits_signed($anchorDeltaX);
 		    $numBitsAnchorDeltaY = $writer->need_bits_signed($anchorDeltaY);
 		    $numBits = max($numBitsControlDeltaX, $numBitsControlDeltaY, $numBitsAnchorDeltaX, $numBitsAnchorDeltaY);
-		    $writer->putUIBits($numBits, 4);
-		    $writer->putSIBits($controlDeltaX, $numBits + 2);
-		    $writer->putSIBits($controlDeltaY, $numBits + 2);
-		    $writer->putSIBits($anchorDeltaX, $numBits + 2);
-		    $writer->putSIBits($anchorDeltaY, $numBits + 2);
+		    if ($numBits < 2) {
+		       $numBits = 2;
+		    }
+		    $writer->putUIBits($numBits - 2, 4);
+		    $writer->putSIBits($controlDeltaX, $numBits);
+		    $writer->putSIBits($controlDeltaY, $numBits);
+		    $writer->putSIBits($anchorDeltaX, $numBits);
+		    $writer->putSIBits($anchorDeltaY, $numBits);
 		}
 	    }
 	}
-	;
 	return $writer->output();
     }
     function _buildFILLSTYLEARRAY($writer, $tagCode) {
@@ -422,9 +424,14 @@ class IO_SWF_Shape {
 	    $writer->putUI8($fillStyleCount);
 	} else {
 	    $writer->putUI8(0xff);
-	    $writer->putUI16LE($fillStyleCount);
+	    if ($tagCode > 2) {
+	    	 $writer->putUI16LE($fillStyleCount);
+	    } else {
+	      	 $fillStyleCount = 0xff; // DefineShape(1)
+	    }
 	}
-	for ($i = 0 ; $i < $fillStyleCount ; $i++) {
+//for ($i = 0 ; $i < $fillStyleCount ; $i++) {
+        foreach ($this->_fillStyles as $fillStyle) {
 	    $fillStyleType = $fillStyle['FillStyleType'];
 	    $writer->putUI8($fillStyleType);
 	    switch ($fillStyleType) {
@@ -441,7 +448,7 @@ class IO_SWF_Shape {
 	        $writer->putUIBits($fillStyle['InterpolationMode'], 2);
 	   	$numGradients = count($fillStyle['GradientRecords']);
 	   	$writer->putUIBits($numGradients , 4);
-	        for ($i = 0 ; $i < $numGradients ; $i++) {
+		foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
    		    $writer->putUI8($gradientRecord['Ratio']);
     		    if ($tagCode < 32 ) { // 32:DefineShape3
 		        IO_SWF_Type::buildRGB($writer, $gradientRecord['Color']);
@@ -449,6 +456,7 @@ class IO_SWF_Shape {
 		        IO_SWF_Type::buildRGBA($writer, $gradientRecord['Color']);
 		    }
 		}
+	      break;
 	      // case 0x13: // focal gradient fill // 8 and later
 	      // break;
 	      case 0x40: // repeating bitmap fill
@@ -469,24 +477,18 @@ class IO_SWF_Shape {
 	    $writer->putUI8($lineStyleCount);
 	} else {
 	    $writer->putUI8(0xff);
-	    $writer->putUI16LE($lineStyleCount);
+    	    if ($tagCode > 2) {
+	        $writer->putUI16LE($lineStyleCount);
+	    } else {
+	        $lineStyleCount = 0xff; // DefineShape(1)
+	    }
 	}
-	for ($i = 0 ; $i < $lineStyleCount ; $i++) {
+	foreach ($this->_lineStyles as $lineStyle) {
 	    $writer->putUI16LE($lineStyle['Width']);
     	    if ($tagCode < 32 ) { // 32:DefineShape3
     	        IO_SWF_Type::buildRGB($writer, $lineStyle['Color']);
 	    } else {
     	        IO_SWF_Type::buildRGBA($writer, $lineStyle['Color']);
-	    }
-	}
-	foreach ($this->_shapeRecords as $shapeRecord) {
-	    $straightFlag = $shapeRecord['StraightFlag'];
-	    $writer->putUIBit($straightFlag);
-	    if ($straightFlag) {
-	        // StraightEdgeRecord
-		
-	    } else {
-		// CurvedEdgeRecord
 	    }
 	}
 	return $lineStyleCount;
