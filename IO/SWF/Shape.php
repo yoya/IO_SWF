@@ -16,10 +16,13 @@ class IO_SWF_Shape {
 	// 描画枠
     	$this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
 
+	$baseFillStyle = 0;
+	$baseLineStyle = 0;
 	// 描画スタイル
+	$baseFillStyle = count($this->_fillStyles);
+	$baseLineStyle = count($this->_lineStyles);
 	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
 	$this->_parseLINESTYLEARRAY($tagCode, $reader);
-
 	$reader->byteAlign();
 	// 描画スタイルを参照するインデックスのビット幅
 	$numFillBits = $reader->getUIBits(4);
@@ -68,17 +71,22 @@ class IO_SWF_Shape {
 
 		    if ($stateFillStyle0) {
 		    	$currentFillStyle0 = $reader->getUIBits($numFillBits);
+			$currentFillStyle0 += $baseFillStyle;
 		    }
 		    if ($stateFillStyle1) {
 			$currentFillStyle1 = $reader->getUIBits($numFillBits);
+			$currentFillStyle1 += $baseFillStyle;
 		    }
 		    if ($stateLineStyle) {
 		    	$currentLineStyle = $reader->getUIBits($numLineBits);
+			$currentFillStyle0 += $baseLineStyle;
 		    }
 		    $shapeRecord['FillStyle0'] = $currentFillStyle0;
 		    $shapeRecord['FillStyle1'] = $currentFillStyle1;
 		    $shapeRecord['LineStyle']  = $currentLineStyle;
 		    if ($stateNewStyles) {
+		    	$baseFillStyle = count($this->_fillStyles);
+			$baseLineStyle = count($this->_lineStyles);
 		    	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
 			$this->_parseLINESTYLEARRAY($tagCode, $reader);
 
@@ -130,7 +138,6 @@ class IO_SWF_Shape {
 	    }
 	    $this->_shapeRecords []= $shapeRecord;
 	}
-
     }
     function _parseFILLSTYLEARRAY($tagCode, $reader) {
 	// FillStyle
@@ -293,8 +300,9 @@ class IO_SWF_Shape {
 	}
 	IO_SWF_Type::buildRECT($writer, $this->_shapeBounds);
 	// 描画スタイル
-	$fillStyleCount = $this->_buildFILLSTYLEARRAY($writer, $tagCode);
-	$lineStyleCount = $this->_buildLINESTYLEARRAY($writer, $tagCode);
+	$shapeRecordIndex = 0;
+	$fillStyleCount = $this->_buildFILLSTYLEARRAY($writer, $tagCode, $shapeRecordIndex);
+	$lineStyleCount = $this->_buildLINESTYLEARRAY($writer, $tagCode, $shapeRecordIndex);
 
 	if ($fillStyleCount == 0) {
 	    $numFillBits = 0;
@@ -313,7 +321,7 @@ class IO_SWF_Shape {
 	$currentFillStyle0 = 0;
 	$currentFillStyle1 = 0;
 	$currentLineStyle = 0;
-	foreach ($this->_shapeRecords as $shapeRecord) {
+	foreach ($this->_shapeRecords as $shapeRecordIndex => $shapeRecord) {
 	    $typeFlag = $shapeRecord['TypeFlag'];
 	    $writer->putUIBit($typeFlag);
 	    if($typeFlag == 0) {
@@ -431,7 +439,7 @@ class IO_SWF_Shape {
 	}
 	return $writer->output();
     }
-    function _buildFILLSTYLEARRAY($writer, $tagCode) {
+    function _buildFILLSTYLEARRAY($writer, $tagCode, $shapeRecordIndex) {
     	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
 	$fillStyleCount = count($this->_fillStyles);
 	if ($fillStyleCount < 0xff) {
@@ -484,7 +492,7 @@ class IO_SWF_Shape {
 	}
 	return $fillStyleCount;
     }
-    function _buildLINESTYLEARRAY($writer, $tagCode) {
+    function _buildLINESTYLEARRAY($writer, $tagCode, $shapeRecordIndex) {
     	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
 	$lineStyleCount = count($this->_lineStyles);
 	if ($lineStyleCount < 0xff) {
