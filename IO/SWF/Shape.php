@@ -532,19 +532,18 @@ class IO_SWF_Shape {
 	       $this->deformeShapeRecordUnit($threshold, $startIndex, $endIndex);
 	    }
 	}
-	array_unique($this->_shapeRecords);
+	$this->_shapeRecords = array_values($this->_shapeRecords);
     }
     function deformeShapeRecordUnit($threshold, $startIndex, $endIndex) {
     	$threshold_2 = $threshold * $threshold;
 	$shapeRecord = $this->_shapeRecords[$startIndex];
-	$prevDrawingPositionX = null;
-	$prevDrawingPositionY = null;
 	$prevIndex = null;
 	$currentDrawingPositionX = $shapeRecord['MoveX'];
 	$currentDrawingPositionY = $shapeRecord['MoveY'];
         for ($i = $startIndex + 1 ;$i <= $endIndex; $i++) {
 	    $shapeRecord = & $this->_shapeRecords[$i];
 	    if ($shapeRecord['StraightFlag'] == 0) {
+		// 曲線に対する処理
 	        $diff_x = $shapeRecord['ControlX'] - $currentDrawingPositionX;
 	        $diff_y = $shapeRecord['ControlY'] - $currentDrawingPositionY;
 	        $distance_2_control = $diff_x * $diff_x + $diff_y * $diff_y;
@@ -552,43 +551,49 @@ class IO_SWF_Shape {
 	        $diff_y = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
 	        $distance_2_anchor = $diff_x * $diff_x + $diff_y * $diff_y;
 	        if (max($distance_2_control, $distance_2_anchor) > $threshold_2) {
+		    // No touch
+		    $prevIndex = $i;
+		    $prevDrawingPositionX = $currentDrawingPositionX;
+		    $prevDrawingPositionY = $currentDrawingPositionY;
 	            $currentDrawingPositionX = $shapeRecord['AnchorX'];
 	            $currentDrawingPositionY = $shapeRecord['AnchorY'];
-		    continue; // no touch
+		    continue;
 		}
+		// 直線に変換する
 	       	$shapeRecord['StraightFlag'] = 1; // to Straight
   	       	$shapeRecord['X'] = $shapeRecord['AnchorX'];
     	       	$shapeRecord['Y'] = $shapeRecord['AnchorY'];
 		unset($shapeRecord['ControlX'], $shapeRecord['ControlY']);
 		unset($shapeRecord['AnchorX'], $shapeRecord['AnchorY']);
-	    } else {
-	        if (is_null($prevIndex)) {
-		    $prevDrawingPositionX = $currentDrawingPositionX;
-		    $prevDrawingPositionY = $currentDrawingPositionY;
-		    $prevIndex = $i;
-	            $currentDrawingPositionX = $shapeRecord['X'];
-	            $currentDrawingPositionY = $shapeRecord['Y'];
-		    continue; // no touch
-		}
-	        $diff_x = $shapeRecord['X'] - $prevDrawingPositionX;
-	        $diff_y = $shapeRecord['Y'] - $prevDrawingPositionY;
-	        $distance_2 = $diff_x * $diff_x + $diff_y * $diff_y;
-		if ($distance_2 > $threshold_2) {
-	 	    $prevShapeRecord = & $this->_shapeRecords[$prevIndex];
-		    $prevShapeRecord['X'] = $shapeRecord['X'];
-		    $prevShapeRecord['Y'] = $shapeRecord['Y'];
-		    $currentDrawingPositionX = $shapeRecord['X'];
-		    $currentDrawingPositionY = $shapeRecord['Y'];
-		    unset($this->_shapeRecords[$i]);
-		} else {
-		    // No touch
-    		    $prevIndex = $i;
-		    $prevDrawingPositionX = $currentDrawingPositionX;
-		    $prevDrawingPositionY = $currentDrawingPositionY;
-		    $currentDrawingPositionX = $shapeRecord['X'];
-		    $currentDrawingPositionY = $shapeRecord['Y'];
-		}
 	    }
+	    if (is_null($prevIndex)) {
+		// 何もしない
+		$prevIndex = $i;
+		$prevDrawingPositionX = $currentDrawingPositionX;
+		$prevDrawingPositionY = $currentDrawingPositionY;
+	        $currentDrawingPositionX = $shapeRecord['X'];
+	        $currentDrawingPositionY = $shapeRecord['Y'];
+		continue;
+	    }
+	    $diff_x = $shapeRecord['X'] - $prevDrawingPositionX;
+	    $diff_y = $shapeRecord['Y'] - $prevDrawingPositionY;
+	    $distance_2 = $diff_x * $diff_x + $diff_y * $diff_y;
+	    if ($distance_2 > $threshold_2) {
+		 // 何もしない
+    		 $prevIndex = $i;
+		 $prevDrawingPositionX = $currentDrawingPositionX;
+		 $prevDrawingPositionY = $currentDrawingPositionY;
+		 $currentDrawingPositionX = $shapeRecord['X'];
+		 $currentDrawingPositionY = $shapeRecord['Y'];
+		 continue;
+	    }
+	    // 前の直線にくっつける。
+	    $prevShapeRecord = & $this->_shapeRecords[$prevIndex];
+	    $prevShapeRecord['X'] = $shapeRecord['X'];
+	    $prevShapeRecord['Y'] = $shapeRecord['Y'];
+	    $currentDrawingPositionX = $shapeRecord['X'];
+	    $currentDrawingPositionY = $shapeRecord['Y'];
+	    unset($this->_shapeRecords[$i]);
 	}
     }
 }

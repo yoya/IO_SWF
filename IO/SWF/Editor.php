@@ -124,7 +124,7 @@ class IO_SWF_Editor extends IO_SWF {
 	      	$shape = new IO_SWF_Shape();
 		$opts = array('hasShapeId' => true);
 		$shape->parse($code, $tag['Content'], $opts);
-//		$shape->deforme($threshold);
+		$shape->deforme($threshold);
 		$tag['Content'] = $shape->build($code, $opts);
 		break;
 	    }
