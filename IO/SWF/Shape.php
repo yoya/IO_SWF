@@ -550,14 +550,15 @@ class IO_SWF_Shape {
 	        $diff_x = $shapeRecord['AnchorX'] - $currentDrawingPositionX;
 	        $diff_y = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
 	        $distance_2_anchor = $diff_x * $diff_x + $diff_y * $diff_y;
-	        if (max($distance_2_control, $distance_2_anchor) > $threshold_2) {
-		    // No touch
+//	        if (max($distance_2_control, $distance_2_anchor) > $threshold_2) {
+	        if (($distance_2_control +  $distance_2_anchor) > $threshold_2) {
+		    // 何もしない
 		    $prevIndex = $i;
 		    $prevDrawingPositionX = $currentDrawingPositionX;
 		    $prevDrawingPositionY = $currentDrawingPositionY;
 	            $currentDrawingPositionX = $shapeRecord['AnchorX'];
 	            $currentDrawingPositionY = $shapeRecord['AnchorY'];
-		    continue;
+		    continue; // skip
 		}
 		// 直線に変換する
 	       	$shapeRecord['StraightFlag'] = 1; // to Straight
@@ -573,7 +574,7 @@ class IO_SWF_Shape {
 		$prevDrawingPositionY = $currentDrawingPositionY;
 	        $currentDrawingPositionX = $shapeRecord['X'];
 	        $currentDrawingPositionY = $shapeRecord['Y'];
-		continue;
+		continue; // skip
 	    }
 	    $diff_x = $shapeRecord['X'] - $prevDrawingPositionX;
 	    $diff_y = $shapeRecord['Y'] - $prevDrawingPositionY;
@@ -585,7 +586,7 @@ class IO_SWF_Shape {
 		 $prevDrawingPositionY = $currentDrawingPositionY;
 		 $currentDrawingPositionX = $shapeRecord['X'];
 		 $currentDrawingPositionY = $shapeRecord['Y'];
-		 continue;
+		 continue; // skip
 	    }
 	    // 前の直線にくっつける。
 	    $prevShapeRecord = & $this->_shapeRecords[$prevIndex];
