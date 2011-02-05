@@ -535,6 +535,10 @@ class IO_SWF_Shape {
 	$this->_shapeRecords = array_values($this->_shapeRecords);
     }
     function deformeShapeRecordUnit($threshold, $startIndex, $endIndex) {
+//    	return $this->deformeShapeRecordUnit_1($threshold, $startIndex, $endIndex);
+    	return $this->deformeShapeRecordUnit_2($threshold, $startIndex, $endIndex);
+    }
+    function deformeShapeRecordUnit_1($threshold, $startIndex, $endIndex) {
     	$threshold_2 = $threshold * $threshold;
 	$shapeRecord = $this->_shapeRecords[$startIndex];
 	$prevIndex = null;
@@ -596,5 +600,119 @@ class IO_SWF_Shape {
 	    $currentDrawingPositionY = $shapeRecord['Y'];
 	    unset($this->_shapeRecords[$i]);
 	}
+    }
+    function deformeShapeRecordUnit_2($threshold, $startIndex, $endIndex) {
+    	$this->deformeShapeRecordUnit_2_curve($threshold, $startIndex, $endIndex);
+    	while ($this->deformeShapeRecordUnit_2_line($threshold, $startIndex, $endIndex));
+    }
+    function deformeShapeRecordUnit_2_curve($threshold, $startIndex, $endIndex) {
+    	$threshold_2 = $threshold * $threshold;
+	$shapeRecord = $this->_shapeRecords[$startIndex];
+	$currentDrawingPositionX = $shapeRecord['MoveX'];
+	$currentDrawingPositionY = $shapeRecord['MoveY'];
+        for ($i = $startIndex + 1 ;$i <= $endIndex; $i++) {
+	    $shapeRecord = & $this->_shapeRecords[$i];
+	    if ($shapeRecord['StraightFlag'] == 0) {
+		// 曲線に対する処理
+	        $diff_x = $shapeRecord['ControlX'] - $currentDrawingPositionX;
+	        $diff_y = $shapeRecord['ControlY'] - $currentDrawingPositionY;
+	        $distance_2_control = $diff_x * $diff_x + $diff_y * $diff_y;
+	        $diff_x = $shapeRecord['AnchorX'] - $currentDrawingPositionX;
+	        $diff_y = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
+	        $distance_2_anchor = $diff_x * $diff_x + $diff_y * $diff_y;
+	        if (($distance_2_control +  $distance_2_anchor) > $threshold_2) {
+		    // 何もしない
+	            $currentDrawingPositionX = $shapeRecord['AnchorX'];
+	            $currentDrawingPositionY = $shapeRecord['AnchorY'];
+		    continue; // skip
+		}
+		// 直線に変換する
+	       	$shapeRecord['StraightFlag'] = 1; // to Straight
+  	       	$shapeRecord['X'] = $shapeRecord['AnchorX'];
+    	       	$shapeRecord['Y'] = $shapeRecord['AnchorY'];
+		unset($shapeRecord['ControlX'], $shapeRecord['ControlY']);
+		unset($shapeRecord['AnchorX'], $shapeRecord['AnchorY']);
+	        $currentDrawingPositionX = $shapeRecord['X'];
+	        $currentDrawingPositionY = $shapeRecord['Y'];
+	    }
+	}
+    }
+    function deformeShapeRecordUnit_2_line($threshold, $startIndex, $endIndex) {
+    	$threshold_2 = $threshold * $threshold;
+	$shapeRecord = $this->_shapeRecords[$startIndex];
+	$prevIndex = null;
+	$currentDrawingPositionX = $shapeRecord['MoveX'];
+	$currentDrawingPositionY = $shapeRecord['MoveY'];
+	$distance_list_short = array();
+	$distance_table_all = array();
+        for ($i = $startIndex + 1 ;$i <= $endIndex; $i++) {
+	    $shapeRecord = & $this->_shapeRecords[$i];
+	    if ($shapeRecord['StraightFlag'] == 0) {
+	        $diff_x = $shapeRecord['ControlX'] - $currentDrawingPositionX;
+	        $diff_y = $shapeRecord['ControlY'] - $currentDrawingPositionY;
+	        $distance_2_control = $diff_x * $diff_x + $diff_y * $diff_y;
+	        $diff_x = $shapeRecord['AnchorX'] - $currentDrawingPositionX;
+	        $diff_y = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
+	        $distance_2_anchor = $diff_x * $diff_x + $diff_y * $diff_y;
+//	        $distance_list[$i] = $distance_2_control +  $distance_2_anchor;
+	        $distance_table_all[$i] = $distance_2_control +  $distance_2_anchor;
+	        $currentDrawingPositionX = $shapeRecord['AnchorX'];
+	        $currentDrawingPositionY = $shapeRecord['AnchorY'];
+	    } else {
+	        $diff_x = $shapeRecord['X'] - $currentDrawingPositionX;
+	        $diff_y = $shapeRecord['Y'] - $currentDrawingPositionY;
+		$distance_2 = $diff_x * $diff_x + $diff_y * $diff_y;
+		if ($distance_2 < $threshold_2) {
+		   $distance_list_short[] = $i;
+		}
+	        $distance_table_all[$i] = $distance_2;
+	        $currentDrawingPositionX = $shapeRecord['X'];
+	        $currentDrawingPositionY = $shapeRecord['Y'];
+	    }
+	}
+	sort($distance_list_short);
+	$deforme_number = 0;
+	foreach ($distance_list_short as $i) {
+	    $distance_2 = $distance_table_all[$i];
+	    if ($distance_2 > $threshold_2) {
+	       continue; // 一定距離以上の線分は処理しない
+	    }
+	    if (empty($distance_list_all[$i-1]) && empty($distance_list_all[$i+1])) {
+	       // 隣の線分が吸収され済みor曲線の場合は処理しない
+
+       	    }
+	    $index_to_merge;
+	    if (empty($distance_list_all[$i-1])) {
+	       if (empty($distance_list_all[$i+1])) {
+	           // 隣の線分が吸収されている場合は処理しない
+	           continue;	       
+	       } else {
+	         $index_to_merge = $i+1;
+	       }
+	    } else {
+	       if (empty($distance_list_all[$i+1])) {
+	         $index_to_merge = $i-1;
+	       } else {
+    	 	 $index_to_merge = $i-1; // XXX 後で選択する処理を入れる
+	       }
+	    }
+	    // line merge 処理
+	    $shapeRecord = $this->_shapeRecords[$i];
+	    $shapeRecord_toMerge = & $this->_shapeRecords[$index_to_merge];
+	    if ($i > $index_to_merge) {
+   	        if ($shapeRecord['StraightFlag']) {
+	    	    $shapeRecord_toMerge['X'] = $shapeRecord['X'];
+	            $shapeRecord_toMerge['Y'] = $shapeRecord['Y'];
+		} else {
+	    	    $shapeRecord_toMerge['AnchorX'] = $shapeRecord['X'];
+	            $shapeRecord_toMerge['AnchorY'] = $shapeRecord['Y'];
+		}
+	    }
+	    $distance_list_all[$index_to_merge] += $distance_list_all[$i];
+//	    unset($distance_list_all[$i]);
+    	    unset($this->_shapeRecords[$i]);
+	    $deforme_number += 1;
+	}
+	return $deforme_number;
     }
 }
