@@ -258,7 +258,7 @@ class IO_SWF_Shape {
 	}
     	echo "    LineStyles:\n";
 	foreach ($this->_lineStyles as $lineStyle) {
-	    $witdh = $lineStyle['Width'];
+	    $width = $lineStyle['Width'];
 	    $color = $lineStyle['Color'];
 	    $color_str = IO_SWF_Type::stringRGBorRGBA($color);
 	    echo "\tWitdh: $width Color: $color_str\n";
