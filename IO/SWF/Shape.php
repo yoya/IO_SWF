@@ -160,6 +160,8 @@ class IO_SWF_Shape {
 	      	break;
 	      case 0x10: // linear gradient fill
 	      case 0x12: // radianar gradient fill
+	        $fillStyle['GradientMatrix'] = IO_SWF_Type::parseMATRIX($reader);
+		$reader->byteAlign();
 	        $fillStyle['SpreadMode'] = $reader->getUIBits(2);
 	        $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
 	   	$numGradients = $reader->getUIBits(4);
@@ -233,6 +235,8 @@ class IO_SWF_Shape {
 		} else {
 		    echo "\tradianar gradient fill\n";
 		}
+		$matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['GradientMatrix'], 2);
+		echo $matrix_str . "\n";
 	        $spreadMode = $fillStyle['SpreadMode'];
 		$interpolationMode = $fillStyle['InterpolationMode'];
 		foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
@@ -466,6 +470,8 @@ class IO_SWF_Shape {
 	      	break;
 	      case 0x10: // linear gradient fill
 	      case 0x12: // radianar gradient fill
+	        IO_SWF_Type::buildMATRIX($writer, $fillStyle['GradientMatrix']);
+		$writer->byteAlign();
 	        $writer->putUIBits($fillStyle['SpreadMode'], 2);
 	        $writer->putUIBits($fillStyle['InterpolationMode'], 2);
 	   	$numGradients = count($fillStyle['GradientRecords']);
