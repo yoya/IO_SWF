@@ -71,15 +71,27 @@ class IO_SWF_Shape {
 
 		    if ($stateFillStyle0) {
 		    	$currentFillStyle0 = $reader->getUIBits($numFillBits);
-			$currentFillStyle0 += $baseFillStyle;
+			if ($currentFillStyle0) {
+			   $currentFillStyle0 += $baseFillStyle;
+			} else {
+			   $currentFillStyle0 = 0; // undefined
+			}
 		    }
 		    if ($stateFillStyle1) {
 			$currentFillStyle1 = $reader->getUIBits($numFillBits);
-			$currentFillStyle1 += $baseFillStyle;
+			if ($currentFillStyle1) {
+			   $currentFillStyle1 += $baseFillStyle;
+			} else {
+			   $currentFillStyle1 = 0; // undefined
+			}
 		    }
 		    if ($stateLineStyle) {
 		    	$currentLineStyle = $reader->getUIBits($numLineBits);
-			$currentFillStyle0 += $baseLineStyle;
+			if ($currentLineStyle) {
+			   $currentLineStyle += $baseLineStyle;
+			} else {
+			   $currentLineStyle = 0; // undefined
+			}
 		    }
 		    $shapeRecord['FillStyle0'] = $currentFillStyle0;
 		    $shapeRecord['FillStyle1'] = $currentFillStyle1;
@@ -311,13 +323,16 @@ class IO_SWF_Shape {
 	if ($fillStyleCount == 0) {
 	    $numFillBits = 0;
 	} else {
+	    // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
 	    $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
         }
 	if ($lineStyleCount == 0) {
 	    $numLineBits = 0;
 	} else {
+	    // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
 	    $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
 	}
+	$writer->byteAlign();
 	$writer->putUIBits($numFillBits, 4);
 	$writer->putUIBits($numLineBits, 4);
 	$currentDrawingPositionX = 0;
@@ -359,7 +374,7 @@ class IO_SWF_Shape {
 			    $YmoveBits = $writer->need_bits_signed($moveY);
 			    $moveBits = max($XmoveBits, $YmoveBits);
 			} else {
-			   $moveBits = 0;
+			    $moveBits = 0;
 			}
 			$writer->putUIBits($moveBits, 5);
 			$writer->putSIBits($moveX, $moveBits);
