@@ -148,10 +148,10 @@ EOS;
 	return 	sprintf($text_fmt, 
 		str_repeat("\t", $indent),
 		$matrix['ScaleX'] / 0x10000 / 20 ,
-		$matrix['RotateSkew0'],
+		$matrix['RotateSkew0'] / 0x10000 / 20,
 		$matrix['TranslateX'] / 0x10000 / 20,
 		str_repeat("\t", $indent),
-		$matrix['RotateSkew1'],
+		$matrix['RotateSkew1'] / 0x10000 / 20,
 		$matrix['ScaleY'] / 0x10000 / 20,
 		$matrix['TranslateY'] / 0x10000 / 20);
     }
