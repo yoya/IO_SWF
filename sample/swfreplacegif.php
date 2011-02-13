@@ -1,6 +1,7 @@
 <?php
 
-require_once 'IO/SWF/Editor.php';
+//require_once 'IO/SWF/Editor.php';
+require_once dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if ($argc != 4) {
     echo "Usage: php swfreplacegif.php <swf_file> <image_id> <gif_file>\n";
@@ -45,10 +46,14 @@ if ($transparent_index < 0) {
 } else {
     for ($i = 0 ; $i < $colortable_num ; $i++) {
         $rgb = imagecolorsforindex($im, $i);
-        $colortable .= chr($rgb['red']);
-        $colortable .= chr($rgb['green']);
-        $colortable .= chr($rgb['blue']);
-        $colortable .= ($i == $transparent_index)?chr(0):chr(255);
+	if ($i == $transparent_index) {
+	    $colortable .= chr(0).chr(0).chr(0).chr(0);
+	} else {
+	    $colortable .= chr($rgb['red']);
+       	    $colortable .= chr($rgb['green']);
+            $colortable .= chr($rgb['blue']);
+            $colortable .= chr(255);
+	}
     }
 }
 
