@@ -21,8 +21,8 @@ class IO_SWF_Shape {
 	// 描画スタイル
 	$baseFillStyle = count($this->_fillStyles);
 	$baseLineStyle = count($this->_lineStyles);
-	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
-	$this->_parseLINESTYLEARRAY($tagCode, $reader);
+	$this->_parseFILLSTYLEARRAY($reader, $tagCode);
+	$this->_parseLINESTYLEARRAY($reader, $tagCode);
 	$reader->byteAlign();
 	// 描画スタイルを参照するインデックスのビット幅
 	$numFillBits = $reader->getUIBits(4);
@@ -99,8 +99,8 @@ class IO_SWF_Shape {
 		    if ($stateNewStyles) {
 		    	$baseFillStyle = count($this->_fillStyles);
 			$baseLineStyle = count($this->_lineStyles);
-		    	$this->_parseFILLSTYLEARRAY($tagCode, $reader);
-			$this->_parseLINESTYLEARRAY($tagCode, $reader);
+		    	$this->_parseFILLSTYLEARRAY($reader, $tagCode);
+			$this->_parseLINESTYLEARRAY($reader, $tagCode);
 
 			$reader->byteAlign();
 			$numFillBits = $reader->getUIBits(4);
@@ -151,7 +151,7 @@ class IO_SWF_Shape {
 	    $this->_shapeRecords []= $shapeRecord;
 	}
     }
-    function _parseFILLSTYLEARRAY($tagCode, $reader) {
+    function _parseFILLSTYLEARRAY(&$reader, $tagCode) {
 	// FillStyle
 	$fillStyleCount = $reader->getUI8();
 	if (($tagCode > 2) && ($fillStyleCount == 0xff)) {
@@ -178,7 +178,7 @@ class IO_SWF_Shape {
 	        $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
 	   	$numGradients = $reader->getUIBits(4);
 	        $fillStyle['GradientRecords'] = array();
-	        for ($i = 0 ; $i < $numGradients ; $i++) {
+	        for ($j = 0 ; $j < $numGradients ; $j++) {
 	            $gradientRecord = array();
 		    $gradientRecord['Ratio'] = $reader->getUI8();
 		    if ($tagCode < 32 ) { // 32:DefineShape3
@@ -204,7 +204,7 @@ class IO_SWF_Shape {
 	    $this->_fillStyles[] = $fillStyle;
 	}
     }
-    function _parseLINESTYLEARRAY($tagCode, $reader) {
+    function _parseLINESTYLEARRAY(&$reader, $tagCode) {
 	$lineStyleCount = $reader->getUI8();
 	if (($tagCode > 2) && ($lineStyleCount == 0xff)) {
 	   // DefineShape2 以降は 0xffff サイズまで扱える
@@ -458,7 +458,7 @@ class IO_SWF_Shape {
 	}
 	return $writer->output();
     }
-    function _buildFILLSTYLEARRAY($writer, $tagCode, $shapeRecordIndex) {
+    function _buildFILLSTYLEARRAY(&$writer, $tagCode, $shapeRecordIndex) {
     	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
 	$fillStyleCount = count($this->_fillStyles);
 	if ($fillStyleCount < 0xff) {
@@ -513,7 +513,7 @@ class IO_SWF_Shape {
 	}
 	return $fillStyleCount;
     }
-    function _buildLINESTYLEARRAY($writer, $tagCode, $shapeRecordIndex) {
+    function _buildLINESTYLEARRAY(&$writer, $tagCode, $shapeRecordIndex) {
     	// とりあえず頭に全部展開するパターン。Shape2 用最適化は後で
 	$lineStyleCount = count($this->_lineStyles);
 	if ($lineStyleCount < 0xff) {
