@@ -1,6 +1,7 @@
 <?php
 
 require 'IO/SWF/Dumper.php';
+// require dirname(__FILE__).'/../IO/SWF/Dumper.php';
 
 if ($argc != 2) {
     echo "Usage: php swfdump.php <swf_file>\n";

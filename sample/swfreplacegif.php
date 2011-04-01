@@ -1,7 +1,7 @@
 <?php
 
-//require_once 'IO/SWF/Editor.php';
-require_once dirname(__FILE__).'/../IO/SWF/Editor.php';
+require_once 'IO/SWF/Editor.php';
+// require_once dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if ($argc != 4) {
     echo "Usage: php swfreplacegif.php <swf_file> <image_id> <gif_file>\n";
