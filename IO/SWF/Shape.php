@@ -40,14 +40,14 @@ class IO_SWF_Shape {
 	    $typeFlag = $reader->getUIBit();
 	    $shapeRecord['TypeFlag'] = $typeFlag;
 	    if ($typeFlag == 0) {
-	        $endOfShape = $reader->getUIBits(5); // XXX not 4 ?
+	        $endOfShape = $reader->getUIBits(5);
 		if ($endOfShape == 0) {
 		    // EndShapeRecord
 		    $shapeRecord['EndOfShape'] = $endOfShape;
 		    $done = true;
 		} else {
 		    // StyleChangeRecord
-		    $reader->incrementOffset(0, -5); // XXX not 4 ?
+		    $reader->incrementOffset(0, -5);
 		    $stateNewStyles = $reader->getUIBit();
 		    $stateLineStyle = $reader->getUIBit();
 		    $stateFillStyle1 = $reader->getUIBit();
@@ -346,7 +346,7 @@ class IO_SWF_Shape {
 	    if($typeFlag == 0) {
 	        if (isset($shapeRecord['EndOfShape']) && ($shapeRecord['EndOfShape']) == 0) {
 		    // EndShapeRecord
-   	            $writer->putUIBits(0, 5); // XXX not 4 ?
+   	            $writer->putUIBits(0, 5);
 		} else {
     		    // StyleChangeRecord
 		    $stateNewStyles = 0;
