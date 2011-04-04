@@ -199,6 +199,7 @@ class IO_SWF_Shape {
 	        $fillStyle['BitmapMatrix'] = IO_SWF_Type::parseMATRIX($reader);
 	        break;
 	      default:
+		// XXX: 受理できない旨のエラー出力
 	        break 2; // XXX
 	    }
 	    $this->_fillStyles[] = $fillStyle;
