@@ -116,18 +116,18 @@ class IO_SWF_Editor extends IO_SWF {
     }
     function deformeShape($threshold) {
         foreach ($this->_tags as &$tag) {
-	    $code = $tag['Code'];
-	    switch($code) {
-	      case 2: // DefineShape
-	      case 22: // DefineShape2
-	      case 32: // DefineShape3
-	      	$shape = new IO_SWF_Shape();
-		$opts = array('hasShapeId' => true);
-		$shape->parse($code, $tag['Content'], $opts);
-		$shape->deforme($threshold);
-		$tag['Content'] = $shape->build($code, $opts);
-		break;
-	    }
-	}
+            $code = $tag['Code'];
+            switch($code) {
+              case 2: // DefineShape
+              case 22: // DefineShape2
+              case 32: // DefineShape3
+                $shape = new IO_SWF_Shape();
+                $opts = array('hasShapeId' => true);
+                $shape->parse($code, $tag['Content'], $opts);
+                $shape->deforme($threshold);
+                $tag['Content'] = $shape->build($code, $opts);
+                break;
+            }
+        }
     }
 }
