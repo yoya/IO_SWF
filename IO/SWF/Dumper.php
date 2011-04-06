@@ -32,16 +32,16 @@ class IO_SWF_Dumper extends IO_SWF {
             $code = $tag['Code'];
             $length = $tag['Length'];
             echo "Code: $code  Length: $length".PHP_EOL;
-	    switch ($code) {
-	      case 2: // DefineShape
-	      case 22: // DefineShape2
-	      case 32: // DefineShape3
-		$shape = new IO_SWF_Shape();
-		$opts = array('hasShapeId' => true);
-		$shape->parse($code, $tag['Content'], $opts);
-		$shape->dump();
-		break;
-	    }
+            switch ($code) {
+              case 2: // DefineShape
+              case 22: // DefineShape2
+              case 32: // DefineShape3
+                $shape = new IO_SWF_Shape();
+                $opts = array('hasShapeId' => true);
+                $shape->parse($code, $tag['Content'], $opts);
+                $shape->dump();
+                break;
+            }
         }
     }
 }
