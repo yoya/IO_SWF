@@ -6,8 +6,8 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/SWF/Type.php';
-require_once dirname(__FILE__).'/SWF/Shape.php';
 require_once dirname(__FILE__).'/SWF/Tag.php';
+require_once dirname(__FILE__).'/SWF/Tag/Shape.php';
 
 class IO_SWF {
     // instance variable
@@ -39,7 +39,8 @@ class IO_SWF {
         
         /* SWF Tags */
         while (true) {
-	    $tag = IO_SWF_Tag::tagFactory($reader);
+	    $tag = new IO_SWF_Tag();
+	    $tag->parse($reader);
             $this->_tags[] = $tag;
             if ($tag->code == 0) { // END Tag
                 break;

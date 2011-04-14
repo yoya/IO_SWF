@@ -1,19 +1,18 @@
 <?php
 
 require_once 'IO/Bit.php';
+require_once dirname(__FILE__).'/Base.php';
 
-class IO_SWF_Shape {
+class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeId = null;
     var $_shapeBounds;
     var $_fillStyles = array(), $_lineStyles = array();
     var $_shapeRecords = array();
 
-    function parse($tagCode, $content, $opts) {
+    function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
-	    if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
-            $this->_shapeId = $reader->getUI16LE();
-    	}
+        $this->_shapeId = $reader->getUI16LE();
     	// 描画枠
         $this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
 
@@ -226,7 +225,7 @@ class IO_SWF_Shape {
         }
     }
 
-    function dump() {
+    function dumpContent($tagCode, $opts = array()) {
         if (is_null($this->_shapeId) === false) {
             echo "    ShapeId: {$this->_shapeId}\n";
         }
@@ -315,7 +314,7 @@ class IO_SWF_Shape {
         }
     }
 
-    function build($tagCode, $opts) {
+    function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
         if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
             $writer->putUI16LE($this->_shapeId);

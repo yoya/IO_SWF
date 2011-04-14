@@ -5,7 +5,7 @@
  */
 
 require_once dirname(__FILE__).'/../SWF.php';
-require_once dirname(__FILE__).'/../SWF/Shape.php';
+require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -14,8 +14,8 @@ class IO_SWF_Editor extends IO_SWF {
     function setCharacterId() {
         foreach ($this->_tags as &$tag) {
             $content_reader = new IO_Bit();
-            $content_reader->input($tag['Content']);
-            switch ($tag['Code']) {
+            $content_reader->input($tag->content);
+            switch ($tag->code) {
               case 4:  // PlaceObject
               case 5:  // RemoveObject
               case 6:  // DefineBits
@@ -28,12 +28,12 @@ class IO_SWF_Editor extends IO_SWF {
               case 11: // DefineText
               case 33: // DefineText
               case 37: // DefineTextEdit
-                $tag['CharacterId'] = $content_reader->getUI16LE();
+                $tag->characterId = $content_reader->getUI16LE();
                 break;
               case 26: // PlaceObject2 (PlaceFlagHasCharacter)
-                $tag['PlaceFlag'] = $content_reader->getUI8();
-                if ($tag['PlaceFlag'] & 0x02) {
-                    $tag['CharacterId'] = $content_reader->getUI16LE();
+                $tag->placeFlag = $content_reader->getUI8();
+                if ($tag->placeFlag & 0x02) {
+                    $tag->characterId = $content_reader->getUI16LE();
                 }
                 break;
             }
@@ -43,9 +43,9 @@ class IO_SWF_Editor extends IO_SWF {
     function replaceTagContent($tagCode, $content, $limit = 1) {
         $count = 0;
         foreach ($this->_tags as &$tag) {
-            if ($tag['Code'] == $tagCode) {
-                $tag['Length'] = strlen($content);
-                $tag['Content'] = $content;
+            if ($tag->code == $tagCode) {
+                $tag->length = strlen($content);
+                $tag->content = $content;
                 $count += 1;
                 if ($limit <= $count) {
                     break;
@@ -57,8 +57,8 @@ class IO_SWF_Editor extends IO_SWF {
     function getTagContent($tagCode) {
         $count = 0;
         foreach ($this->_tags as &$tag) {
-            if ($tag['Code'] == $tagCode) {
-                return $tag['Content'];
+            if ($tag->code == $tagCode) {
+                return $tag->content;
             }
         }
         return null;
@@ -68,13 +68,13 @@ class IO_SWF_Editor extends IO_SWF {
         if (! is_array($tagCode)) {
             $tagCode = array($tagCode);
         }
-        $ret = 0;
+        $ret = false;
         foreach ($this->_tags as &$tag) {
-            if (in_array($tag['Code'], $tagCode) && isset($tag['CharacterId'])) {
-                if ($tag['CharacterId'] == $characterId) {
-                    $tag['Length'] = 2 + strlen($content_after_character_id);
-                    $tag['Content'] = pack('v', $characterId).$content_after_character_id;
-                    $ret = 1;
+            if (in_array($tag->code, $tagCode) && isset($tag->characterId)) {
+                if ($tag->characterId == $characterId) {
+                    $tag->content = pack('v', $characterId).$content_after_character_id;
+                    $tag->length = strlen($content);
+                    $ret = true;
                     break;
                 }
             }
@@ -88,13 +88,13 @@ class IO_SWF_Editor extends IO_SWF {
         }
         $ret = 0;
         foreach ($this->_tags as &$tag) {
-            if (in_array($tag['Code'], $tagCode) && isset($tag['CharacterId'])) {
-                if ($tag['CharacterId'] == $characterId) {
-                    if (isset($replaceTag['Code'])) {
-                        $tag['Code'] = $replaceTag['Code'];
+            if (in_array($tag->code, $tagCode) && isset($tag->characterId)) {
+                if ($tag->characterId == $characterId) {
+                    if (isset($replaceTag->code)) {
+                        $tag->code = $replaceTag->code;
                     }
-                    $tag['Length'] = strlen($replaceTag['Content']);
-                    $tag['Content'] = $replaceTag['Content'];
+                    $tag->length = strlen($replaceTag->content);
+                    $tag->content = $replaceTag>content;
                     $ret = 1;
                     break;
                 }
@@ -105,9 +105,9 @@ class IO_SWF_Editor extends IO_SWF {
 
     function getTagContentByCharacterId($tagCode, $characterId) {
         foreach ($this->_tags as $tag) {
-            if (($tag['Code'] == $tagCode) && isset($tag['CharacterId'])) {
-                if ($tag['CharacterId'] == $characterId) {
-                    return $tag['Content'];
+            if (($tag->code == $tagCode) && isset($tag->characterId)) {
+                if ($tag->characterId == $characterId) {
+                    return $tag->content;
                     break;
                 }
             }
@@ -116,16 +116,16 @@ class IO_SWF_Editor extends IO_SWF {
     }
     function deformeShape($threshold) {
         foreach ($this->_tags as &$tag) {
-            $code = $tag['Code'];
+            $code = $tag->code;
             switch($code) {
               case 2: // DefineShape
               case 22: // DefineShape2
               case 32: // DefineShape3
-                $shape = new IO_SWF_Shape();
+                $shape = new IO_SWF_Tag_Shape();
                 $opts = array('hasShapeId' => true);
-                $shape->parse($code, $tag['Content'], $opts);
+                $shape->parseContent($code, $tag->content, $opts);
                 $shape->deforme($threshold);
-                $tag['Content'] = $shape->build($code, $opts);
+                $tag->content = $shape->buildContent($code, $opts);
                 break;
             }
         }
