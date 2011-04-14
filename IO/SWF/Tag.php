@@ -4,7 +4,6 @@ require_once dirname(__FILE__).'/../SWF.php';
 
 class IO_SWF_Tag {
     var $code = 0;
-    var $longFormat = false;
     var $content = null;
     function getTagInfo($tagCode, $label) {
         static $tagMap = array(
@@ -99,7 +98,6 @@ class IO_SWF_Tag {
         $length = $tagAndLength & 0x3f;
         if ($length == 0x3f) { // long format
             $length = $reader->getUI32LE();
-            $this->LongFormat = true;
         }
         $this->content = $reader->getData($length);
     }
@@ -124,7 +122,20 @@ class IO_SWF_Tag {
         $content = $this->content;
         $length = strlen($this->content);
         $writer = new IO_Bit();
-        if (($this->longFormat === false) && ($length < 0x3f)) {
+	switch ($code) {
+          case 6:  // DefineBitsJPEG
+          case 21: // DefineBitsJPEG2
+          case 35: // DefineBitsJPEG3
+          case 20: // DefineBitsLossless
+          case 36: // DefineBitsLossless2
+          case 19: // SoundStreamBlock
+	    $longFormat = true;
+	    break;
+	  default:
+	    $longFormat = false;
+	    break;
+	}
+        if (($longFormat === false) && ($length < 0x3f)) {
             $tagAndLength = ($code << 6) | $length;
             $writer->putUI16LE($tagAndLength);
         } else {
