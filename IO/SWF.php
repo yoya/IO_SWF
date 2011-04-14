@@ -6,6 +6,8 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/SWF/Type.php';
+require_once dirname(__FILE__).'/SWF/Shape.php';
+require_once dirname(__FILE__).'/SWF/Tag.php';
 
 class IO_SWF {
     // instance variable
@@ -37,25 +39,35 @@ class IO_SWF {
         
         /* SWF Tags */
         while (true) {
-            $tag = Array();
-            $tagAndLength = $reader->getUI16LE();
-            $code = $tagAndLength >> 6;
-            $length = $tagAndLength & 0x3f;
-            if ($length == 0x3f) { // long format
-                $length = $reader->getUI32LE();
-                $tag['LongFormat'] = true;
-            }
-            $tag['Code']  = $code;
-            $tag['Length'] = $length;
-            $tag['Content'] = $reader->getData($length);
+	    $tag = IO_SWF_Tag::tagFactory($reader);
             $this->_tags[] = $tag;
-            if ($code == 0) { // END Tag
+            if ($tag->code == 0) { // END Tag
                 break;
             }
         }
         return true;
     }
-    // function dump() => IO_SWF_Dumper
+
+    function dump() {
+        /* SWF Header */
+        echo 'Signature: '.$this->_headers['Signature'].PHP_EOL;
+        echo 'Version: '.$this->_headers['Version'].PHP_EOL;
+        echo 'FileLength: '.$this->_headers['FileLength'].PHP_EOL;
+        echo 'FrameSize: '.PHP_EOL;
+        echo "\tXmin: ".($this->_headers['FrameSize']['Xmin'] / 20).PHP_EOL;
+        echo "\tXmax: ".($this->_headers['FrameSize']['Xmax'] / 20).PHP_EOL;
+        echo "\tYmin: ".($this->_headers['FrameSize']['Ymin'] / 20).PHP_EOL;
+        echo "\tYmax: ".($this->_headers['FrameSize']['Ymax'] / 20).PHP_EOL;
+        echo 'FrameRate: '.($this->_headers['FrameRate'] / 0x100).PHP_EOL;
+        echo 'FrameCount: '.$this->_headers['FrameCount'].PHP_EOL;
+
+        /* SWF Tags */
+        
+        echo 'Tags:'.PHP_EOL;
+        foreach ($this->_tags as $tag) {
+	    $tag->dump();
+        }
+    }
     
     function build() {
         $writer_head = new IO_Bit();
@@ -74,18 +86,10 @@ class IO_SWF {
         
         /* SWF Tags */
         foreach ($this->_tags as $tag) {
-            $code = $tag['Code'];
-            $tag['Length'] = strlen($tag['Content']);
-            $length = $tag['Length'];
-            if (empty($tag['LongFormat']) && ($length < 0x3f)) {
-                $tagAndLength = ($code << 6) | $length;
-                $writer->putUI16LE($tagAndLength);
-            } else {
-                $tagAndLength = ($code << 6) | 0x3f;
-                $writer->putUI16LE($tagAndLength);
-                $writer->putUI32LE($length);
-            }
-            $writer->putData($tag['Content']);
+            $tagData = $tag->build();
+	    if ($tagData != false) {
+                $writer->putData($tag->build());
+	    }
         }
         list($fileLength, $bit_offset_dummy) = $writer->getOffset();
         $fileLength += 8; // swf header
