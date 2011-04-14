@@ -44,7 +44,6 @@ class IO_SWF_Editor extends IO_SWF {
         $count = 0;
         foreach ($this->_tags as &$tag) {
             if ($tag->code == $tagCode) {
-                $tag->length = strlen($content);
                 $tag->content = $content;
                 $count += 1;
                 if ($limit <= $count) {
@@ -73,7 +72,6 @@ class IO_SWF_Editor extends IO_SWF {
             if (in_array($tag->code, $tagCode) && isset($tag->characterId)) {
                 if ($tag->characterId == $characterId) {
                     $tag->content = pack('v', $characterId).$content_after_character_id;
-                    $tag->length = strlen($content);
                     $ret = true;
                     break;
                 }

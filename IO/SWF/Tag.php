@@ -4,7 +4,6 @@ require_once dirname(__FILE__).'/../SWF.php';
 
 class IO_SWF_Tag {
     var $code = 0;
-    var $length = 0;
     var $longFormat = false;
     var $content = null;
     function getTagInfo($tagCode, $label) {
@@ -102,12 +101,11 @@ class IO_SWF_Tag {
             $length = $reader->getUI32LE();
             $this->LongFormat = true;
         }
-        $this->length = $length;
         $this->content = $reader->getData($length);
     }
     function dump($opts = array()) {
         $code = $this->code;
-        $length = $this->length;
+        $length = strlen($this->content);
         $name = $this->getTagInfo($code, 'name');
         if ($name === false) {
            $name = 'unknown';
@@ -124,8 +122,7 @@ class IO_SWF_Tag {
     function build($opts = array()) {
         $code = $this->code;
         $content = $this->content;
-        $this->length = strlen($this->content);
-        $length = $this->length;
+        $length = strlen($this->content);
         $writer = new IO_Bit();
         if (($this->longFormat === false) && ($length < 0x3f)) {
             $tagAndLength = ($code << 6) | $length;
