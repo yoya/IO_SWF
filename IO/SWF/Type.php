@@ -64,13 +64,6 @@ class IO_SWF_Type {
     static function stringRGBA($color) {
     	return sprintf("#%02x%02x%02x(02x)", $color['Red'], $color['Green'], $color['Blue'], $color['Alpha']);
     }
-    static function stringRGBorRGBA($color) {
-    	if (isset($color['Alpha'])) {
-    	    return self::stringRGBA($color);
-    	} else {
-            return self::stringRGB($color);
-    	}
-    }
     static function parseMATRIX($reader) {
     	$matrix = array();
         $hasScale = $reader->getUIBit();
@@ -140,7 +133,12 @@ class IO_SWF_Type {
     	$writer->putSIBits($matrix['TranslateX'], $nTranslateBits);
     	$writer->putSIBits($matrix['TranslateY'], $nTranslateBits);
     }
-    static function stringMATRIX($matrix, $indent) {
+
+    static function stringMATRIX($matrix, $opts = array()) {
+        $indent = 0;
+        if (isset($opts['indent'])) {
+            $indent = $opts['indent'];
+        }
 	   $text_fmt = <<< EOS
 %s| %3.3f %3.3f |  %3.2f
 %s| %3.3f %3.3f |  %3.2f

@@ -241,7 +241,11 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             switch ($fillStyleType) {
               case 0x00: // solid fill
                 $color = $fillStyle['Color'];
-                $color_str = IO_SWF_Type::stringRGBorRGBA($color);
+                if ($tagCode < 32 ) { // 32:DefineShape3
+                    $color_str = IO_SWF_Type::stringRGB($color);
+                } else {
+                    $color_str = IO_SWF_Type::stringRGBA($color);
+                }
                 echo "\tsolid fill: $color_str\n";
                 break;
               case 0x10: // linear gradient fill
@@ -251,14 +255,19 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 } else {
                     echo "\tradianar gradient fill\n";
                 }
-                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['GradientMatrix'], 2);
+                $opts = array('indent' => 2);
+                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['GradientMatrix'], $opts);
                 echo $matrix_str . "\n";
                 $spreadMode = $fillStyle['SpreadMode'];
                 $interpolationMode = $fillStyle['InterpolationMode'];
                 foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
                     $ratio = $gradientRecord['Ratio'];
                     $color = $gradientRecord['Color'];
-                    $color_str = IO_SWF_Type::stringRGBorRGBA($color);
+                    if ($tagCode < 32 ) { // 32:DefineShape3
+                        $color_str = IO_SWF_Type::stringRGB($color);
+                    } else {
+                        $color_str = IO_SWF_Type::stringRGBA($color);
+                    }
                     echo "\t\tRatio: $ratio Color:$color_str\n";
                 }
                 break;
@@ -269,7 +278,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 echo "\tBigmap($fillStyleType): ";
                 echo "  BitmapId: ".$fillStyle['BitmapId']."\n";
                 echo "\tBitmapMatrix:\n";
-                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['BitmapMatrix'], 2);
+                $opts = array('indent' => 2);
+                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['BitmapMatrix'], $opts);
                 echo $matrix_str . "\n";
                 break;
               default:
@@ -280,7 +290,11 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         foreach ($this->_lineStyles as $lineStyle) {
             $width = $lineStyle['Width'];
             $color = $lineStyle['Color'];
-            $color_str = IO_SWF_Type::stringRGBorRGBA($color);
+            if ($tagCode < 32 ) { // 32:DefineShape3
+                $color_str = IO_SWF_Type::stringRGB($color);
+            } else {
+                $color_str = IO_SWF_Type::stringRGBA($color);
+            }
             echo "\tWitdh: $width Color: $color_str\n";
         }
         echo "    ShapeRecords:\n";
