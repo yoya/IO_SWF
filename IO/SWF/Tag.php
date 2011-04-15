@@ -7,6 +7,7 @@ class IO_SWF_Tag {
     var $code = 0;
     var $content = null;
     var $tag = null;
+    var $byte_offset, $byte_size;
     function getTagInfo($tagCode, $label) {
         static $tagMap = array(
          // code => array(name , klass)
@@ -95,6 +96,7 @@ class IO_SWF_Tag {
         return false;
     }
     function parse(&$reader, $opts = array()) {
+        list($this->byte_offset, $dummy) = $reader->getOffset();
         $tagAndLength = $reader->getUI16LE();
         $this->code = $tagAndLength >> 6;
         $length = $tagAndLength & 0x3f;
@@ -102,6 +104,8 @@ class IO_SWF_Tag {
             $length = $reader->getUI32LE();
         }
         $this->content = $reader->getData($length);
+        list($byte_offset, $dummy) = $reader->getOffset();
+        $this->byte_size = $byte_offset - $this->byte_offset;
     }
     function dump($opts = array()) {
         $code = $this->code;
@@ -114,6 +118,10 @@ class IO_SWF_Tag {
         $klass = self::getTagInfo($code, 'klass');
         if ($this->parseTagContent()) {
             $this->tag->dumpContent($code);
+        }
+        if (empty($opts['hexdump']) === false) {
+           $bitio =& $opts['bitio'];
+           $bitio->hexdump($this->byte_offset, $this->byte_size);
         }
     }
     function build($opts = array()) {

@@ -12,12 +12,15 @@ require_once dirname(__FILE__).'/SWF/Tag/Shape.php';
 class IO_SWF {
     // instance variable
     var $_headers = array(); // protected
+    var $_header_size;
     var $_tags = array();    // protected
+    // for debug
+    var $_swfdata = null;
 
     function parse($swfdata) {
         $reader = new IO_Bit();
         $reader->input($swfdata);
-
+        $this->_swfdata  = $swfdata;
         /* SWF Header */
         $this->_headers['Signature'] = $reader->getData(3);
         $this->_headers['Version'] = $reader->getUI8();
@@ -30,9 +33,10 @@ class IO_SWF {
             }
             list($byte_offset, $dummy) = $reader->getOffset();
             $reader->setOffset(0, 0);
-            $header_block = $reader->getData($byte_offset);
+            $swfdata = $reader->getData($byte_offset) . $uncompressed_data;
             $reader = new IO_Bit();
-            $reader->input($header_block . $uncompressed_data);
+            $reader->input($swfdata);
+            $this->_swfdata  = $swfdata;
             $reader->setOffset($byte_offset, 0);
         }
         /* SWF Movie Header */
@@ -40,6 +44,8 @@ class IO_SWF {
         $reader->byteAlign();
         $this->_headers['FrameRate'] = $reader->getUI16LE();
         $this->_headers['FrameCount'] = $reader->getUI16LE();
+
+        list($this->_header_size, $dummy) = $reader->getOffset();
         
         /* SWF Tags */
         while (true) {
@@ -53,7 +59,11 @@ class IO_SWF {
         return true;
     }
 
-    function dump() {
+    function dump($opts = array()) {
+        if (empty($opts['hexdump']) === false) {
+            $bitio = new IO_Bit();
+            $bitio->input($this->_swfdata);
+        }
         /* SWF Header */
         echo 'Signature: '.$this->_headers['Signature'].PHP_EOL;
         echo 'Version: '.$this->_headers['Version'].PHP_EOL;
@@ -66,11 +76,16 @@ class IO_SWF {
         echo 'FrameRate: '.($this->_headers['FrameRate'] / 0x100).PHP_EOL;
         echo 'FrameCount: '.$this->_headers['FrameCount'].PHP_EOL;
 
+        if (empty($opts['hexdump']) === false) {
+            $bitio->hexdump(0, $this->_header_size);
+            $opts['bitio'] =& $bitio; // for tag
+        }
+
         /* SWF Tags */
         
         echo 'Tags:'.PHP_EOL;
         foreach ($this->_tags as $tag) {
-	    $tag->dump();
+    	    $tag->dump($opts);
         }
     }
     
