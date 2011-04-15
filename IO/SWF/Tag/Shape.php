@@ -2,6 +2,10 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
+require_once dirname(__FILE__).'/../Type/MATRIX.php';
+require_once dirname(__FILE__).'/../Type/RECT.php';
+require_once dirname(__FILE__).'/../Type/RGB.php';
+require_once dirname(__FILE__).'/../Type/RGBA.php';
 
 class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeId = null;
@@ -14,7 +18,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     	$reader->input($content);
         $this->_shapeId = $reader->getUI16LE();
     	// 描画枠
-        $this->_shapeBounds = IO_SWF_Type::parseRECT($reader);
+        $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
 
     	$baseFillStyle = 0;
     	$baseLineStyle = 0;
@@ -166,14 +170,14 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             switch ($fillStyleType) {
               case 0x00: // solid fill
                 if ($tagCode < 32 ) { // 32:DefineShape3
-                    $fillStyle['Color'] = IO_SWF_Type::parseRGB($reader);
+                    $fillStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
                 } else {
-                    $fillStyle['Color'] = IO_SWF_Type::parseRGBA($reader);
+                    $fillStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
                 }
                 break;
               case 0x10: // linear gradient fill
               case 0x12: // radial gradient fill
-                $fillStyle['GradientMatrix'] = IO_SWF_Type::parseMATRIX($reader);
+                $fillStyle['GradientMatrix'] = IO_SWF_Type_MATRIX::parse($reader);
                 $reader->byteAlign();
                 $fillStyle['SpreadMode'] = $reader->getUIBits(2);
                 $fillStyle['InterpolationMode'] = $reader->getUIBits(2);
@@ -183,9 +187,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                     $gradientRecord = array();
                     $gradientRecord['Ratio'] = $reader->getUI8();
                     if ($tagCode < 32 ) { // 32:DefineShape3
-                        $gradientRecord['Color'] = IO_SWF_Type::parseRGB($reader);
+                        $gradientRecord['Color'] = IO_SWF_Type_RGB::parse($reader);
                     } else {
-                        $gradientRecord['Color'] = IO_SWF_Type::parseRGBA($reader);
+                        $gradientRecord['Color'] = IO_SWF_Type_RGBA::parse($reader);
                     }
                     $fillStyle['GradientRecords'] []= $gradientRecord;
                 }
@@ -197,7 +201,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
               case 0x42: // non-smoothed repeating bitmap fill
               case 0x43: // non-smoothed clipped bitmap fill
                 $fillStyle['BitmapId'] = $reader->getUI16LE();
-                $fillStyle['BitmapMatrix'] = IO_SWF_Type::parseMATRIX($reader);
+                $fillStyle['BitmapMatrix'] = IO_SWF_Type_MATRIX::parse($reader);
                 break;
               default:
             // XXX: 受理できない旨のエラー出力
@@ -217,9 +221,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             $lineStyle = array();
             $lineStyle['Width'] = $reader->getUI16LE();
             if ($tagCode < 32 ) { // 32:DefineShape3
-                $lineStyle['Color'] = IO_SWF_Type::parseRGB($reader);
+                $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
             } else {
-                $lineStyle['Color'] = IO_SWF_Type::parseRGBA($reader);
+                $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
             }
             $this->_lineStyles[] = $lineStyle;
         }
@@ -242,9 +246,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
               case 0x00: // solid fill
                 $color = $fillStyle['Color'];
                 if ($tagCode < 32 ) { // 32:DefineShape3
-                    $color_str = IO_SWF_Type::stringRGB($color);
+                    $color_str = IO_SWF_Type_RGB::string($color);
                 } else {
-                    $color_str = IO_SWF_Type::stringRGBA($color);
+                    $color_str = IO_SWF_Type_RGBA::string($color);
                 }
                 echo "\tsolid fill: $color_str\n";
                 break;
@@ -256,7 +260,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                     echo "\tradial gradient fill\n";
                 }
                 $opts = array('indent' => 2);
-                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['GradientMatrix'], $opts);
+                $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['GradientMatrix'], $opts);
                 echo $matrix_str . "\n";
                 $spreadMode = $fillStyle['SpreadMode'];
                 $interpolationMode = $fillStyle['InterpolationMode'];
@@ -264,9 +268,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                     $ratio = $gradientRecord['Ratio'];
                     $color = $gradientRecord['Color'];
                     if ($tagCode < 32 ) { // 32:DefineShape3
-                        $color_str = IO_SWF_Type::stringRGB($color);
+                        $color_str = IO_SWF_Type_RGB::string($color);
                     } else {
-                        $color_str = IO_SWF_Type::stringRGBA($color);
+                        $color_str = IO_SWF_Type_RGBA::string($color);
                     }
                     echo "\t\tRatio: $ratio Color:$color_str\n";
                 }
@@ -279,7 +283,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 echo "  BitmapId: ".$fillStyle['BitmapId']."\n";
                 echo "\tBitmapMatrix:\n";
                 $opts = array('indent' => 2);
-                $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['BitmapMatrix'], $opts);
+                $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['BitmapMatrix'], $opts);
                 echo $matrix_str . "\n";
                 break;
               default:
@@ -291,9 +295,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             $width = $lineStyle['Width'];
             $color = $lineStyle['Color'];
             if ($tagCode < 32 ) { // 32:DefineShape3
-                $color_str = IO_SWF_Type::stringRGB($color);
+                $color_str = IO_SWF_Type_RGB::string($color);
             } else {
-                $color_str = IO_SWF_Type::stringRGBA($color);
+                $color_str = IO_SWF_Type_RGBA::string($color);
             }
             echo "\tWitdh: $width Color: $color_str\n";
         }
@@ -496,9 +500,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             switch ($fillStyleType) {
               case 0x00: // solid fill
                 if ($tagCode < 32 ) { // 32:DefineShape3
-                    IO_SWF_Type::buildRGB($writer, $fillStyle['Color']);
+                    IO_SWF_Type_RGB::build($writer, $fillStyle['Color']);
                 } else {
-                    IO_SWF_Type::buildRGBA($writer, $fillStyle['Color']);
+                    IO_SWF_Type_RGBA::build($writer, $fillStyle['Color']);
                 }
                 break;
               case 0x10: // linear gradient fill
@@ -512,9 +516,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
                     $writer->putUI8($gradientRecord['Ratio']);
                     if ($tagCode < 32 ) { // 32:DefineShape3
-                        IO_SWF_Type::buildRGB($writer, $gradientRecord['Color']);
+                        IO_SWF_Type_RGB::build($writer, $gradientRecord['Color']);
                     } else {
-                        IO_SWF_Type::buildRGBA($writer, $gradientRecord['Color']);
+                        IO_SWF_Type_RGBA::build($writer, $gradientRecord['Color']);
                     }
                 }
               break;
@@ -525,7 +529,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
               case 0x42: // non-smoothed repeating bitmap fill
               case 0x43: // non-smoothed clipped bitmap fill
                 $writer->putUI16LE($fillStyle['BitmapId']);
-                IO_SWF_Type::buildMATRIX($writer, $fillStyle['BitmapMatrix']);
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['BitmapMatrix']);
                 break;
             }
         }
@@ -547,9 +551,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         foreach ($this->_lineStyles as $lineStyle) {
             $writer->putUI16LE($lineStyle['Width']);
             if ($tagCode < 32 ) { // 32:DefineShape3
-                IO_SWF_Type::buildRGB($writer, $lineStyle['Color']);
+                IO_SWF_Type_RGB::build($writer, $lineStyle['Color']);
             } else {
-                IO_SWF_Type::buildRGBA($writer, $lineStyle['Color']);
+                IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
             }
         }
         return $lineStyleCount;

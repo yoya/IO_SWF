@@ -5,7 +5,8 @@
  */
 
 require_once 'IO/Bit.php';
-require_once dirname(__FILE__).'/SWF/Type.php';
+require_once dirname(__FILE__).'/SWF/Type/RECT.php';
+require_once dirname(__FILE__).'/SWF/Type/MATRIX.php';
 require_once dirname(__FILE__).'/SWF/Tag.php';
 require_once dirname(__FILE__).'/SWF/Tag/Shape.php';
 
@@ -40,7 +41,7 @@ class IO_SWF {
             $reader->setOffset($byte_offset, 0);
         }
         /* SWF Movie Header */
-        $this->_headers['FrameSize'] = IO_SWF_Type::parseRECT($reader);
+        $this->_headers['FrameSize'] = IO_SWF_Type_RECT::parse($reader);
         $reader->byteAlign();
         $this->_headers['FrameRate'] = $reader->getUI16LE();
         $this->_headers['FrameCount'] = $reader->getUI16LE();
@@ -68,11 +69,7 @@ class IO_SWF {
         echo 'Signature: '.$this->_headers['Signature'].PHP_EOL;
         echo 'Version: '.$this->_headers['Version'].PHP_EOL;
         echo 'FileLength: '.$this->_headers['FileLength'].PHP_EOL;
-        echo 'FrameSize: '.PHP_EOL;
-        echo "\tXmin: ".($this->_headers['FrameSize']['Xmin'] / 20).PHP_EOL;
-        echo "\tXmax: ".($this->_headers['FrameSize']['Xmax'] / 20).PHP_EOL;
-        echo "\tYmin: ".($this->_headers['FrameSize']['Ymin'] / 20).PHP_EOL;
-        echo "\tYmax: ".($this->_headers['FrameSize']['Ymax'] / 20).PHP_EOL;
+        echo 'FrameSize: '. IO_SWF_Type_RECT::string($this->_headers['FrameSize'])."\n";
         echo 'FrameRate: '.($this->_headers['FrameRate'] / 0x100).PHP_EOL;
         echo 'FrameCount: '.$this->_headers['FrameCount'].PHP_EOL;
 
@@ -99,7 +96,7 @@ class IO_SWF {
         $writer_head->putUI32LE($this->_headers['FileLength']);
 
         /* SWF Movie Header */
-	IO_SWF_Type::buildRECT($writer, $this->_headers['FrameSize']);
+	IO_SWF_Type_RECT::build($writer, $this->_headers['FrameSize']);
         $writer->byteAlign();
         $writer->putUI16LE($this->_headers['FrameRate']);
         $writer->putUI16LE($this->_headers['FrameCount']);
