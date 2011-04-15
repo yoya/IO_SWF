@@ -26,7 +26,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 2:  // DefineShape (ShapeId)
               case 22: // DefineShape2 (ShapeId)
               case 11: // DefineText
-              case 33: // DefineText
+              case 33: // DefineText2
               case 37: // DefineTextEdit
                 $tag->characterId = $content_reader->getUI16LE();
                 break;
