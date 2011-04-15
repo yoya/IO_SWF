@@ -172,7 +172,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 }
                 break;
               case 0x10: // linear gradient fill
-              case 0x12: // radianar gradient fill
+              case 0x12: // radial gradient fill
                 $fillStyle['GradientMatrix'] = IO_SWF_Type::parseMATRIX($reader);
                 $reader->byteAlign();
                 $fillStyle['SpreadMode'] = $reader->getUIBits(2);
@@ -253,7 +253,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 if ($fillStyleType == 0x10) {
                     echo "\tlinear gradient fill\n";
                 } else {
-                    echo "\tradianar gradient fill\n";
+                    echo "\tradial gradient fill\n";
                 }
                 $opts = array('indent' => 2);
                 $matrix_str = IO_SWF_Type::stringMATRIX($fillStyle['GradientMatrix'], $opts);
@@ -502,7 +502,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 }
                 break;
               case 0x10: // linear gradient fill
-              case 0x12: // radianar gradient fill
+              case 0x12: // radial gradient fill
                 IO_SWF_Type::buildMATRIX($writer, $fillStyle['GradientMatrix']);
                 $writer->byteAlign();
                 $writer->putUIBits($fillStyle['SpreadMode'], 2);
