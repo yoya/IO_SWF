@@ -28,8 +28,12 @@ class IO_SWF {
             if ($uncompressed_data === false) {
                 return false;
             }
+            list($byte_offset, $dummy) = $reader->getOffset();
+            $reader->setOffset(0, 0);
+            $header_block = $reader->getData($byte_offset);
             $reader = new IO_Bit();
-            $reader->input($uncompressed_data);
+            $reader->input($header_block . $uncompressed_data);
+            $reader->setOffset($byte_offset, 0);
         }
         /* SWF Movie Header */
         $this->_headers['FrameSize'] = IO_SWF_Type::parseRECT($reader);
