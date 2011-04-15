@@ -6,6 +6,7 @@ require_once dirname(__FILE__).'/../Type/MATRIX.php';
 require_once dirname(__FILE__).'/../Type/RECT.php';
 require_once dirname(__FILE__).'/../Type/RGB.php';
 require_once dirname(__FILE__).'/../Type/RGBA.php';
+require_once dirname(__FILE__).'/../Type/SHAPE.php';
 
 class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeId = null;
@@ -337,7 +338,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
             $writer->putUI16LE($this->_shapeId);
         }
-        IO_SWF_Type::buildRECT($writer, $this->_shapeBounds);
+        IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
         // 描画スタイル
         $shapeRecordIndex = 0;
         $fillStyleCount = $this->_buildFILLSTYLEARRAY($writer, $tagCode, $shapeRecordIndex);
@@ -507,7 +508,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
                 break;
               case 0x10: // linear gradient fill
               case 0x12: // radial gradient fill
-                IO_SWF_Type::buildMATRIX($writer, $fillStyle['GradientMatrix']);
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['GradientMatrix']);
                 $writer->byteAlign();
                 $writer->putUIBits($fillStyle['SpreadMode'], 2);
                 $writer->putUIBits($fillStyle['InterpolationMode'], 2);
