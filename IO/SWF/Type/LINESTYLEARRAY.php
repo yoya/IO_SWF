@@ -11,6 +11,7 @@ require_once dirname(__FILE__).'/LINESTYLE.php';
 
 class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
+        $tagCode = $opts['tagCode'];
         $lineStyles = array();
         // LineStyle
         $lineStyleCount = $reader->getUI8();
