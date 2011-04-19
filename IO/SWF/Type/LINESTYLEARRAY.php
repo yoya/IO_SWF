@@ -6,6 +6,8 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
+require_once dirname(__FILE__).'/LINESTYLE.php';
+
 
 class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
@@ -17,14 +19,7 @@ class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
             $lineStyleCount = $reader->getUI16LE();
         }
         for ($i = 0 ; $i < $lineStyleCount ; $i++) {
-            $lineStyle = array();
-            $lineStyle['Width'] = $reader->getUI16LE();
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
-            } else {
-                $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
-            }
-            $lineStyles[] = $lineStyle;
+            $lineStyles[] = IO_SWF_Type_LINESTYLE::parse($reader, $opts);
         }
         return $lineStyles;
     }
@@ -42,12 +37,7 @@ class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
             }
         }
         foreach ($lineStyles as $lineStyle) {
-            $writer->putUI16LE($lineStyle['Width']);
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                IO_SWF_Type_RGB::build($writer, $lineStyle['Color']);
-            } else {
-                IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
-            }
+            IO_SWF_Type_LINESTYLE::build($writer, $lineStyle);
         }
         return true;
     }
@@ -55,14 +45,7 @@ class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
         $tagCode = $opts['tagCode'];
         $text = '';
         foreach ($lineStyles as $lineStyle) {
-            $width = $lineStyle['Width'];
-            $color = $lineStyle['Color'];
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                $color_str = IO_SWF_Type_RGB::string($color);
-            } else {
-                $color_str = IO_SWF_Type_RGBA::string($color);
-            }
-            $text .= "\tWitdh: $width Color: $color_str\n";
+            $text .= IO_SWF_Type_LINESTYLE::string($lineStyle, $opts);
         }
         return $text;
     }
