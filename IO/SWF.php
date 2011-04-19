@@ -8,7 +8,6 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/SWF/Type/RECT.php';
 require_once dirname(__FILE__).'/SWF/Type/MATRIX.php';
 require_once dirname(__FILE__).'/SWF/Tag.php';
-require_once dirname(__FILE__).'/SWF/Tag/Shape.php';
 
 class IO_SWF {
     // instance variable
