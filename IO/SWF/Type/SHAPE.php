@@ -300,11 +300,11 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                    $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
                    echo "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
                    echo "  LineStyle: ".$shapeRecord['LineStyle']."\n";
-                   if ($shapeRecord['FillStyles']) {
+                   if (isset($shapeRecord['FillStyles'])) {
                        echo "    FillStyles:\n";
                        echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles']);
                    }
-                   if ($shapeRecord['LineStyles']) {
+                   if (isset($shapeRecord['LineStyles'])) {
                         echo "    LineStyles:\n";
                         echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['LineStyles']);
                    }
