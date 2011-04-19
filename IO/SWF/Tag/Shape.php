@@ -57,7 +57,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if (is_null($this->_shapeId) === false) {
             echo "    ShapeId: {$this->_shapeId}\n";
         }
-        $opts = array('tagCode' => $tagCode);
+        $opts = array('tagCode' => $tagCode, 'isMorph' => $isMorph);
 
         if ($isMorph === false) {
             echo "    ShapeBounds: ". IO_SWF_Type_RECT::string($this->_shapeBounds)."\n";
@@ -67,7 +67,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             echo IO_SWF_Type_LINESTYLEARRAY::string($this->_lineStyles, $opts);
 
             echo "    ShapeRecords:\n";
-            echo IO_SWF_Type_SHAPE::string($this->_shapeRecords);
+            echo IO_SWF_Type_SHAPE::string($this->_shapeRecords, $opts);
         } else {
             $opts['isMorph'] = true;
             echo "    StartBounds: ". IO_SWF_Type_RECT::string($this->_startBounds)."\n";
