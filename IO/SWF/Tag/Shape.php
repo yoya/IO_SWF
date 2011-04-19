@@ -62,9 +62,9 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if ($isMorph === false) {
             echo "    ShapeBounds: ". IO_SWF_Type_RECT::string($this->_shapeBounds)."\n";
             echo "    FillStyles:\n";
-            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_fillStyles);
+            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_fillStyles, $opts);
             echo "    LineStyles:\n";
-            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_lineStyles);
+            echo IO_SWF_Type_LINESTYLEARRAY::string($this->_lineStyles, $opts);
 
             echo "    ShapeRecords:\n";
             echo IO_SWF_Type_SHAPE::string($this->_shapeRecords);

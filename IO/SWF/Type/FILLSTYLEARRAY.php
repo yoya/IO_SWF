@@ -43,7 +43,6 @@ class IO_SWF_Type_FILLSTYLEARRAY extends IO_SWF_Type {
         return true;
     }
     static function string($fillStyles, $opts = array()) {
-        $tagCode = $opts['tagCode'];
         $text = '';
         foreach ($fillStyles as $fillStyle) {
             $text .= IO_SWF_Type_FILLSTYLE::string($fillStyle, $opts);
