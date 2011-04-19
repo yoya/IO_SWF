@@ -1,8 +1,7 @@
 <?php
 
-require 'IO/SWF.php';
-// require dirname(__FILE__).'/../IO/SWF.php';
-
+// require 'IO/SWF.php';
+require dirname(__FILE__).'/../IO/SWF.php';
 
 $options = getopt("f:h");
 

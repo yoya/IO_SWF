@@ -69,7 +69,6 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             echo "    ShapeRecords:\n";
             echo IO_SWF_Type_SHAPE::string($this->_shapeRecords, $opts);
         } else {
-            $opts['isMorph'] = true;
             echo "    StartBounds: ". IO_SWF_Type_RECT::string($this->_startBounds)."\n";
             echo "    EndBounds: ". IO_SWF_Type_RECT::string($this->_endBounds)."\n";
             echo "    FillStyles:\n";
