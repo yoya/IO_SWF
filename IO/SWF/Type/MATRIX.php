@@ -10,6 +10,8 @@ require_once dirname(__FILE__).'/../Type.php';
 class IO_SWF_Type_MATRIX extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$matrix = array();
+
+        $reader->byteAlign();
         $hasScale = $reader->getUIBit();
     	if ($hasScale) {
     	    $nScaleBits = $reader->getUIBits(5);
@@ -36,6 +38,7 @@ class IO_SWF_Type_MATRIX extends IO_SWF_Type {
     	return $matrix;
     }
     static function build(&$writer, $matrix, $opts = array()) {
+//        $writer->byteAlign();
         if ($matrix['ScaleX'] | $matrix['ScaleY']) {
 	        $writer->putUIBit(1); // HasScale;
     	    if ($matrix['ScaleX'] | $matrix['ScaleY']) {
