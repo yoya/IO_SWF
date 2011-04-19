@@ -9,36 +9,62 @@ require_once dirname(__FILE__).'/../Type.php';
 
 class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
+        $tagCode = $opts['tagCode'];
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
         $lineStyle = array();
-        $lineStyle['Width'] = $reader->getUI16LE();
-        if ($tagCode < 32 ) { // 32:DefineShape3
-            $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
+        if ($isMorph === false) {
+            $lineStyle['Width'] = $reader->getUI16LE();
+            if ($tagCode < 32 ) { // 32:DefineShape3
+                $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
+            } else {
+                $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
+            }
         } else {
-            $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
+            $lineStyle['StartWidth'] = $reader->getUI16LE();
+            $lineStyle['EndWidth']   = $reader->getUI16LE();
+            $lineStyle['StartColor'] = IO_SWF_Type_RGBA::parse($reader);
+            $lineStyle['EndColor']   = IO_SWF_Type_RGBA::parse($reader);
         }
         return  $lineStyle;
     }
     static function build(&$writer, $lineStyle, $opts = array()) {
         $tagCode = $opts['tagCode'];
-        $writer->putUI16LE($lineStyle['Width']);
-        if ($tagCode < 32 ) { // 32:DefineShape3
-            IO_SWF_Type_RGB::build($writer, $lineStyle['Color']);
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
+        if ($isMorph === false) {
+            $writer->putUI16LE($lineStyle['Width']);
+            if ($tagCode < 32 ) { // 32:DefineShape3
+                IO_SWF_Type_RGB::build($writer, $lineStyle['Color']);
+            } else {
+                IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
+            }
         } else {
-            IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
+            $writer->putUI16LE($lineStyle['StartWidth']);
+            $writer->putUI16LE($lineStyle['EndWidth']);
+            IO_SWF_Type_RGBA::build($writer, $lineStyle['StartColor']);
+            IO_SWF_Type_RGBA::build($writer, $lineStyle['EndColor']);
         }
         return true;
     }
     static function string($lineStyle, $opts = array()) {
         $tagCode = $opts['tagCode'];
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
         $text = '';
-        $width = $lineStyle['Width'];
-        $color = $lineStyle['Color'];
-        if ($tagCode < 32 ) { // 32:DefineShape3
-            $color_str = IO_SWF_Type_RGB::string($color);
+
+        if ($isMorph === false) {
+            $width = $lineStyle['Width'];
+            if ($tagCode < 32 ) { // 32:DefineShape3
+                $color_str = IO_SWF_Type_RGB::string($lineStyle['Color']);
+            } else {
+                $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
+            }
+            $text .= "\tWitdh: $width Color: $color_str\n";
         } else {
-            $color_str = IO_SWF_Type_RGBA::string($color);
+            $startWidth = $lineStyle['StartWidth'];
+            $endWidth = $lineStyle['EndWidth'];
+            $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
+            $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
+            $text .= "\tWitdh: $startWidth => $endWidth Color: $startColorStr => $endColorStr\n";
         }
-        $text .= "\tWitdh: $width Color: $color_str\n";
         return $text;
     }
 }

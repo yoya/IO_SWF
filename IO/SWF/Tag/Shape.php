@@ -12,58 +12,107 @@ require_once dirname(__FILE__).'/../Type/SHAPE.php';
 
 class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeId = null;
+    // DefineShape, DefineShape2, DefineShape3
     var $_shapeBounds;
     var $_fillStyles = array(), $_lineStyles = array();
     var $_shapeRecords = array();
+    // DefineMorphShape
+    var $_startBounds, $_endBounds;
+    var $_offset;
+    var $_morphFillStyles = array(), $_morphLineStyles = array();
+    var $_startEdge, $_endEdges;
 
    function parseContent($tagCode, $content, $opts = array()) {
+
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
+
         $reader = new IO_Bit();
     	$reader->input($content);
         $this->_shapeId = $reader->getUI16LE();
-    	// 描画枠
-        $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
 
-    	// 描画スタイル
-        $opts = array('tagCode' => $tagCode);
-        $this->_fillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
-    	$this->_lineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
-        $this->_shapeRecords = IO_SWF_Type_SHAPE::parse($reader, $opts);
+        $opts = array('tagCode' => $tagCode, 'isMorph' => $isMorph);
+
+        if ($isMorph === false) {
+        	// 描画スタイル
+            $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
+            $this->_fillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
+        	$this->_lineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
+        	// 描画枠
+            $this->_shapeRecords = IO_SWF_Type_SHAPE::parse($reader, $opts);
+        } else {
+            $this->_startBounds = IO_SWF_TYPE_RECT::parse($reader);
+            $this->_endBounds = IO_SWF_TYPE_RECT::parse($reader);
+            $this->_offset = $reader->getUI32LE();
+        	// 描画スタイル
+            $this->_morphFillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
+        	$this->_morphLineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
+        	// 描画枠
+            $this->_startEdge = IO_SWF_Type_SHAPE::parse($reader, $opts);
+            $this->_endEdge   = IO_SWF_Type_SHAPE::parse($reader, $opts);
+        }
     }
 
     function dumpContent($tagCode, $opts = array()) {
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
         if (is_null($this->_shapeId) === false) {
             echo "    ShapeId: {$this->_shapeId}\n";
         }
-        echo "    ShapeBounds:";
-        $Xmin = $this->_shapeBounds['Xmin'] / 20;
-        $Xmax = $this->_shapeBounds['Xmax'] / 20;
-        $Ymin = $this->_shapeBounds['Xmin'] / 20;
-        $Ymax = $this->_shapeBounds['Ymax'] / 20;
-        echo "  ($Xmin, $Ymin) - ($Xmax, $Ymax)\n";
+        $opts = array('tagCode' => $tagCode);
 
-        echo "    FillStyles:\n";
-        echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_fillStyles);
-        echo "    LineStyles:\n";
-        echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_lineStyles);
+        if ($isMorph === false) {
+            echo "    ShapeBounds: ". IO_SWF_Type_RECT::string($this->_shapeBounds)."\n";
+            echo "    FillStyles:\n";
+            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_fillStyles);
+            echo "    LineStyles:\n";
+            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_lineStyles);
 
-        echo "    ShapeRecords:\n";
-        echo IO_SWF_Type_SHAPE::string($this->_shapeRecords);
+            echo "    ShapeRecords:\n";
+            echo IO_SWF_Type_SHAPE::string($this->_shapeRecords);
+        } else {
+            $opts['isMorph'] = true;
+            echo "    StartBounds: ". IO_SWF_Type_RECT::string($this->_startBounds)."\n";
+            echo "    EndBounds: ". IO_SWF_Type_RECT::string($this->_endBounds)."\n";
+            echo "    FillStyles:\n";
+            echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_morphFillStyles, $opts);
+            echo "    LineStyles:\n";
+            echo IO_SWF_Type_LINESTYLEARRAY::string($this->_morphLineStyles, $opts);
+
+            echo "    StartEdge:\n";
+            echo IO_SWF_Type_SHAPE::string($this->_startEdge, $opts);
+            echo "    endEdge:\n";
+            echo IO_SWF_Type_SHAPE::string($this->_endEdge, $opts);
+        }
     }
 
     function buildContent($tagCode, $opts = array()) {
+        $isMorph = ($tagCode == 46) || ($tagCode == 84);
         $writer = new IO_Bit();
         if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
             $writer->putUI16LE($this->_shapeId);
         }
-        IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
-        // 描画スタイル
         $opts = array('tagCode' => $tagCode);
-        IO_SWF_Type_FILLSTYLEARRAY::build($writer, $this->_fillStyles, $opts);
-        IO_SWF_Type_LINESTYLEARRAY::build($writer, $this->_lineStyles, $opts);
-        $opts['fillStyleCount'] = count($this->_fillStyles);
-        $opts['lineStyleCount'] = count($this->_fillStyles);
-        IO_SWF_Type_SHAPE::build($writer, $this->_shapeRecords, $opts);
 
+        if ($isMorph === false) {
+            IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
+            // 描画スタイル
+            IO_SWF_Type_FILLSTYLEARRAY::build($writer, $this->_fillStyles, $opts);
+            IO_SWF_Type_LINESTYLEARRAY::build($writer, $this->_lineStyles, $opts);
+        	// 描画枠
+            $opts['fillStyleCount'] = count($this->_fillStyles);
+            $opts['lineStyleCount'] = count($this->_lineStyles);
+            IO_SWF_Type_SHAPE::build($writer, $this->_shapeRecords, $opts);
+        } else {
+            IO_SWF_Type_RECT::build($writer, $this->_startBounds);
+            IO_SWF_Type_RECT::build($writer, $this->_endBounds);
+            // 描画スタイル
+            IO_SWF_Type_FILLSTYLEARRAY::build($writer, $this->_morphFillStyles, $opts);
+            IO_SWF_Type_LINESTYLEARRAY::build($writer, $this->_morphLineStyles, $opts);
+        	// 描画枠
+            $opts['fillStyleCount'] = count($this->_morphFillStyles);
+            $opts['lineStyleCount'] = count($this->_morphLineStyles);
+            IO_SWF_Type_SHAPE::build($writer, $this->_startEdge, $opts);
+            IO_SWF_Type_SHAPE::build($writer, $this->_endEdge, $opts);
+        }
         return $writer->output();
     }
 

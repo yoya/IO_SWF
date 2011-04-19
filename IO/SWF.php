@@ -50,8 +50,8 @@ class IO_SWF {
         
         /* SWF Tags */
         while (true) {
-	    $tag = new IO_SWF_Tag();
-	    $tag->parse($reader);
+      	    $tag = new IO_SWF_Tag();
+            $tag->parse($reader);
             $this->_tags[] = $tag;
             if ($tag->code == 0) { // END Tag
                 break;
