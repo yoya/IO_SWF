@@ -286,7 +286,7 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
         }
         return true;
     }
-    static function string($shapeRecords, $opts = array(), $opts = array()) {
+    static function string($shapeRecords, $opts = array()) {
         $tagCode = $opts['tagCode'];
         foreach ($shapeRecords as $shapeRecord) {
             $typeFlag = $shapeRecord['TypeFlag'];
