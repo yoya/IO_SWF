@@ -2,10 +2,7 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
-require_once dirname(__FILE__).'/../Type/MATRIX.php';
 require_once dirname(__FILE__).'/../Type/RECT.php';
-require_once dirname(__FILE__).'/../Type/RGB.php';
-require_once dirname(__FILE__).'/../Type/RGBA.php';
 require_once dirname(__FILE__).'/../Type/FILLSTYLEARRAY.php';
 require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 require_once dirname(__FILE__).'/../Type/SHAPE.php';
