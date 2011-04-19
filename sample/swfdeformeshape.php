@@ -1,7 +1,7 @@
 <?php
 
-// require 'IO/SWF/Editor.php';
-require dirname(__FILE__).'/../IO/SWF/Editor.php';
+require 'IO/SWF/Editor.php';
+// require dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if ($argc != 3) {
     fprintf(STDERR, "Usage: php swfdeformeshape.php <swf_file> <threshold>\n");

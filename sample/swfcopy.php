@@ -1,7 +1,7 @@
 <?php
 
-// require 'IO/SWF.php';
-require dirname(__FILE__).'/../IO/SWF.php';
+require 'IO/SWF.php';
+// require dirname(__FILE__).'/../IO/SWF.php';
 
 if ($argc != 2) {
     echo "Usage: php swfcopy.php <swf_file>\n";
