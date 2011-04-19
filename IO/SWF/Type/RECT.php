@@ -8,7 +8,7 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
 class IO_SWF_Type_RECT extends IO_SWF_Type {
-    static function parse($reader) {
+    static function parse(&$reader, $opts = array()) {
         $frameSize = array();
         $nBits = $reader->getUIBits(5);
         $frameSize['Xmin'] = $reader->getSIBits($nBits);
@@ -17,7 +17,7 @@ class IO_SWF_Type_RECT extends IO_SWF_Type {
         $frameSize['Ymax'] = $reader->getSIBits($nBits) ;
     	return $frameSize; 
     }
-    static function build($writer, $frameSize) {
+    static function build(&$writer, $frameSize, $opts = array()) {
         $nBits = 0;
     	foreach ($frameSize as $size) {
 	        if ($size == 0){

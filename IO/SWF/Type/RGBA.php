@@ -8,7 +8,7 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
 class IO_SWF_Type_RGBA extends IO_SWF_Type {
-    static function parse($reader) {
+    static function parse(&$reader, $opts = array()) {
     	$rgba = array();
     	$rgba['Red'] = $reader->getUI8();
     	$rgba['Green'] = $reader->getUI8();
@@ -16,7 +16,7 @@ class IO_SWF_Type_RGBA extends IO_SWF_Type {
     	$rgba['Alpha'] = $reader->getUI8();
     	return $rgba;
     }
-    static function build($writer, $rgba) {
+    static function build(&$writer, $rgba, $opts = array()) {
     	$writer->putUI8($rgba['Red']);
 	    $writer->putUI8($rgba['Green']);
     	$writer->putUI8($rgba['Blue']);

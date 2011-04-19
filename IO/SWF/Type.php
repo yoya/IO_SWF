@@ -7,8 +7,7 @@
 // require_once 'IO/Bit.php';
 
 abstract class IO_SWF_Type {
-    abstract static function parse($reader);
-    abstract static function build($writer, $data);
+    abstract static function parse(&$reader, $opts = array());
+    abstract static function build(&$writer, $data, $opts = array());
     abstract static function string($data, $opts = array());
 }
-
