@@ -1,6 +1,5 @@
 <?php
 
-
 require_once dirname(__FILE__).'/../SWF.php';
 
 class IO_SWF_Tag {
@@ -20,7 +19,7 @@ class IO_SWF_Tag {
              6 => array('name' => 'DefineBitsJPEG'),
              7 => array('name' => 'DefineButton'),
              8 => array('name' => 'JPEGTables'),
-             9 => array('name' => 'SetBackgroundColor'),
+             9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
             10 => array('name' => 'DefineFont'),
             11 => array('name' => 'DefineText'),
             12 => array('name' => 'DoAction'),
@@ -110,13 +109,12 @@ class IO_SWF_Tag {
     }
     function dump($opts = array()) {
         $code = $this->code;
-        $length = strlen($this->content);
         $name = $this->getTagInfo($code, 'name');
         if ($name === false) {
            $name = 'unknown';
         }
+        $length = strlen($this->content);
         echo "Code: $code($name)  Length: $length".PHP_EOL;
-        $klass = self::getTagInfo($code, 'klass');
         if ($this->parseTagContent()) {
             $this->tag->dumpContent($code);
         }
@@ -154,7 +152,7 @@ class IO_SWF_Tag {
         return $writer->output() . $this->buildTagContent();
     }
     function parseTagContent() {
-            if (is_null($this->tag) === false) {
+        if (is_null($this->tag) === false) {
             return true;
         }
         $code = $this->code;
@@ -162,6 +160,7 @@ class IO_SWF_Tag {
         if ($klass === false) {
             return false; // no parse
         }
+        require_once dirname(__FILE__)."/Tag/$klass.php";
         $klass = "IO_SWF_Tag_$klass";
         $obj = new $klass();
         $obj->parseContent($code, $this->content);
