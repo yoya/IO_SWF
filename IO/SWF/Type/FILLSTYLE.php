@@ -6,6 +6,7 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
+require_once dirname(__FILE__).'/../Exception.php';
 
 class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
@@ -78,8 +79,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
             }
             break;
           default:
-        // XXX: 受理できない旨のエラー出力
-            break ; // XXX
+            throw new IO_SWF_Exception("Unknown FillStyleType=$fillStyleType tagCode=$tagCode");
         }
         return $fillStyle;
     }
@@ -123,6 +123,8 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
             $writer->putUI16LE($fillStyle['BitmapId']);
             IO_SWF_Type_MATRIX::build($writer, $fillStyle['BitmapMatrix']);
             break;
+          default:
+            throw new IO_SWF_Exception("Unknown FillStyleType=$fillStyleType tagCode=$tagCode");
         }
         return true;
     }
