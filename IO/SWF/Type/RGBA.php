@@ -23,6 +23,6 @@ class IO_SWF_Type_RGBA extends IO_SWF_Type {
     	$writer->putUI8($rgba['Alpha']);
     }
     static function string($color, $opts = array()) {
-    	return sprintf("#%02x%02x%02x(02x)", $color['Red'], $color['Green'], $color['Blue'], $color['Alpha']);
+    	return sprintf("#%02x%02x%02x(%02x)", $color['Red'], $color['Green'], $color['Blue'], $color['Alpha']);
     }
 }
