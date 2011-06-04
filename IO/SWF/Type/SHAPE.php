@@ -304,11 +304,11 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                    echo "  LineStyle: ".$shapeRecord['LineStyle']."\n";
                    if (isset($shapeRecord['FillStyles'])) {
                        echo "    FillStyles:\n";
-                       echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles']);
+                       echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
                    }
                    if (isset($shapeRecord['LineStyles'])) {
                         echo "    LineStyles:\n";
-                        echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['LineStyles']);
+                        echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
                    }
                }
             } else {
