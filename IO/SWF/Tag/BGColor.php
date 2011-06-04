@@ -20,7 +20,7 @@ class IO_SWF_Tag_BGColor extends IO_SWF_Tag_Base {
 
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
-        IO_SWF_Type_RGB::parse($writer, $this->_color);
+        IO_SWF_Type_RGB::build($writer, $this->_color);
     	return $writer->output();
     }
 }
