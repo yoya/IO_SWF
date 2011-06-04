@@ -19,6 +19,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             $action = IO_SWF_Type_Action::parse($reader);
             $this->_actions [] = $action;
         }
+        // ActionEndFlag
     }
 
     function dumpContent($tagCode, $opts = array()) {
@@ -32,9 +33,9 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
         foreach ($this->_actions as $action) {
-            IO_SWF_Type_RGB::build($writer, $action);
+            IO_SWF_Type_Action::build($writer, $action);
         }
-        $writer->putUI8(0);
+        $writer->putUI8(0); // ActionEndFlag
     	return $writer->output();
     }
 }
