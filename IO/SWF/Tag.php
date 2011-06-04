@@ -22,7 +22,7 @@ class IO_SWF_Tag {
              9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
             10 => array('name' => 'DefineFont'),
             11 => array('name' => 'DefineText'),
-            12 => array('name' => 'DoAction'),
+            12 => array('name' => 'DoAction', 'klass' => 'Action'),
             13 => array('name' => 'DefineFontInfo'),
             14 => array('name' => 'DefineSound'),
             15 => array('name' => 'StartSound'),
