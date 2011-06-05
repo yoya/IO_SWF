@@ -6,6 +6,7 @@
 
 require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
+require_once dirname(__FILE__).'/../SWF/Tag/Action.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -124,6 +125,19 @@ class IO_SWF_Editor extends IO_SWF {
                 $shape->parseContent($code, $tag->content, $opts);
                 $shape->deforme($threshold);
                 $tag->content = $shape->buildContent($code, $opts);
+                break;
+            }
+        }
+    }
+    function replaceActionString($from_str, $to_str) {
+        foreach ($this->_tags as &$tag) {
+            $code = $tag->code;
+            switch($code) {
+              case 12: // DoAction
+                $action = new IO_SWF_Tag_Action();
+                $action->parseContent($code, $tag->content);
+                $action->replaceActionString($from_str, $to_str);
+                $tag->content = $action->buildContent($code);
                 break;
             }
         }

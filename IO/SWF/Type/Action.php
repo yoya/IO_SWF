@@ -103,7 +103,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $action['UrlString'] = $strs[0];
                 $action['TargetString'] = $strs[1];
                 break;
-            case 0x88: // ACtonConstantPool
+            case 0x88: // ActionConstantPool
                 $count = $reader->getUI16LE();
                 $action['Count'] = $count;
                 $data = $reader->getData($length - 2);
@@ -210,7 +210,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 switch ($type) {
                 case 0: // STRING
                     $str = $action['String'];
-                    $pos = strpos("\0", $str);
+                    $pos = strpos($str, "\0");
                     if ($pos === false) {
                         $str .= "\0";
                     } else {

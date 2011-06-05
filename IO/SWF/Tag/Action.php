@@ -38,4 +38,36 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         $writer->putUI8(0); // ActionEndFlag
     	return $writer->output();
     }
+    function replaceActionString($from_str, $to_str) {
+        foreach ($this->_actions as &$action) {
+            switch($action['Code']) {
+            case 0x83: // ActionGetURL
+                ;
+                if ($action['UrlString'] === $from_str) {
+                    $action['UrlString'] = $to_str;
+                }
+                if ($action['TargetString'] === $from_str) {
+                    $action['TargetString'] = $to_str;
+                }
+                break;
+            case 0x88: // ActionConstantPool
+                foreach ($action['ConstantPool'] as $idx_cp => $cp) {
+                    if ($cp === $from_str) {
+                        $action['ConstantPool'][$idx_cp] = $to_str;
+                    }
+                }
+                break;
+            case 0x96: // ActionPush
+                if ($action['Type'] == 0) { // Type String
+                    if ($action['String'] === $from_str) {
+                        $action['String'] = $to_str;
+                    }
+                }
+                break;
+                
+            }
+            
+        }
+        // don't touch $action, danger!
+    }
 }
