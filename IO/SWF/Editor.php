@@ -8,6 +8,7 @@ require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Action.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Sprite.php';
+require_once dirname(__FILE__).'/../SWF/Lossless.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -90,11 +91,11 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($this->_tags as &$tag) {
             if (in_array($tag->code, $tagCode) && isset($tag->characterId)) {
                 if ($tag->characterId == $characterId) {
-                    if (isset($replaceTag->code)) {
-                        $tag->code = $replaceTag->code;
+                    if (isset($replaceTag['Code'])) {
+                        $tag->code = $replaceTag['Code'];
                     }
-                    $tag->length = strlen($replaceTag->content);
-                    $tag->content = $replaceTag>content;
+                    $tag->length = strlen($replaceTag['Content']);
+                    $tag->content = $replaceTag['Content'];
                     $ret = 1;
                     break;
                 }
@@ -164,5 +165,34 @@ class IO_SWF_Editor extends IO_SWF {
     // 2.01 の互換性確保用。Strings の方が正しい。
     function replaceActionString($from_str, $to_str) {
         return $this->replaceActionStrings($from_str, $to_str);
+    }
+
+    function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
+        $bitmap_head4 = substr($bitmap_data, 0, 4);
+        if ((strncmp($bitmap_head4, 'GIF', 3) == 0) ||
+            (strncmp($bitmap_head4, chr(0x89).'PNG', 4) == 0)) {
+            $tag = IO_SWF_Lossless::BitmapData2Lossless($bitmap_id, $bitmap_data);
+        } else if (strncmp($bitmap_data, chr(0xff).chr(0xd8).chr(0xff).chr(0xdb), 4) == 0) {
+            $erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
+            if (is_null($jpeg_alphadata)) {
+                // 21: DefineBitsJPEG2
+                $content = $erroneous_header.$bitmap_data;
+                $tag = array('Code' => 21,
+                             'Content' => $content);
+            } else {
+                // 35: DefineBitsJPEG3
+                $jpeg_data = $erroneous_header.$bitmap_data;
+                $compressed_alphadata = gzcompress($jpeg_alphadata);
+                $content = pack('v', $bitmap_id).pack('V', strlen($jpeg_data)).$jpeg_data.$compressed_alphadata;
+                $tag = array('Code' => 35,
+                             'Content' => $content);
+            }
+        } else {
+            throw new IO_SWF_Exception("Unknown Bitmap Format: ".bin2hex($bitmap_head4));
+        }
+        // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
+        $tag_code = array(6, 21, 35, 20, 36);
+        $ret = $this->replaceTagByCharacterId($tag_code, $bitmap_id, $tag);
+        return $ret;
     }
 }
