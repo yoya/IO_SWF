@@ -23,7 +23,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "  Actions:\n";
+        echo "    Actions:\n";
         foreach ($this->_actions as $action) {
             $action_str = IO_SWF_Type_Action::string($action);
             echo "\t$action_str\n";
