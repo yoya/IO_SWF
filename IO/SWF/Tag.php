@@ -57,7 +57,7 @@ class IO_SWF_Tag {
             56 => array('name' => 'Export'),
             57 => array('name' => ''),
             58 => array('name' => ''),
-            59 => array('name' => 'DoInitAction'),
+            59 => array('name' => 'DoInitAction', 'klass' => 'Action'),
             //
             60 => array('name' => 'DefineVideoStream'),
             61 => array('name' => 'videoFrame'),

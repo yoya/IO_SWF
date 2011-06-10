@@ -10,10 +10,13 @@ require_once dirname(__FILE__).'/../Type/Action.php';
 
 class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     var $_actions = array();
-
-   function parseContent($tagCode, $content, $opts = array()) {
+    var $_spriteId = null; // DoInitAction
+    function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
+        if ($tagCode == 59) { // DoInitAction
+            $this->_spriteId = $reader->getUI16LE();
+        }
         while ($reader->getUI8() != 0) {
             $reader->incrementOffset(-1, 0); // 1 byte back
             $action = IO_SWF_Type_Action::parse($reader);
@@ -23,7 +26,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "    Actions:\n";
+        echo "    Actions:";
+        if ($tagCode == 59) { // DoInitAction
+            echo " SpriteID=".$this->_spriteId;
+        }
+        echo "\n";
         foreach ($this->_actions as $action) {
             $action_str = IO_SWF_Type_Action::string($action);
             echo "\t$action_str\n";
@@ -32,6 +39,9 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
 
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
+        if ($tagCode == 59) { // DoInitAction
+            $writer->putUI16LE($this->_spriteId);
+        }
         foreach ($this->_actions as $action) {
             IO_SWF_Type_Action::build($writer, $action);
         }
