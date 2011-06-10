@@ -7,6 +7,7 @@
 require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Action.php';
+require_once dirname(__FILE__).'/../SWF/Tag/Sprite.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -134,10 +135,28 @@ class IO_SWF_Editor extends IO_SWF {
             $code = $tag->code;
             switch($code) {
               case 12: // DoAction
+//            case 59: // DoAction
                 $action = new IO_SWF_Tag_Action();
                 $action->parseContent($code, $tag->content);
                 $action->replaceActionStrings($from_str, $to_str);
                 $tag->content = $action->buildContent($code);
+                break;
+            case 39: // Sprite
+                $sprite = new IO_SWF_Tag_Sprite();
+                $sprite->parseContent($code, $tag->content);
+                foreach ($sprite->_controlTags as &$tag_in_sprite) {
+                    $code_in_sprite = $tag_in_sprite->code;
+                    switch ($code_in_sprite) {
+              case 12: // DoAction
+//            case 59: // DoAction
+                  $action_in_sprite = new IO_SWF_Tag_Action();
+                  $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
+                  $action_in_sprite->replaceActionStrings($from_str, $to_str);
+                  $tag_in_sprite->content = $action_in_sprite->buildContent($code_in_sprite);
+                  break;
+                    }
+                }
+                $tag->content = $sprite->buildContent($code);
                 break;
             }
         }
