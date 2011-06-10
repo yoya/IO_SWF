@@ -21,7 +21,8 @@ $swf = new IO_SWF_Editor();
 
 $swf->parse($swfdata);
 
-$swf->replaceActionString($from_str, $to_str);
+$swf->replaceActionStrings($from_str, $to_str);
+// $swf->replaceActionString($from_str, $to_str); // obsolute
 
 echo $swf->build();
 

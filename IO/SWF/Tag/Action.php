@@ -38,7 +38,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         $writer->putUI8(0); // ActionEndFlag
     	return $writer->output();
     }
-    function replaceActionString($from_str, $to_str) {
+    function replaceActionStrings($from_str, $to_str) {
         foreach ($this->_actions as &$action) {
             switch($action['Code']) {
             case 0x83: // ActionGetURL

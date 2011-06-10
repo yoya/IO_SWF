@@ -129,17 +129,21 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
-    function replaceActionString($from_str, $to_str) {
+    function replaceActionStrings($from_str, $to_str) {
         foreach ($this->_tags as &$tag) {
             $code = $tag->code;
             switch($code) {
               case 12: // DoAction
                 $action = new IO_SWF_Tag_Action();
                 $action->parseContent($code, $tag->content);
-                $action->replaceActionString($from_str, $to_str);
+                $action->replaceActionStrings($from_str, $to_str);
                 $tag->content = $action->buildContent($code);
                 break;
             }
         }
+    }
+    // 2.01 の互換性確保用。Strings の方が正しい。
+    function replaceActionString($from_str, $to_str) {
+        return $this->replaceActionStrings($from_str, $to_str);
     }
 }
