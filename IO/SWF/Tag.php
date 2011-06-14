@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__FILE__).'/../SWF.php';
+require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 
 class IO_SWF_Tag {
     var $code = 0;

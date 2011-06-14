@@ -316,4 +316,13 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         }
         return $deforme_number;
     }
+    function countEdges() {
+        $edges_count = 0;
+	foreach ($this->_shapeRecords as $shapeRecordIndex => $shapeRecord) {
+	    if (isset($shapeRecord['StraightFlag'])) { // XXX
+	        $edges_count++; 
+	    }
+	} 
+	return array($this->_shapeId, $edges_count);
+    }
 }
