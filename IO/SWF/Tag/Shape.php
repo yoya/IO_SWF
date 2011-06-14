@@ -11,12 +11,12 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeId = null;
     // DefineShape, DefineShape2, DefineShape3
     var $_shapeBounds;
-    var $_fillStyles = array(), $_lineStyles = array();
-    var $_shapeRecords = array();
+    var $_fillStyles, $_lineStyles;
+    var $_shapeRecords;
     // DefineMorphShape
     var $_startBounds, $_endBounds;
     var $_offset;
-    var $_morphFillStyles = array(), $_morphLineStyles = array();
+    var $_morphFillStyles, $_morphLineStyles;
     var $_startEdge, $_endEdges;
 
    function parseContent($tagCode, $content, $opts = array()) {
@@ -318,11 +318,18 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     }
     function countEdges() {
         $edges_count = 0;
-	foreach ($this->_shapeRecords as $shapeRecordIndex => $shapeRecord) {
+	if (isset($this->_shapeRecords)) {
+	    $shapeRecords = $this->_shapeRecords;
+	} elseif (isset($this->_startEdge)) {
+	    $shapeRecords = $this->_startEdge;
+	} else {
+	    $shapeRecords = array(); // nothing to do.
+	}
+	foreach ($shapeRecords as $shapeRecordIndex => $shapeRecord) {
 	    if (isset($shapeRecord['StraightFlag'])) { // XXX
 	        $edges_count++; 
 	    }
-	} 
+	}
 	return array($this->_shapeId, $edges_count);
     }
 }
