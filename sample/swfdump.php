@@ -1,7 +1,7 @@
 <?php
 
-require 'IO/SWF/Info.php';
-// require dirname(__FILE__).'/../IO/SWF/Info.php';
+require 'IO/SWF.php';
+// require dirname(__FILE__).'/../IO/SWF.php';
 
 $options = getopt("f:h");
 
@@ -13,7 +13,7 @@ if (is_readable($options['f']) === false) {
 
 $swfdata = file_get_contents($options['f']);
 
-$swf = new IO_SWF_Info();
+$swf = new IO_SWF();
 
 $swf->parse($swfdata);
 

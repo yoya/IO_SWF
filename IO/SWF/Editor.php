@@ -196,4 +196,23 @@ class IO_SWF_Editor extends IO_SWF {
         $ret = $this->replaceTagByCharacterId($tag_code, $bitmap_id, $tag);
         return $ret;
     }
+
+    function countShapeEdges($opts = array()) {
+        $count_table = array();
+        foreach ($this->_tags as $tag) {
+            $code = $tag->code;
+            switch ($code) {
+            case 2: // DefineShape
+            case 22: // DefineShape2
+            case 32: // DefineShape3
+            case 46: // DefineMorphShape
+                $shape = new IO_SWF_Tag_Shape();
+                $opts = array('hasShapeId' => true);
+                $shape->parseContent($code, $tag->content, $opts);
+                list($shape_id, $edges_count) = $shape->countEdges();
+                $count_table[$shape_id] = $edges_count;
+            }
+        }
+        return $count_table;
+    }
 }

@@ -1,7 +1,7 @@
 <?php
 
-require 'IO/SWF/Info.php';
-// require dirname(__FILE__).'/../IO/SWF/Info.php';
+require 'IO/SWF/Editor.php';
+// require dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if ($argc != 2) {
     echo "Usage: php swfcountshapeedges.php <swf_file>\n";
@@ -11,7 +11,7 @@ if ($argc != 2) {
 
 $swfdata = file_get_contents($argv[1]);
 
-$swf = new IO_SWF_Info();
+$swf = new IO_SWF_Editor();
 
 $swf->parse($swfdata);
 
