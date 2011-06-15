@@ -115,6 +115,8 @@ class IO_SWF_Lossless {
             $tagCode = 36; // DefineBitsLossless2
         }
         $tag = array('Code' => $tagCode,
+                     'width' => $width,
+                     'height' => $height,
                      'Content' => $content);
         return $tag;
     }
