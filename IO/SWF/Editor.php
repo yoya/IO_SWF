@@ -163,10 +163,6 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
-    // 2.01 の互換性確保用。Strings の方が正しい。
-    function replaceActionString($from_str, $to_str) {
-        return $this->replaceActionStrings($from_str, $to_str);
-    }
 
     function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
         $bitmap_head4 = substr($bitmap_data, 0, 4);
