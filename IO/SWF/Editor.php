@@ -165,11 +165,10 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
-        $bitmap_head4 = substr($bitmap_data, 0, 4);
-        if ((strncmp($bitmap_head4, 'GIF', 3) == 0) ||
-            (strncmp($bitmap_head4, chr(0x89).'PNG', 4) == 0)) {
+        if ((strncmp($bitmap_data, 'GIF', 3) == 0) ||
+            (strncmp($bitmap_data, "\x89PNG", 4) == 0)) {
             $tag = IO_SWF_Lossless::BitmapData2Lossless($bitmap_id, $bitmap_data);
-        } else if (strncmp($bitmap_data, chr(0xff).chr(0xd8).chr(0xff).chr(0xdb), 4) == 0) {
+        } else if (strncmp($bitmap_data, "\xff\xd8\xff", 3) == 0) {
             $erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
             if (is_null($jpeg_alphadata)) {
                 // 21: DefineBitsJPEG2
@@ -185,7 +184,7 @@ class IO_SWF_Editor extends IO_SWF {
                              'Content' => $content);
             }
         } else {
-            throw new IO_SWF_Exception("Unknown Bitmap Format: ".bin2hex($bitmap_head4));
+            throw new IO_SWF_Exception("Unknown Bitmap Format: ".bin2hex(substr($bitmap_data, 0, 4)));
         }
         // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
         $tag_code = array(6, 21, 35, 20, 36);
