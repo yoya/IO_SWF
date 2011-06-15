@@ -74,7 +74,7 @@ class IO_SWF_Bitmap {
     static function get_bitmapsize($bitmapdata) {
         if (strncmp($bitmapdata, "\xff\xd8\xff", 3) == 0) { // JPEG
             return self::get_jpegsize($bitmapdata);
-        } elseif (substr($bitmapdata, 1, 3) == 'PNG') { // PNG
+        } elseif (strncmp($bitmapdata,"\x89PNG", 4) == 0) { // PNG
             return self::get_pngsize($bitmapdata);
         } elseif (strncmp($bitmapdata, 'GIF', 3) == 0) { // GIF
             return self::get_gifsize($bitmapdata);
