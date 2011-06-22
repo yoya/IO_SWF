@@ -53,7 +53,6 @@ class IO_SWF_Tag {
             // 44 missing
             45 => array('name' => 'SoundStreamHead2'),
             46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape'),
-//            46 => array('name' => 'DefineMorphShape'),
             48 => array('name' => 'DefineFont2'),
             56 => array('name' => 'Export'),
             57 => array('name' => ''),
