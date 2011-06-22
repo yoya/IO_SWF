@@ -69,7 +69,7 @@ class IO_SWF {
         $writer_head->putUI32LE($this->_headers['FileLength']);
 
         /* SWF Movie Header */
-	IO_SWF_Type_RECT::build($writer, $this->_headers['FrameSize']);
+        IO_SWF_Type_RECT::build($writer, $this->_headers['FrameSize']);
         $writer->byteAlign();
         $writer->putUI16LE($this->_headers['FrameRate']);
         $writer->putUI16LE($this->_headers['FrameCount']);
