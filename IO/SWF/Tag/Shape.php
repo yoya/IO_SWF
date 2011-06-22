@@ -83,7 +83,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     function buildContent($tagCode, $opts = array()) {
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
         $writer = new IO_Bit();
-        if (isset($opts['hasShapeId']) && $opts['hasShapeId']) {
+        if (empty($opts['noShapeId'])) {
             $writer->putUI16LE($this->_shapeId);
         }
         $opts = array('tagCode' => $tagCode);

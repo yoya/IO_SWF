@@ -14,6 +14,15 @@ class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
     // var $_tags = array();    // protected
 
+    function rebuild() {
+        foreach ($this->_tags as &$tag) {
+            if ($tag->parseTagContent()) {
+                $tag->content = null;
+                $tag->buildTagContent();
+            }
+        }
+    }
+
     function setCharacterId() {
         foreach ($this->_tags as &$tag) {
             $content_reader = new IO_Bit();
@@ -124,10 +133,9 @@ class IO_SWF_Editor extends IO_SWF {
               case 22: // DefineShape2
               case 32: // DefineShape3
                 $shape = new IO_SWF_Tag_Shape();
-                $opts = array('hasShapeId' => true);
-                $shape->parseContent($code, $tag->content, $opts);
+                $shape->parseContent($code, $tag->content);
                 $shape->deforme($threshold);
-                $tag->content = $shape->buildContent($code, $opts);
+                $tag->content = $shape->buildContent($code);
                 break;
             }
         }
@@ -202,8 +210,7 @@ class IO_SWF_Editor extends IO_SWF {
             case 32: // DefineShape3
             case 46: // DefineMorphShape
                 $shape = new IO_SWF_Tag_Shape();
-                $opts = array('hasShapeId' => true);
-                $shape->parseContent($code, $tag->content, $opts);
+                $shape->parseContent($code, $tag->content);
                 list($shape_id, $edges_count) = $shape->countEdges();
                 $count_table[$shape_id] = $edges_count;
             }
