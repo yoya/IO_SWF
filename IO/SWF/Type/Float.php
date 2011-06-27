@@ -13,10 +13,10 @@ class IO_SWF_Type_Float extends IO_SWF_Type {
     	return unpack('f', $data);
     }
     static function build(&$writer, $value, $opts = array()) {
-        $data = unpack('f', $value);
+        $data = pack('f', $value);
     	$writer->putData($data, 4);
     }
     static function string($value, $opts = array()) {
-    	return sprintf("#%f", $value);
+    	return sprintf("(Float)%f", $value);
     }
 }

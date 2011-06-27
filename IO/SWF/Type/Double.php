@@ -13,10 +13,10 @@ class IO_SWF_Type_Double extends IO_SWF_Type {
     	return unpack('d', $data);
     }
     static function build(&$writer, $value, $opts = array()) {
-        $data = unpack('d', $value);
+        $data = pack('d', $value);
     	$writer->putData($data, 8);
     }
     static function string($value, $opts = array()) {
-    	return sprintf("#%d", $value);
+    	return sprintf("(Double)%d", $value);
     }
 }
