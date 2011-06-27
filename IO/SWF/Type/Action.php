@@ -7,6 +7,8 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/String.php';
+require_once dirname(__FILE__).'/Float.php';
+require_once dirname(__FILE__).'/Double.php';
                               
 class IO_SWF_Type_Action extends IO_SWF_Type {
     static $action_code_table = array(
@@ -129,16 +131,45 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $action['SkipCount'] = $reader->getUI8();
                 break;
             case 0x96: // ActionPush
-                $type = $reader->getUI8();
-                $action['Type'] = $type;
-                switch ($type) {
-                case 0: // STRING
-                    $action['String'] = IO_SWF_Type_String::parse($reader);
-                    break;
-                default:
-                    $action['Data'] = $reader->getData($length - 1);
-                    break;
+                $data = $reader->getData($length);
+                $values = array();
+                $values_reader = new IO_Bit();
+                $values_reader->input($data);
+                while ($values_reader->hasNextData()) {
+                    $value = array();
+                    $type = $values_reader->getUI8();
+                    $value['Type'] = $type;
+                    switch ($type) {
+                    case 0: // STRING
+                        $value['String'] = IO_SWF_Type_String::parse($values_reader);
+                        break;
+                    case 1: // Float
+                        $value['Float'] = IO_SWF_Type_Float::parse($values_reader);
+                        break;
+                    case 4: // RegisterNumber
+                        $value['RegisterNumber'] = $values_reader->getUI8();
+                        break;
+                    case 5: // Boolean
+                        $value['Boolean'] = $values_reader->getUI8();
+                        break;
+                    case 6: // Double
+                        $value['Double'] = IO_SWF_Type_Double::parse($values_reader);
+                        break;
+                    case 7: // Integer
+                        $value['Integer'] = $values_reader->getUI32();
+                        break;
+                    case 8: // Constant8
+                        $value['Constant8'] = $values_reader->getUI8();
+                        break;
+                    case 9: // Constant16
+                        $value['Constant16'] = $values_reader->getUI16();
+                        break;
+                    default:
+                        throw new IO_SWF_Exception("Illegal ActionPush value's type($type)");
+                    }
+                    $values[] = $value;
                 }
+                $action['Values'] = $values;
                 break;
             case 0x99: // ActionJump
                 $action['BranchOffset'] = $reader->getSI16LE();
@@ -206,27 +237,51 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $writer->putUI8($action['SkipCount']);
                 break;
             case 0x96: // ActionPush
-                $type = $action['Type'];
-                switch ($type) {
-                case 0: // STRING
-                    $str = $action['String'];
-                    $pos = strpos($str, "\0");
-                    if ($pos === false) {
-                        $str .= "\0";
-                    } else {
-                        $length = $pos + 1;
-                        $str = substr($str, 0, $pos);
+                $values_writer = new IO_Bit();
+                foreach ($action['Values'] as $value) {
+                    $type = $value['Type'];
+                    $values_writer->putUI8($type);
+                    switch ($type) {
+                    case 0: // STRING
+                        $str = $value['String'];
+                        $pos = strpos($str, "\0");
+                        if ($pos === false) {
+                            $str .= "\0";
+                        } else {
+                            $length = $pos + 1;
+                            $str = substr($str, 0, $pos);
+                        }
+                        $values_writer->putData($str);
+                        break;
+                    case 1: // Float
+                        IO_SWF_Type_Float::build($values_writer, $value['Float']);
+                        break;
+                    case 4: // RegisterNumber
+                        $values_writer->putUI8($value['RegisterNumber']);
+                        break;
+                    case 5: // Boolean
+                        $values_writer->putUI8($value['Boolean']);
+                        break;
+                    case 6: // Double
+                        IO_SWF_Type_Double::build($values_writer, $value['Double']);
+                        break;
+                    case 7: // Integer
+                        $values_writer->putUI32($value['Integer']);
+                        break;
+                    case 8: // Constant8
+                        $values_writer->putUI8($value['Constant8']);
+                        break;
+                    case 9: // Constant16
+                        $values_writer->putUI16($value['Constant16']);
+                        break;
+                    default:
+                        throw new IO_SWF_Exception("Illegal ActionPush value's type($type)");
+                        break;
                     }
-                    $writer->putUI16LE(1 + strlen($str));
-                    $writer->putUI8($type);
-                    $writer->putData($str);
-                    break;
-                default:
-                    $writer->putUI16LE(1 + strlen($action['Data']));
-                    $writer->putUI8($type);
-                    $writer->putData($action['Data']);
-                    break;
-                }
+                } 
+                $values_data = $values_writer->output();
+                $writer->putUI16LE(strlen($values_data));
+                $writer->putData($values_data);
                 break;
             case 0x99: // ActionJump
                 $writer->putUI16LE(2);
@@ -281,6 +336,20 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $data_keys = array_diff(array_keys($action), array('Code', 'Length'));
                 foreach ($data_keys as $key) {
                     $value = $action[$key];
+                    if (is_array($value)) {
+                        $new_value = array();
+                        foreach ($value as $k => $v) {
+                            if (is_array($v)) {
+                                $new_v = array();
+                                foreach ($v as $k2 => $v2) {
+                                    $new_v []= "$k2:$v2";
+                                }
+                                $v = implode(' ', $new_v);
+                            }
+                            $new_value[] = "$k:$v";
+                        }
+                        $value = implode(' ', $new_value);
+                    }
                     $str .= "   " ."$key=$value";
                 }
                 break;
