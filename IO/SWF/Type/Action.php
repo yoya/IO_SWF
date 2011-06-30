@@ -148,6 +148,12 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                     case 1: // Float
                         $value['Float'] = IO_SWF_Type_Float::parse($values_reader);
                         break;
+                    case 2: // null
+		      $value['null'] = null;
+                        break;
+                    case 3: // undefined
+		      $value['undefined'] = null;
+                        break;
                     case 4: // RegisterNumber
                         $value['RegisterNumber'] = $values_reader->getUI8();
                         break;
@@ -158,13 +164,13 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                         $value['Double'] = IO_SWF_Type_Double::parse($values_reader);
                         break;
                     case 7: // Integer
-                        $value['Integer'] = $values_reader->getUI32();
+                        $value['Integer'] = $values_reader->getUI32LE();
                         break;
                     case 8: // Constant8
                         $value['Constant8'] = $values_reader->getUI8();
                         break;
                     case 9: // Constant16
-                        $value['Constant16'] = $values_reader->getUI16();
+                        $value['Constant16'] = $values_reader->getUI16LE();
                         break;
                     default:
                         throw new IO_SWF_Exception("Illegal ActionPush value's type($type)");
@@ -258,6 +264,12 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                     case 1: // Float
                         IO_SWF_Type_Float::build($values_writer, $value['Float']);
                         break;
+                    case 2: // null
+		      // nothing to do.
+		      break;
+                    case 3: // undefined
+		      // nothing to do.
+		      break;
                     case 4: // RegisterNumber
                         $values_writer->putUI8($value['RegisterNumber']);
                         break;
@@ -268,13 +280,13 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                         IO_SWF_Type_Double::build($values_writer, $value['Double']);
                         break;
                     case 7: // Integer
-                        $values_writer->putUI32($value['Integer']);
+                        $values_writer->putUI32LE($value['Integer']);
                         break;
                     case 8: // Constant8
                         $values_writer->putUI8($value['Constant8']);
                         break;
                     case 9: // Constant16
-                        $values_writer->putUI16($value['Constant16']);
+                        $values_writer->putUI16LE($value['Constant16']);
                         break;
                     default:
                         throw new IO_SWF_Exception("Illegal ActionPush value's type($type)");
