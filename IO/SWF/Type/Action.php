@@ -332,6 +332,14 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                     $str .= "\t[$idx] $c".PHP_EOL;
                 }
                 break;
+            case 0x96: // ActonPush
+	        $str .= "   ";
+                foreach ($action['Values'] as $value) {
+		  unset($value['Type']);
+		  list($type_name) = array_keys($value);
+		  $str .= " ($type_name)".$value[$type_name];
+                }
+                break;
             default:
                 $data_keys = array_diff(array_keys($action), array('Code', 'Length'));
                 foreach ($data_keys as $key) {
@@ -339,13 +347,6 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                     if (is_array($value)) {
                         $new_value = array();
                         foreach ($value as $k => $v) {
-                            if (is_array($v)) {
-                                $new_v = array();
-                                foreach ($v as $k2 => $v2) {
-                                    $new_v []= "$k2:$v2";
-                                }
-                                $v = implode(' ', $new_v);
-                            }
                             $new_value[] = "$k:$v";
                         }
                         $value = implode(' ', $new_value);
