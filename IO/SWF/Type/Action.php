@@ -46,6 +46,8 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x24 => 'CloneSprite',
         0x25 => 'RemoveSprite',
         0x26 => 'Trace',
+	//
+        0x2D => 'FSCommand2',
         //
         0x27 => 'StartDrag',
         0x28 => 'EndDrag',
