@@ -61,7 +61,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x37 => 'MBAsciiToChar',
 
         //
-        // has Operand
+        // has Data Payload
         0x81 => 'GotoFrame',
         0x83 => 'GetURL',
         0x88 => 'ConstantPool',
