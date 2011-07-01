@@ -46,8 +46,8 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x24 => 'CloneSprite',
         0x25 => 'RemoveSprite',
         0x26 => 'Trace',
-	//
-        0x2D => 'FSCommand2',
+        //
+        0x2D => 'FSCommand2',// Flash Lite
         //
         0x27 => 'StartDrag',
         0x28 => 'EndDrag',
@@ -187,6 +187,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $action['(Reserved)'] = $reader->getUIBits(4);
                 $action['LoadTargetFlag'] = $reader->getUIBit();
                 $action['LoadVariablesFlag'] = $reader->getUIBit();
+                break;
             case 0x9D: // ActionIf
                 $action['Offset'] = $reader->getSI16LE();
                 break;
@@ -195,9 +196,10 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $sceneBlasFlag = $reader->getUIBit();
                 $action['SceneBlasFlag'] = $sceneBlasFlag;
                 $action['PlayFlag'] =  $reader->getUIBit();
-                if ($sceneBlasFlag) {
+                if ($sceneBlasFlag == 1) {
                     $action['SceneBias'] = $reader->getUI16LE();
                 }
+                break;
             default:
                 $action['Data'] =  $reader->getData($length);
                 break;
@@ -265,11 +267,11 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                         IO_SWF_Type_Float::build($values_writer, $value['Float']);
                         break;
                     case 2: // null
-		      // nothing to do.
-		      break;
+                        // nothing to do.
+                        break;
                     case 3: // undefined
-		      // nothing to do.
-		      break;
+                        // nothing to do.
+                        break;
                     case 4: // RegisterNumber
                         $values_writer->putUI8($value['RegisterNumber']);
                         break;
@@ -307,6 +309,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $writer->putUIBits(0, 4); // Reserved
                 $writer->putUIBit($action['LoadTargetFlag']);
                 $writer->putUIBit($action['LoadVariablesFlag']);
+                break;
             case 0x9D: // ActionIf
                 $writer->putUI16LE(2);
                 $writer->putSI16LE($action['Offset']);
@@ -325,6 +328,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 if ($sceneBlasFlag) {
                     $writer->putUI16LE($action['SceneBias']);
                 }
+                break;
             default:
                 $data = $action['Data'];
                 $writer->putUI16LE(strlen($data));
