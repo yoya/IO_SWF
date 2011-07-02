@@ -151,20 +151,20 @@ class IO_SWF_Editor extends IO_SWF {
             $code = $tag->code;
             switch($code) {
               case 12: // DoAction
-//            case 59: // DoAction
+              case 59: // DoInitAction
                 $action = new IO_SWF_Tag_Action();
                 $action->parseContent($code, $tag->content);
                 $action->replaceActionStrings($trans_table);
                 $tag->content = $action->buildContent($code);
                 break;
-            case 39: // Sprite
+              case 39: // Sprite
                 $sprite = new IO_SWF_Tag_Sprite();
                 $sprite->parseContent($code, $tag->content);
                 foreach ($sprite->_controlTags as &$tag_in_sprite) {
                     $code_in_sprite = $tag_in_sprite->code;
                     switch ($code_in_sprite) {
               case 12: // DoAction
-//            case 59: // DoAction
+              case 59: // DoInitAction
                   $action_in_sprite = new IO_SWF_Tag_Action();
                   $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
                   $action_in_sprite->replaceActionStrings($trans_table);
