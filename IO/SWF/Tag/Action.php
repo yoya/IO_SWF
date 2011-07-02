@@ -48,29 +48,31 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         $writer->putUI8(0); // ActionEndFlag
     	return $writer->output();
     }
-    function replaceActionStrings($from_str, $to_str) {
+    function replaceActionStrings($trans_table) {
         foreach ($this->_actions as &$action) {
             switch($action['Code']) {
             case 0x83: // ActionGetURL
                 ;
-                if ($action['UrlString'] === $from_str) {
-                    $action['UrlString'] = $to_str;
+                if (isset($trans_table[$action['UrlString']])) {
+                    $action['UrlString'] = $trans_table[$action['UrlString']];
                 }
-                if ($action['TargetString'] === $from_str) {
-                    $action['TargetString'] = $to_str;
+                if (isset($trans_table[$action['TargetString']])) {
+                    $action['TargetString'] = $trans_table[$action['TargetString']];
                 }
                 break;
             case 0x88: // ActionConstantPool
                 foreach ($action['ConstantPool'] as $idx_cp => $cp) {
-                    if ($cp === $from_str) {
-                        $action['ConstantPool'][$idx_cp] = $to_str;
+                    if (isset($trans_table[$cp])) {
+                        $action['ConstantPool'][$idx_cp] = $trans_table[$cp];
                     }
                 }
                 break;
             case 0x96: // ActionPush
-                if ($action['Type'] == 0) { // Type String
-                    if ($action['String'] === $from_str) {
-                        $action['String'] = $to_str;
+                foreach ($action['Values'] as &$value) {
+                    if ($value['Type'] == 0) { // Type String
+                        if (isset($trans_table[$value['String']])) {
+                            $value['String'] = $trans_table[$value['String']];
+                        }
                     }
                 }
                 break;
@@ -78,6 +80,6 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             }
             
         }
-        // don't touch $action, danger!
+        // don't touch $action(reference), danger!
     }
 }

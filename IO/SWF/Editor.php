@@ -140,7 +140,13 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
-    function replaceActionStrings($from_str, $to_str) {
+    
+    function replaceActionStrings($trans_table_or_from_str, $to_str = null) {
+        if(is_array($trans_table_or_from_str)) {
+            $trans_table = $trans_table_or_from_str;
+        } else {
+            $trans_table = array($trans_table_or_from_str => $to_str);
+        }
         foreach ($this->_tags as &$tag) {
             $code = $tag->code;
             switch($code) {
@@ -148,7 +154,7 @@ class IO_SWF_Editor extends IO_SWF {
 //            case 59: // DoAction
                 $action = new IO_SWF_Tag_Action();
                 $action->parseContent($code, $tag->content);
-                $action->replaceActionStrings($from_str, $to_str);
+                $action->replaceActionStrings($trans_table);
                 $tag->content = $action->buildContent($code);
                 break;
             case 39: // Sprite
@@ -161,7 +167,7 @@ class IO_SWF_Editor extends IO_SWF {
 //            case 59: // DoAction
                   $action_in_sprite = new IO_SWF_Tag_Action();
                   $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
-                  $action_in_sprite->replaceActionStrings($from_str, $to_str);
+                  $action_in_sprite->replaceActionStrings($trans_table);
                   $tag_in_sprite->content = $action_in_sprite->buildContent($code_in_sprite);
                   break;
                     }
