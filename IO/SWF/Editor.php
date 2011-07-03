@@ -28,8 +28,6 @@ class IO_SWF_Editor extends IO_SWF {
             $content_reader = new IO_Bit();
             $content_reader->input($tag->content);
             switch ($tag->code) {
-              case 4:  // PlaceObject
-              case 5:  // RemoveObject
               case 6:  // DefineBits
               case 21: // DefineBitsJPEG2
               case 35: // DefineBitsJPEG3
@@ -45,13 +43,33 @@ class IO_SWF_Editor extends IO_SWF {
               case 39: // DefineSprite
                 $tag->characterId = $content_reader->getUI16LE();
                 break;
-              case 26: // PlaceObject2 (PlaceFlagHasCharacter)
+            }
+        }
+    }
+
+    function setReferenceId() {
+        foreach ($this->_tags as &$tag) {
+            $content_reader = new IO_Bit();
+            $content_reader->input($tag->content);
+            switch ($tag->code) {
+            case 4:  // PlaceObject
+            case 5:  // RemoveObject
+                $tag->referenceId = $content_reader->getUI16LE();
+                break;
+            case 26: // PlaceObject2 (Shape Reference)
                 $tag->placeFlag = $content_reader->getUI8();
                 if ($tag->placeFlag & 0x02) {
-                    $tag->characterId = $content_reader->getUI16LE();
+                    $tag->referenceId = $content_reader->getUI16LE();
                 }
                 break;
+            case 2:  // DefineShape   (Bitmap ReferenceId)
+            case 22: // DefineShape2　 (Bitmap ReferenceId)
+            case 32: // DefineShape3    (Bitmap ReferenceId)
+            case 46: // DefineMorphShape (Bitmap ReferenceId)
+                throw new IO_SWF_Exception("setReferenceId DefineShape not implemented yet.");
+                break;
             }
+
         }
     }
 
