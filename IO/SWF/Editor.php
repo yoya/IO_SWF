@@ -189,6 +189,41 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
     
+    function setActionVariables($trans_table_or_key_str, $value_str = null) {
+        if(is_array($trans_table_or_key_str)) {
+            $trans_table = $trans_table_or_key_str;
+        } else {
+            $trans_table = array($trans_table_or_key_str => $value_str);
+        }
+        foreach ($this->_tags as &$tag) {
+            $code = $tag->code;
+            switch($code) {
+              case 12: // DoAction
+              case 59: // DoInitAction
+                  $action = new IO_SWF_Tag_Action();
+                  $action->parseContent($code, $tag->content);
+                break 2;
+            }
+        }
+        if (isset($action) === false) {
+            throw new IO_SWF_Exception("Not found Action Tag\n");
+        }
+        // 代入イメージを生成する
+        $let_action = array();
+        foreach ($trans_table as $key_str => $value_str) {
+            $let_action []= array('Code' => 0x96, // Push
+                                  'Values' => array(
+                                      array('Type' => 0, 'String' => $key_str)));
+            $let_action []= array('Code' => 0x96, //Push
+                                  'Values' => array(
+                                      array('Type' => 0, 'String' => $value_str)));
+            $let_action []= array('Code' => 0x1d); // SetVariable
+        }
+        $action->_actions = array_merge($let_action, $action->_actions);
+        
+        $tag->content = $action->buildContent($code);
+    }
+
     function replaceActionStrings($trans_table_or_from_str, $to_str = null) {
         if(is_array($trans_table_or_from_str)) {
             $trans_table = $trans_table_or_from_str;
