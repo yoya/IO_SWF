@@ -32,6 +32,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 21: // DefineBitsJPEG2
               case 35: // DefineBitsJPEG3
               case 20: // DefineBitsLossless
+              case 36: // DefineBitsLossless2
               case 46: // DefineMorphShape
               case 2:  // DefineShape (ShapeId)
               case 22: // DefineShape2 (ShapeId)
