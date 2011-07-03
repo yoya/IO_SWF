@@ -178,4 +178,23 @@ class IO_SWF_Tag {
         $this->content = $this->tag->buildContent($code, $this->content);
         return $this->content;
     }
+
+    function bitmapSize() {
+        $code = $this->code;
+        if ($this->parseTagContent() === false) {
+            throw new IO_SWF_Exception("failed to parseTagContent");
+        }
+        switch ($code) {
+        case 6:  // DefineBitsJPEG
+        case 21: // DefineBitsJPEG2
+        case 35: // DefineBitsJPEG3
+            ;
+            break;
+        case 20: // DefineBitsLossless
+        case 36: // DefineBitsLossless2
+            break;
+        default:
+            break;
+        }
+    }
 }
