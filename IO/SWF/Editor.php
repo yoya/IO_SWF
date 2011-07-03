@@ -13,6 +13,12 @@ require_once dirname(__FILE__).'/../SWF/Lossless.php';
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
     // var $_tags = array();    // protected
+    var $shape_adjust_mode = self::SHAPE_BITMAP_NONE;
+
+    const SHAPE_BITMAP_NONE           = 0;
+    const SHAPE_BITMAP_MATRIX_RESCALE = 1;
+    const SHAPE_BITMAP_RECT_RESIZE    = 2;
+    const SHAPE_BITMAP_TYPE_TILED     = 4;
 
     function rebuild() {
         foreach ($this->_tags as &$tag) {
@@ -134,6 +140,27 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $ret;
     }
+    
+    function replaceBitmapTagByCharacterId($tagCode, $characterId, $replaceTag) {
+        if (! is_array($tagCode)) {
+            $tagCode = array($tagCode);
+        }
+        $ret = 0;
+        foreach ($this->_tags as &$tag) {
+            if (in_array($tag->code, $tagCode) && isset($tag->characterId)) {
+                if ($tag->characterId == $characterId) {
+                    if (isset($replaceTag['Code'])) {
+                        $tag->code = $replaceTag['Code'];
+                    }
+                    $tag->length = strlen($replaceTag['Content']);
+                    $tag->content = $replaceTag['Content'];
+                    $ret = 1;
+                    break;
+                }
+            }
+        }
+        return $ret;
+    }
 
     function getTagContentByCharacterId($tagCode, $characterId) {
         foreach ($this->_tags as $tag) {
@@ -200,9 +227,12 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
+        // TODO: 後で IO_SWF_Bitmap::detect_bitmap_format を使うよう書き換える
         if ((strncmp($bitmap_data, 'GIF', 3) == 0) ||
             (strncmp($bitmap_data, "\x89PNG", 4) == 0)) {
             $tag = IO_SWF_Lossless::BitmapData2Lossless($bitmap_id, $bitmap_data);
+            $new_width = $tag['width'];
+            $new_height = $tag['height'];
         } else if (strncmp($bitmap_data, "\xff\xd8\xff", 3) == 0) {
             $erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
             if (is_null($jpeg_alphadata)) {
@@ -218,13 +248,49 @@ class IO_SWF_Editor extends IO_SWF {
                 $tag = array('Code' => 35,
                              'Content' => $content);
             }
+            list($new_width, $new_height) = IO_SWF_Bitmap::get_jpegsize($bitmap_data);
         } else {
             throw new IO_SWF_Exception("Unknown Bitmap Format: ".bin2hex(substr($bitmap_data, 0, 4)));
         }
+        if ($this->shape_adjust_mode > 0) {
+            $ret = $this->applyShapeAdjustModeByRefId($bitmap_id, $new_width, $new_height);
+        }
         // DefineBits,DefineBitsJPEG2,3, DefineBitsLossless,DefineBitsLossless2
         $tag_code = array(6, 21, 35, 20, 36);
-        $ret = $this->replaceTagByCharacterId($tag_code, $bitmap_id, $tag);
+        if ($this->shape_adjust_mode > 0) {
+            $tag['shape_adjust_mode'] = $this->shape_adjust_mode;
+        }
+        $ret = $this->replaceBitmapTagByCharacterId($tag_code, $bitmap_id, $tag);
+//        $ret = $this->replaceTagByCharacterId($tag_code, $bitmap_id, $tag);
         return $ret;
+    }
+    function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {
+        $shape_adjust_mode = $this->shape_adjust_mode;
+        switch ($shape_adjust_mode) {
+        case self::SHAPE_BITMAP_NONE:
+            return false;
+        case self::SHAPE_BITMAP_MATRIX_RESCALE:
+        case self::SHAPE_BITMAP_RECT_RESIZE:
+            
+        case self::SHAPE_BITMAP_TYPE_TYLED:
+            break ;
+        default:
+            trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");
+            return false;
+        }
+        
+        switch ($shape_adjust_mode) {
+        case self::SHAPE_BITMAP_MATRIX_RESCALE:
+            break ;
+        case self::SHAPE_BITMAP_RECT_RESIZE:
+            break ;
+        case self::SHAPE_BITMAP_TYPE_TYLED:
+            break ;
+        default:
+            trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");
+            return false;
+        }
+        return true;
     }
 
     function countShapeEdges($opts = array()) {
@@ -243,5 +309,8 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
         return $count_table;
+    }
+    function setShapeAdjustMode($mode) {
+        $this->shape_adjust_mode = $mode;
     }
 }
