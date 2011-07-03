@@ -59,20 +59,20 @@ class IO_SWF_Editor extends IO_SWF {
             $content_reader = new IO_Bit();
             $content_reader->input($tag->content);
             switch ($tag->code) {
-            case 4:  // PlaceObject
-            case 5:  // RemoveObject
+              case 4:  // PlaceObject
+              case 5:  // RemoveObject
                 $tag->referenceId = $content_reader->getUI16LE();
                 break;
-            case 26: // PlaceObject2 (Shape Reference)
+              case 26: // PlaceObject2 (Shape Reference)
                 $tag->placeFlag = $content_reader->getUI8();
                 if ($tag->placeFlag & 0x02) {
                     $tag->referenceId = $content_reader->getUI16LE();
                 }
                 break;
-            case 2:  // DefineShape   (Bitmap ReferenceId)
-            case 22: // DefineShape2　 (Bitmap ReferenceId)
-            case 32: // DefineShape3    (Bitmap ReferenceId)
-            case 46: // DefineMorphShape (Bitmap ReferenceId)
+              case 2:  // DefineShape   (Bitmap ReferenceId)
+              case 22: // DefineShape2　 (Bitmap ReferenceId)
+              case 32: // DefineShape3    (Bitmap ReferenceId)
+              case 46: // DefineMorphShape (Bitmap ReferenceId)
                 throw new IO_SWF_Exception("setReferenceId DefineShape not implemented yet.");
                 break;
             }
@@ -173,6 +173,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return null;
     }
+
     function deformeShape($threshold) {
         foreach ($this->_tags as &$tag) {
             $code = $tag->code;
@@ -203,7 +204,7 @@ class IO_SWF_Editor extends IO_SWF {
                   $action = new IO_SWF_Tag_Action();
                   $action->parseContent($code, $tag->content);
                 break 2;
-            case 1: // ShowFrame
+              case 1: // ShowFrame
                 break 2;
             }
         }
@@ -320,26 +321,26 @@ class IO_SWF_Editor extends IO_SWF {
     function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {
         $shape_adjust_mode = $this->shape_adjust_mode;
         switch ($shape_adjust_mode) {
-        case self::SHAPE_BITMAP_NONE:
+          case self::SHAPE_BITMAP_NONE:
             return false;
-        case self::SHAPE_BITMAP_MATRIX_RESCALE:
-        case self::SHAPE_BITMAP_RECT_RESIZE:
+          case self::SHAPE_BITMAP_MATRIX_RESCALE:
+          case self::SHAPE_BITMAP_RECT_RESIZE:
             
-        case self::SHAPE_BITMAP_TYPE_TYLED:
+          case self::SHAPE_BITMAP_TYPE_TYLED:
             break ;
-        default:
+          default:
             trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");
             return false;
         }
         
         switch ($shape_adjust_mode) {
-        case self::SHAPE_BITMAP_MATRIX_RESCALE:
+          case self::SHAPE_BITMAP_MATRIX_RESCALE:
             break ;
-        case self::SHAPE_BITMAP_RECT_RESIZE:
+          case self::SHAPE_BITMAP_RECT_RESIZE:
             break ;
-        case self::SHAPE_BITMAP_TYPE_TYLED:
+          case self::SHAPE_BITMAP_TYPE_TYLED:
             break ;
-        default:
+          default:
             trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");
             return false;
         }
@@ -351,10 +352,10 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($this->_tags as $tag) {
             $code = $tag->code;
             switch ($code) {
-            case 2: // DefineShape
-            case 22: // DefineShape2
-            case 32: // DefineShape3
-            case 46: // DefineMorphShape
+              case 2: // DefineShape
+              case 22: // DefineShape2
+              case 32: // DefineShape3
+              case 46: // DefineMorphShape
                 $shape = new IO_SWF_Tag_Shape();
                 $shape->parseContent($code, $tag->content);
                 list($shape_id, $edges_count) = $shape->countEdges();
