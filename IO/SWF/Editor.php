@@ -188,14 +188,14 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
-    
+
     function setActionVariables($trans_table_or_key_str, $value_str = null) {
         if(is_array($trans_table_or_key_str)) {
             $trans_table = $trans_table_or_key_str;
         } else {
             $trans_table = array($trans_table_or_key_str => $value_str);
         }
-        foreach ($this->_tags as &$tag) {
+        foreach ($this->_tags as $tagidx => &$tag) {
             $code = $tag->code;
             switch($code) {
               case 12: // DoAction
@@ -203,25 +203,43 @@ class IO_SWF_Editor extends IO_SWF {
                   $action = new IO_SWF_Tag_Action();
                   $action->parseContent($code, $tag->content);
                 break 2;
+            case 1: // ShowFrame
+                break 2;
             }
         }
         if (isset($action) === false) {
-            throw new IO_SWF_Exception("Not found Action Tag\n");
+            // 1 frame 目に Action タグがないので新規作成
+            $bytecode = '';
+            foreach ($trans_table as $key_str => $value_str) {
+                $key_data = chr(0).$key_str."\0";
+                $value_data = chr(0).$value_str."\0";
+                // Push
+                $bytecode .= chr(0x96).pack('v', strlen($key_data)).$key_data;
+                // Push
+                $bytecode .= chr(0x96).pack('v', strlen($value_data)).$value_data;
+                // SetVarables;
+                $bytecode .= chr(0x1d);
+                // End
+                $bytecode .= chr(0);
+            }
+            $tag_action = new IO_SWF_Tag();
+            $tag_action->code = 12; // DoAction
+            $tag_action->content = $bytecode;
+            array_splice($this->_tags, $tagidx, 0, array($tag_action)); // insert
+        } else { // 既にある Action タグに bytecode 追加。
+            $let_action = array();
+            foreach ($trans_table as $key_str => $value_str) {
+                $let_action []= array('Code' => 0x96, // Push
+                                      'Values' => array(
+                                          array('Type' => 0, 'String' => $key_str)));
+                $let_action []= array('Code' => 0x96, //Push
+                                      'Values' => array(
+                                          array('Type' => 0, 'String' => $value_str)));
+                $let_action []= array('Code' => 0x1d); // SetVariable
+            }
+            $action->_actions = array_merge($let_action, $action->_actions);
+            $tag->content = $action->buildContent($code);
         }
-        // 代入イメージを生成する
-        $let_action = array();
-        foreach ($trans_table as $key_str => $value_str) {
-            $let_action []= array('Code' => 0x96, // Push
-                                  'Values' => array(
-                                      array('Type' => 0, 'String' => $key_str)));
-            $let_action []= array('Code' => 0x96, //Push
-                                  'Values' => array(
-                                      array('Type' => 0, 'String' => $value_str)));
-            $let_action []= array('Code' => 0x1d); // SetVariable
-        }
-        $action->_actions = array_merge($let_action, $action->_actions);
-        
-        $tag->content = $action->buildContent($code);
     }
 
     function replaceActionStrings($trans_table_or_from_str, $to_str = null) {
