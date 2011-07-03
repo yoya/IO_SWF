@@ -37,6 +37,8 @@ class IO_SWF_Editor extends IO_SWF {
               case 46: // DefineMorphShape
               case 2:  // DefineShape (ShapeId)
               case 22: // DefineShape2 (ShapeId)
+              case 32: // DefineShape3 (ShapeId)
+              case 46: // DefineMorphShape (ShapeId)
               case 11: // DefineText
               case 33: // DefineText2
               case 37: // DefineTextEdit
