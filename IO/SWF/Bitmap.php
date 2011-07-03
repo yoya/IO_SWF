@@ -7,6 +7,20 @@
 require_once 'IO/Bit.php';
 
 class IO_SWF_Bitmap {
+    const FORMAT_UNKNOW = 0;
+    const FORMAT_JPEG = 1;
+    const FORMAT_PNG = 2;
+    const FORMAT_GIF = 4;
+    static function detect_bitmap_format($bitmap_data) {
+        if (strncmp($bitmap_data, "\xff\xd8\xff", 3) == 0) {
+            return self::FORMAT_JPEG;
+        } else if (strncmp($bitmap_data, "\x89PNG", 4) == 0) {
+            return self::FORMAT_PNG;
+        } else if (strncmp($bitmap_data, 'GIF', 3) == 0) {
+            return self::FORMAT_GIF;
+        }
+        return self::FORMAT_UNKNOWN;
+    }
     static function get_jpegsize($jpegdata) {
         $chunk_length = 0;
         $jpegdata_len = strlen($jpegdata);
