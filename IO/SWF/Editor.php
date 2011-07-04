@@ -212,13 +212,15 @@ class IO_SWF_Editor extends IO_SWF {
             // 1 frame 目に Action タグがないので新規作成
             $bytecode = '';
             foreach ($trans_table as $key_str => $value_str) {
-                $key_data = chr(0).$key_str."\0";
-                $value_data = chr(0).$value_str."\0";
+                $key_strs   = exlode("\0", $key_str); // \0 除去
+                $key_values = exlode("\0", $key_value); // \0 除去
+                $key_data   = chr(0).$key_strs[0]."\0";
+                $value_data = chr(0).$value_strs[0]."\0";
                 // Push
                 $bytecode .= chr(0x96).pack('v', strlen($key_data)).$key_data;
                 // Push
                 $bytecode .= chr(0x96).pack('v', strlen($value_data)).$value_data;
-                // SetVarables;
+                // SetVarables
                 $bytecode .= chr(0x1d);
                 // End
                 $bytecode .= chr(0);
@@ -226,16 +228,19 @@ class IO_SWF_Editor extends IO_SWF {
             $tag_action = new IO_SWF_Tag();
             $tag_action->code = 12; // DoAction
             $tag_action->content = $bytecode;
-            array_splice($this->_tags, $tagidx, 0, array($tag_action)); // insert
+            // 新規タグ挿入
+            array_splice($this->_tags, $tagidx, 0, array($tag_action));
         } else { // 既にある Action タグに bytecode 追加。
             $let_action = array();
             foreach ($trans_table as $key_str => $value_str) {
                 $let_action []= array('Code' => 0x96, // Push
                                       'Values' => array(
-                                          array('Type' => 0, 'String' => $key_str)));
-                $let_action []= array('Code' => 0x96, //Push
+                                          array('Type' => 0,
+                                                'String' => $key_str)));
+                $let_action []= array('Code' => 0x96, // Push
                                       'Values' => array(
-                                          array('Type' => 0, 'String' => $value_str)));
+                                          array('Type' => 0,
+                                                'String' => $value_str)));
                 $let_action []= array('Code' => 0x1d); // SetVariable
             }
             $action->_actions = array_merge($let_action, $action->_actions);
