@@ -100,9 +100,6 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 break;
             case 0x83: // ActionGetURL
                 $data = $reader->getData($length);
-                $strs = explode("\0", $data);
-                $action['UrlString'] = $strs[0];
-                $data = $reader->getData($length);
                 $strs = explode("\0", $data, 2+1);
                 $action['UrlString'] = $strs[0];
                 $action['TargetString'] = $strs[1];
