@@ -70,9 +70,12 @@ class IO_SWF_Type_CXFORMWITHALPHA extends IO_SWF_Type {
 	}
     }
     static function string($cxform, $opts = array()) {
+      if (($cxform['HasMultiTerms'] == 0) && ($cxform['HasAddTerms'] == 0)) {
+	  return '(No Data: CXFORMWITHALPHA)';
+      }
       $text = '';
       if ($cxform['HasMultiTerms']) {
-	$text .= sprintf("MultiTerms:(%02x,%02x,%02x,%02x)", $cxform['RedMultiTerm'], $cxform['GreenMultiTerm'], $cxform['BlueMultiTerm'], $cxform['AlphaMultiTerm']);
+	  $text .= sprintf("MultiTerms:(%02x,%02x,%02x,%02x)", $cxform['RedMultiTerm'], $cxform['GreenMultiTerm'], $cxform['BlueMultiTerm'], $cxform['AlphaMultiTerm']);
       }
       if ($cxform['HasAddTerms']) {
 	  if ($cxform['HasMultiTerms']) {
