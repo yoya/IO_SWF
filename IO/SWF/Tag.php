@@ -4,10 +4,14 @@ require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 
 class IO_SWF_Tag {
+    var $swfInfo;
     var $code = 0;
     var $content = null;
     var $tag = null;
     var $byte_offset, $byte_size;
+    function __construct($swfInfo) {
+        $this->swfInfo = $swfInfo;
+    }
     function getTagInfo($tagCode, $label) {
         static $tagMap = array(
          // code => array(name , klass)
@@ -162,7 +166,7 @@ class IO_SWF_Tag {
         }
         require_once dirname(__FILE__)."/Tag/$klass.php";
         $klass = "IO_SWF_Tag_$klass";
-        $obj = new $klass();
+        $obj = new $klass($this->swfInfo);
         $obj->parseContent($code, $this->content);
         $this->tag = $obj;
         return true;

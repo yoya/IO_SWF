@@ -16,7 +16,7 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         $this->_frameCount = $reader->getUI16LE();
         /* SWF Tags */
         while (true) {
-            $tag = new IO_SWF_Tag();
+            $tag = new IO_SWF_Tag($this->swfInfo);
             $tag->parse($reader);
             $this->_controlTags[] = $tag;
             if ($tag->code == 0) { // END Tag

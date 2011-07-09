@@ -49,7 +49,8 @@ class IO_SWF {
         
         /* SWF Tags */
         while (true) {
-      	    $tag = new IO_SWF_Tag();
+	    $swfInfo = array('Version' => $this->_headers['Version']);
+      	    $tag = new IO_SWF_Tag($swfInfo);
             $tag->parse($reader);
             $this->_tags[] = $tag;
             if ($tag->code == 0) { // END Tag
@@ -75,10 +76,12 @@ class IO_SWF {
         $writer->putUI16LE($this->_headers['FrameCount']);
         
         /* SWF Tags */
-        foreach ($this->_tags as $tag) {
+        foreach ($this->_tags as $idx => $tag) {
             $tagData = $tag->build();
 	    if ($tagData != false) {
-                $writer->putData($tag->build());
+                $writer->putData($tagData);
+	    } else {
+	        throw new IO_SWF_Exception("tag build failed (tag idx=$idx)");
 	    }
         }
         list($fileLength, $bit_offset_dummy) = $writer->getOffset();
