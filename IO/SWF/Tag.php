@@ -19,7 +19,7 @@ class IO_SWF_Tag {
              1 => array('name' => 'ShowFrame'),
              2 => array('name' => 'DefineShape',  'klass' => 'Shape'),
 //             3 => array('name' => 'FreeCharacter'), // ???
-             4 => array('name' => 'PlaceObject'),
+             4 => array('name' => 'PlaceObject', 'klass' => 'Place'),
              5 => array('name' => 'RemoveObject'),
              6 => array('name' => 'DefineBitsJPEG'),
              7 => array('name' => 'DefineButton'),
@@ -40,7 +40,7 @@ class IO_SWF_Tag {
             22 => array('name' => 'DefineShape2', 'klass' => 'Shape'),
             24 => array('name' => 'Protect'),
             // 25 missing
-            26 => array('name' => 'PlaceObject2'),
+            26 => array('name' => 'PlaceObject2', 'klass' => 'Place'),
             // 27 missing
             28 => array('name' => 'RemoveObject2'),
             // 29,30,31 missing
