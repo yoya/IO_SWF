@@ -167,7 +167,8 @@ class IO_SWF_Tag {
         require_once dirname(__FILE__)."/Tag/$klass.php";
         $klass = "IO_SWF_Tag_$klass";
         $obj = new $klass($this->swfInfo);
-        $obj->parseContent($code, $this->content);
+        $opts['Version'] = $this->swfInfo['Version'];
+        $obj->parseContent($code, $this->content, $opts);
         $this->tag = $obj;
         return true;
     }
@@ -179,7 +180,8 @@ class IO_SWF_Tag {
             return false; // throw Exception!
         }
         $code = $this->code;
-        $this->content = $this->tag->buildContent($code, $this->content);
+        $opts['Version'] = $this->swfInfo['Version'];
+        $this->content = $this->tag->buildContent($code, $this->content, $opts);
         return $this->content;
     }
 
