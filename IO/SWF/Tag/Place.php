@@ -5,6 +5,7 @@ require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/../Tag.php';
 require_once dirname(__FILE__).'/../Type/CXFORM.php';
 require_once dirname(__FILE__).'/../Type/CXFORMWITHALPHA.php';
+require_once dirname(__FILE__).'/../Type/CLIPACTIONS.php';
 
 class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
     var $_characterId = null; // refid
@@ -58,7 +59,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                 $this->_clipDepth =  $reader->getUI16LE();
             }
             if ($this->_placeFlagHasClipActions) {
-                $this->_clipActions = IO_SWF_Type_CLIPACTIONS::parse($reader);
+                $this->_clipActions = IO_SWF_Type_CLIPACTIONS::parse($reader, $opts);
             }
             break;
         }
@@ -73,7 +74,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             echo "\tDepth: ".$this->_depth."\n";
         }
         if (is_null($this->_matrix) === false) {
-            $opts = array('indent' => 2);
+            $opts['indent'] = 2;
             echo "\tMatrix:\n".IO_SWF_Type_MATRIX::string($this->_matrix, $opts)."\n";
         }
         if (is_null($this->_colorTransform) === false) {
@@ -93,7 +94,8 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             echo "\tClipDepth:".$this->_clipDepth."\n";
         }
         if (is_null($this->_clipActions) === false) {
-            echo "\tClipActions:".IO_SWF_Type_CLIPACTIONS::string($this->_clipActions)."\n";
+            echo "\tClipActions:\n";
+            echo "\t".IO_SWF_Type_CLIPACTIONS::string($this->_clipActions, $opts)."\n";
         }
     }
     
@@ -175,7 +177,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                 $writer->putUI16LE($this->_clipDepth);
             }
             if ($this->_placeFlagHasClipActions) {
-                IO_SWF_Type_CLIPACTIONS::build($writer, $this->_clipActions);
+                IO_SWF_Type_CLIPACTIONS::build($writer, $this->_clipActions, $opts);
             }
             break;
         }
