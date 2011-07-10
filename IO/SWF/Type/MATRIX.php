@@ -19,8 +19,8 @@ class IO_SWF_Type_MATRIX extends IO_SWF_Type {
     	    $matrix['ScaleX'] = $reader->getSIBits($nScaleBits);
     	    $matrix['ScaleY'] = $reader->getSIBits($nScaleBits);
     	} else {
-    	    $matrix['ScaleX'] = 20;
-    	    $matrix['ScaleY'] = 20;
+    	    $matrix['ScaleX'] = 0x10000;
+    	    $matrix['ScaleY'] = 0x10000;
     	}
         $hasRotate = $reader->getUIBit();
     	if ($hasRotate) {
