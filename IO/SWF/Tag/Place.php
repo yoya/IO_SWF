@@ -76,7 +76,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
 	    $opts = array('indent' => 2);
 	    echo "\tMatrix:\n".IO_SWF_Type_MATRIX::string($this->_matrix, $opts)."\n";
 	}
-	if (is_null($this->_matrix) === false) {
+	if (is_null($this->_colorTransform) === false) {
 	  if ($tagCode == 4) { // PlaceObject
 	    echo "\tColorTransform: ".IO_SWF_Type_CXFORM::string($this->_colorTransform)."\n";
 	  } else {
