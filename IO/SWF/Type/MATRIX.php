@@ -38,8 +38,8 @@ class IO_SWF_Type_MATRIX extends IO_SWF_Type {
     	return $matrix;
     }
     static function build(&$writer, $matrix, $opts = array()) {
-//        $writer->byteAlign();
-        if ($matrix['ScaleX'] | $matrix['ScaleY']) {
+        $writer->byteAlign();
+        if (($matrix['ScaleX'] != 0x10000) || ($matrix['ScaleY'] != 0x10000)) {
 	        $writer->putUIBit(1); // HasScale;
     	    if ($matrix['ScaleX'] | $matrix['ScaleY']) {
     	        $xNBits = $writer->need_bits_signed($matrix['ScaleX']);
