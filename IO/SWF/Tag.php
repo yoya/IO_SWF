@@ -119,8 +119,9 @@ class IO_SWF_Tag {
         }
         $length = strlen($this->content);
         echo "Code: $code($name)  Length: $length".PHP_EOL;
-        if ($this->parseTagContent()) {
-            $this->tag->dumpContent($code);
+        $opts['Version'] = $this->swfInfo['Version'];
+        if ($this->parseTagContent($opts)) {
+            $this->tag->dumpContent($code, $opts);
         }
         if (empty($opts['hexdump']) === false) {
            $bitio =& $opts['bitio'];
