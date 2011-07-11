@@ -46,7 +46,7 @@ class IO_SWF_Type_CLIPACTIONS extends IO_SWF_Type {
     }
     static function string($clipactions, $opts = array()) {
         $text = '';
-        $text .= IO_SWF_Type_CLIPEVENTFLAGS::string($clipactions, $opts);
+        $text .= IO_SWF_Type_CLIPEVENTFLAGS::string($clipactions['AllEventFlags'], $opts);
         $text .= "\n";
         foreach ($clipactions['ClipActionRecords'] as $clipActionRecord) {
             $text .= "\t".IO_SWF_Type_CLIPACTIONRECORD::string($clipActionRecord, $opts)."\n";
