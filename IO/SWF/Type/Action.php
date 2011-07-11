@@ -12,7 +12,9 @@ require_once dirname(__FILE__).'/Double.php';
                               
 class IO_SWF_Type_Action extends IO_SWF_Type {
     static $action_code_table = array(
-        // Opecode only
+        //
+        // ActionCode only
+        //
         0x04 => 'NextFrame',
         0x05 => 'PreviousFrame',
         0x06 => 'Play',
@@ -61,20 +63,57 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x35 => 'MBStringExtract',
         0x36 => 'MBCharToAscii',
         0x37 => 'MBAsciiToChar',
-
+	//
+	0x3A => 'Delete', // SWF 5
+	0x3B => 'Delete2', // SWF 5
+	0x3C => 'DefineLocal', // SWF 5
+	0x3D => 'CallFunction', // SWF 5
+	0x3E => 'Return', // SWF 5
+	0x3F => 'Modulo', // SWF 5
+	0x40 => 'NewObject', // SWF 5
+	0x41 => 'DefineLocal2', // SWF 5
+	0x42 => 'InitArray', // SWF 5
+	0x43 => 'InitObject', // SWF 5
+	0x44 => 'TypeOf', // SWF 5
+	0x45 => 'TargetPath', // SWF 5
+	0x46 => 'Enumerate', // SWF 5
+	0x47 => 'Add2', // SWF 5
+	0x48 => 'Less2', // SWF 5
+	0x49 => 'Equals2', // SWF 5
+	0x4A => 'ToNumber', // SWF 5
+	0x4B => 'ToString', // SWF 5
+	0x4C => 'PushDuplicate', // SWF 5
+	0x4D => 'StackSwap', // SWF 5
+	0x4E => 'GetMember', // SWF 5
+	0x4F => 'SetMember', // SWF 5
+	0x50 => 'Increment', // SWF 5
+	0x51 => 'Decrement', // SWF 5
+	0x52 => 'CallMethod', // SWF 5
+	0x53 => 'NewMethod', // SWF 5
+	//
+	0x60 => 'BitAnd', // SWF 5
+	0x61 => 'BitOr', // SWF 5
+	0x62 => 'BitXOr', // SWF 5
+	0x63 => 'BitShift', // SWF 5
+	0x64 => 'BitURShift', // SWF 5
         //
         // has Data Payload
+	//
         0x81 => 'GotoFrame',
         0x83 => 'GetURL',
-        0x88 => 'ConstantPool',
+        0x87 => 'StoreRegister', // SWF 5
+        0x88 => 'ConstantPool', // SWF 5
         0x8A => 'WaitForFrame',
         0x8B => 'SetTarget',
         0x8C => 'GoToLabel',
         0x8D => 'WaitForFrame2',
+	//
+        0x94 => 'With', // SWF 5
         0x96 => 'Push',
         //
         0x99 => 'Jump',
         0x9A => 'GetURL2',
+        0x9B => 'DefineFunction', // SWF 5
         //
         0x9D => 'If',
         0x9E => 'Call', // why it >=0x80 ?
