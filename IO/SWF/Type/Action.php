@@ -90,12 +90,18 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x51 => 'Decrement', // SWF 5
         0x52 => 'CallMethod', // SWF 5
         0x53 => 'NewMethod', // SWF 5
-        //
+        0x54 => 'InstanceOf', // SWF 6
+        0x55 => 'Enumerate2', // SWF 6
+	//
         0x60 => 'BitAnd', // SWF 5
         0x61 => 'BitOr', // SWF 5
         0x62 => 'BitXOr', // SWF 5
         0x63 => 'BitShift', // SWF 5
         0x64 => 'BitURShift', // SWF 5
+	//
+        0x66 => 'StrictEquals', // SWF 6
+        0x67 => 'Greater', // SWF 6
+        0x68 => 'StringGreater', // SWF 6
         //
         // has Data Payload
         //
