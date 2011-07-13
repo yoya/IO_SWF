@@ -8,16 +8,14 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
 class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
-    static function get_clipevent_list() {
-        return array(
+  static $clipevent_list =  array(
             'KeyUp', 'KeyDown', 'MouseUp', 'MouseDown', 'MouseMove',
             'Unload', 'EnterFrame', 'Load', 'DragOver',
             'RollOut', 'RollOver',
             'ReleaseOutside', 'Release', 'Press', 'Initialize', 'Data');
-    }
     static function parse(&$reader, $opts = array()) {
     	$clipeventflags = array();
-        foreach (self::get_clipevent_list() as $key) {
+        foreach (self::$clipevent_list as $key) {
             $clipeventflags['ClipEvent'.$key] = $reader->getUIBit();
         }
         if ($opts['Version'] >= 6) {
@@ -30,7 +28,7 @@ class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
     	return $clipeventflags;
     }
     static function build(&$writer, $clipeventflags, $opts = array()) {
-        foreach (self::get_clipevent_list() as $key) {
+        foreach (self::$clipevent_list as $key) {
             $writer->putUIBit($clipeventflags['ClipEvent'.$key]);
         }
         if ($opts['Version'] >= 6) {
@@ -44,9 +42,9 @@ class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
     static function string($clipeventflags, $opts = array()) {
         $text = "ClipEvent: ";
         if ($opts['Version'] <= 5) {
-            $clipevent_list = self::get_clipevent_list();
+            $clipevent_list = self::$clipevent_list;
         } else {
-            $clipevent_list = self::get_clipevent_list() + array('Construct', 'KeyPress', 'DragOut');
+            $clipevent_list = self::$clipevent_list + array('Construct', 'KeyPress', 'DragOut');
         }
         foreach ($clipevent_list as $key) {
             if ($clipeventflags['ClipEvent'.$key] == 1) {
