@@ -19,7 +19,7 @@ class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
             $clipeventflags['ClipEvent'.$key] = $reader->getUIBit();
         }
         if ($opts['Version'] >= 6) {
-            $clipeventflags['Reserved'] = $reader->getUIBits(6);
+            $clipeventflags['Reserved'] = $reader->getUIBits(5);
             $clipeventflags['ClipEventKeyConstruct'] = $reader->getUIBit();
             $clipeventflags['ClipEventKeyPress'] = $reader->getUIBit();
             $clipeventflags['ClipEventDragOut'] = $reader->getUIBit();
