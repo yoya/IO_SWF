@@ -381,7 +381,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
     }
     static function string($action, $opts = array()) {
         $code = $action['Code'];
-            $str = sprintf('%s(Code=0x%02X)', self::getCodeName($code), $code);
+        $str = sprintf('%s(Code=0x%02X)', self::getCodeName($code), $code);
         if (isset($action['Length'])) {
             $str .= sprintf(" (Length=%d):", $action['Length']);
             $str .= PHP_EOL."\t";
