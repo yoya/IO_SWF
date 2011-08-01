@@ -32,7 +32,7 @@ class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
             $writer->putUIBit($clipeventflags['ClipEvent'.$key]);
         }
         if ($opts['Version'] >= 6) {
-            $writer->putUIBits($clipeventflags['Reserved'], 6);
+            $writer->putUIBits($clipeventflags['Reserved'], 5);
             $writer->putUIBit($clipeventflags['ClipEventConstruct']);
             $writer->putUIBit($clipeventflags['ClipEventKeyPress']);
             $writer->putUIBit($clipeventflags['ClipEventDragOut']);

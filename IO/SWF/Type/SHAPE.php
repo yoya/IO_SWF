@@ -307,8 +307,8 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                        echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
                    }
                    if (isset($shapeRecord['LineStyles'])) {
-                        echo "    LineStyles:\n";
-                        echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
+                       echo "    LineStyles:\n";
+                       echo IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
                    }
                }
             } else {

@@ -300,8 +300,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                         if ($pos === false) {
                             $str .= "\0";
                         } else {
-                            $length = $pos + 1;
-                            $str = substr($str, 0, $pos);
+                            $str = substr($str, 0, $pos + 1);
                         }
                         $values_writer->putData($str);
                         break;
