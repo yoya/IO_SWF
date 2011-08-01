@@ -59,13 +59,13 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
             } else {
                 $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
             }
-            $text .= "\tWitdh: $width Color: $color_str\n";
+            $text .= "\tWidth: $width Color: $color_str\n";
         } else {
             $startWidth = $lineStyle['StartWidth'];
             $endWidth = $lineStyle['EndWidth'];
             $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
             $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
-            $text .= "\tWitdh: $startWidth => $endWidth Color: $startColorStr => $endColorStr\n";
+            $text .= "\tWidth: $startWidth => $endWidth Color: $startColorStr => $endColorStr\n";
         }
         return $text;
     }
