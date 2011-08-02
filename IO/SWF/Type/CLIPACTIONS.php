@@ -36,7 +36,7 @@ class IO_SWF_Type_CLIPACTIONS extends IO_SWF_Type {
     	$writer->putUI16LE($clipactions['Reserved']); // must be 0
         IO_SWF_Type_CLIPEVENTFLAGS::build($writer, $clipactions['AllEventFlags'], $opts);
         foreach ($clipactions['ClipActionRecords'] as $clipActionRecord) {
-            IO_SWF_Type_CLIPACTIONRECORD::build($reader, $clipActionRecord, $opts);
+            IO_SWF_Type_CLIPACTIONRECORD::build($writer, $clipActionRecord, $opts);
         }
         if ($opts['Version'] <= 5) {
             $writer->putUI16LE(0); // ClipActionEndFlag
