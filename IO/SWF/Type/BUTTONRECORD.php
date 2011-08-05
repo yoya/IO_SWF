@@ -6,6 +6,7 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
+require_once dirname(__FILE__).'/CXFORMWITHALPHA.php';
 
 class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
