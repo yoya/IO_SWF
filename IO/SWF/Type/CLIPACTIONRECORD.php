@@ -6,6 +6,7 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
+require_once dirname(__FILE__).'/Action.php';
 require_once dirname(__FILE__).'/CLIPEVENTFLAGS.php';
                               
 class IO_SWF_Type_CLIPACTIONRECORD extends IO_SWF_Type {
