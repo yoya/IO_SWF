@@ -3,6 +3,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/../Tag.php';
+require_once dirname(__FILE__).'/../Type/String.php';
 require_once dirname(__FILE__).'/../Type/CXFORM.php';
 require_once dirname(__FILE__).'/../Type/CXFORMWITHALPHA.php';
 require_once dirname(__FILE__).'/../Type/CLIPACTIONS.php';
