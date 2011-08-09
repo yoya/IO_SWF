@@ -2,7 +2,6 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
-require_once dirname(__FILE__).'/../Type/RGB.php';
 
 class IO_SWF_Tag_Lossless extends IO_SWF_Tag_Base {
     var $_CharacterID;
