@@ -35,7 +35,7 @@ class IO_SWF_Tag {
             17 => array('name' => 'DefineButtonSound'),
             18 => array('name' => 'SoundStreamHead'),
             19 => array('name' => 'SoundStreamBlock'),
-            20 => array('name' => 'DefineBitsLossless'),
+            20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless'),
             21 => array('name' => 'DefineBitsJPEG2'),
             22 => array('name' => 'DefineShape2', 'klass' => 'Shape'),
             24 => array('name' => 'Protect'),
@@ -48,7 +48,7 @@ class IO_SWF_Tag {
             33 => array('name' => 'DefineText2'),
             34 => array('name' => 'DefineButton2'),
             35 => array('name' => 'DefineBitsJPEG3'),
-            36 => array('name' => 'DefineBitsLossless2'),
+            36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
             37 => array('name' => 'DefineEditText'),
             // 38 missing
             39 => array('name' => 'DefineSprite', 'klass' => 'Sprite'),
