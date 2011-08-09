@@ -21,9 +21,9 @@ class IO_SWF_Tag {
 //             3 => array('name' => 'FreeCharacter'), // ???
              4 => array('name' => 'PlaceObject', 'klass' => 'Place'),
              5 => array('name' => 'RemoveObject'),
-             6 => array('name' => 'DefineBitsJPEG'),
+             6 => array('name' => 'DefineBits', 'klass' => 'Jpeg'),
              7 => array('name' => 'DefineButton'),
-             8 => array('name' => 'JPEGTables'),
+             8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg'),
              9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
             10 => array('name' => 'DefineFont'),
             11 => array('name' => 'DefineText'),
@@ -36,7 +36,7 @@ class IO_SWF_Tag {
             18 => array('name' => 'SoundStreamHead'),
             19 => array('name' => 'SoundStreamBlock'),
             20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless'),
-            21 => array('name' => 'DefineBitsJPEG2'),
+            21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg'),
             22 => array('name' => 'DefineShape2', 'klass' => 'Shape'),
             24 => array('name' => 'Protect'),
             // 25 missing
@@ -47,7 +47,7 @@ class IO_SWF_Tag {
             32 => array('name' => 'DefineShape3', 'klass' => 'Shape'),
             33 => array('name' => 'DefineText2'),
             34 => array('name' => 'DefineButton2'),
-            35 => array('name' => 'DefineBitsJPEG3'),
+            35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
             36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
             37 => array('name' => 'DefineEditText'),
             // 38 missing
