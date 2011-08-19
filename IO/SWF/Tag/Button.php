@@ -50,16 +50,25 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
     }
     
     function dumpContent($tagCode, $opts = array()) {
+        $opts['tagCode'] = $tagCode;
         echo "\tButton: ButtonID={$this->_buttonId}\n";
         echo "\t    Characters:\n";
         foreach ($this->_characters as $character) {
-            echo "--- characters ---\n";
-        }
-        foreach ($this->_actions as $action) {
-            echo "---- act ---\n";
+            $buttonrecord_str = IO_SWF_Type_BUTTONRECORD::string($character, $opts);
+            echo "\t\t$buttonrecord_str\n";
         }
         echo "\t    Actions:\n";
-        
+        if ($tagCode == 34) { // DefineButton2
+            foreach ($this->_actions as $action) {
+                $action_str = IO_SWF_Type_BUTTONCONDACTION::string($action, $opts);
+                echo "\t\t$action_str\n";
+            }
+        } else {
+            foreach ($this->_actions as $action) {
+                $action_str = IO_SWF_Type_Action::string($action, $opts);
+                echo "\t\t$action_str\n";
+            }
+        }
     }
     
     function buildContent($tagCode, $opts = array()) {
