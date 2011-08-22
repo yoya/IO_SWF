@@ -94,26 +94,48 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
         $writer->putUI8($fillStyleType);
         switch ($fillStyleType) {
           case 0x00: // solid fill
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                IO_SWF_Type_RGB::build($writer, $fillStyle['Color']);
+            if ($isMorph === false) {
+                if ($tagCode < 32 ) { // 32:DefineShape3
+                    IO_SWF_Type_RGB::build($writer, $fillStyle['Color']);
+                } else {
+                    IO_SWF_Type_RGBA::build($writer, $fillStyle['Color']);
+                }
             } else {
-                IO_SWF_Type_RGBA::build($writer, $fillStyle['Color']);
+                IO_SWF_Type_RGBA::build($writer, $fillStyle['StartColor']);
+                IO_SWF_Type_RGBA::build($writer, $fillStyle['EndColor']);
             }
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
-            IO_SWF_Type_MATRIX::build($writer, $fillStyle['GradientMatrix']);
+            if ($isMorph === false) {
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['GradientMatrix']);
+            } else {
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['StartGradientMatrix']);
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['EndGradientMatrix']);
+            }
             $writer->byteAlign();
-            $writer->putUIBits($fillStyle['SpreadMode'], 2);
-            $writer->putUIBits($fillStyle['InterpolationMode'], 2);
-            $numGradients = count($fillStyle['GradientRecords']);
-            $writer->putUIBits($numGradients , 4);
+            if ($isMorph === false) {
+                $writer->putUIBits($fillStyle['SpreadMode'], 2);
+                $writer->putUIBits($fillStyle['InterpolationMode'], 2);
+                $numGradients = count($fillStyle['GradientRecords']);
+                $writer->putUIBits($numGradients , 4);
+            } else {
+                $numGradients = count($fillStyle['GradientRecords']);
+                $writer->putUI8($numGradients);
+            }
             foreach ($fillStyle['GradientRecords'] as $gradientRecord) {
-                $writer->putUI8($gradientRecord['Ratio']);
-                if ($tagCode < 32 ) { // 32:DefineShape3
-                    IO_SWF_Type_RGB::build($writer, $gradientRecord['Color']);
+                if ($isMorph === false) {
+                    $writer->putUI8($gradientRecord['Ratio']);
+                    if ($tagCode < 32 ) { // 32:DefineShape3
+                        IO_SWF_Type_RGB::build($writer, $gradientRecord['Color']);
+                    } else {
+                        IO_SWF_Type_RGBA::build($writer, $gradientRecord['Color']);
+                    }
                 } else {
-                    IO_SWF_Type_RGBA::build($writer, $gradientRecord['Color']);
+                    $writer->putUI8($gradientRecord['StartRatio']);
+                    $writer->putUI8($gradientRecord['EndRatio']);
+                    IO_SWF_Type_RGBA::build($writer, $gradientRecord['StartColor']);
+                    IO_SWF_Type_RGBA::build($writer, $gradientRecord['EndColor']);
                 }
             }
           break;
@@ -124,7 +146,12 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
           case 0x42: // non-smoothed repeating bitmap fill
           case 0x43: // non-smoothed clipped bitmap fill
             $writer->putUI16LE($fillStyle['BitmapId']);
-            IO_SWF_Type_MATRIX::build($writer, $fillStyle['BitmapMatrix']);
+            if ($isMorph === false) {
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['BitmapMatrix']);
+            } else {
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['StartBitmapMatrix']);
+                IO_SWF_Type_MATRIX::build($writer, $fillStyle['EndBitmapMatrix']);
+            }
             break;
           default:
             throw new IO_SWF_Exception("Unknown FillStyleType=$fillStyleType tagCode=$tagCode");
