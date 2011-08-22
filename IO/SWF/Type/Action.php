@@ -123,7 +123,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         //
         0x9D => 'If',
         0x9E => 'Call', // why it >=0x80 ?
-        0x9E => 'GotoFrame2',
+        0x9F => 'GotoFrame2',
         );
     static function getCodeName($code) {
         if (isset(self::$action_code_table[$code])) {
