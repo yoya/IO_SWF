@@ -38,7 +38,7 @@ class IO_SWF_Type_LINESTYLEARRAY extends IO_SWF_Type {
             }
         }
         foreach ($lineStyles as $lineStyle) {
-            IO_SWF_Type_LINESTYLE::build($writer, $lineStyle);
+            IO_SWF_Type_LINESTYLE::build($writer, $lineStyle, $opts);
         }
         return true;
     }
