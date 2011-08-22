@@ -67,6 +67,17 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
         IO_SWF_TYPE_RECT::build($writer, $this->_TextBounds);
         IO_SWF_Type_MATRIX::build($writer, $this->_TextMatrix);
 
+        $glyphBits = $this->_GlyphBits;
+        $advanceBits = $this->_AdvanceBits;
+        $writer->putUI8($glyphBits);
+        $writer->putUI8($advanceBits);
+
+        $opts['GlyphBits'] = $glyphBits;
+        $opts['AdvanceBits'] = $advanceBits;
+        foreach ($this->_TextRecords as $textRecord) {
+            IO_SWF_Type_TEXTRECORD::build($writer, $textRecord, $opts);
+        }
+        $writer->putUI8(0); // TEXTRECORD TERMINATER
     	return $writer->output();
     }
 }
