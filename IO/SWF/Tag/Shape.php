@@ -100,13 +100,27 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             IO_SWF_Type_RECT::build($writer, $this->_startBounds);
             IO_SWF_Type_RECT::build($writer, $this->_endBounds);
+
+            $writer->byteAlign();
+            list($offset_offset, $dummy) = $writer->getOffset();
+            $this->_offset = $writer->putUI32LE(0); // at first, write dummy
+            
             // 描画スタイル
             IO_SWF_Type_FILLSTYLEARRAY::build($writer, $this->_morphFillStyles, $opts);
             IO_SWF_Type_LINESTYLEARRAY::build($writer, $this->_morphLineStyles, $opts);
         	// 描画枠
             $opts['fillStyleCount'] = count($this->_morphFillStyles);
             $opts['lineStyleCount'] = count($this->_morphLineStyles);
+
+            // StartEdge
             IO_SWF_Type_SHAPE::build($writer, $this->_startEdge, $opts);
+
+            // EndEdge
+            $writer->byteAlign();
+            list($end_edge_offset, $dummy) = $writer->getOffset();
+            $this->_offset = $end_edge_offset - $offset_offset - 4;
+            $writer->setUI32LE($this->_offset, $offset_offset);
+
             IO_SWF_Type_SHAPE::build($writer, $this->_endEdge, $opts);
         }
         return $writer->output();
