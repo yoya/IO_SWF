@@ -5,6 +5,7 @@
  */
 
 require_once 'IO/Bit.php';
+require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_Bitmap {
     const FORMAT_UNKNOW = 0;
@@ -36,7 +37,7 @@ class IO_SWF_Bitmap {
                 $chunk_length = 2;
                 break;
               case 0xDA: // SOS
-                return false; // not found
+                throw new IO_SWF_Exception("encounter SOS before SOF");
               case 0xC0: // SOF0
               case 0xC1: // SOF1
               case 0xC2: // SOF2
@@ -52,7 +53,7 @@ class IO_SWF_Bitmap {
               case 0xCF: // SOF15
                 $width  = 0x100 * ord($jpegdata[$idx + 7]) + ord($jpegdata[$idx + 8]);
                 $height = 0x100 * ord($jpegdata[$idx + 5]) + ord($jpegdata[$idx + 6]);
-                return array('width' => $width, 'height' => $height); // success
+                return array($width, $height); // success
               default:
                 $chunk_length = 0x100 * ord($jpegdata[$idx + 2]) + ord($jpegdata[$idx + 3]) + 2;
                 if ($chunk_length == 0) { // fail safe;
