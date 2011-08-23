@@ -9,6 +9,7 @@ require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Action.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Sprite.php';
 require_once dirname(__FILE__).'/../SWF/Lossless.php';
+require_once dirname(__FILE__).'/../SWF/Bitmap.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -295,7 +296,7 @@ class IO_SWF_Editor extends IO_SWF {
             $erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
             if (is_null($jpeg_alphadata)) {
                 // 21: DefineBitsJPEG2
-                $content = $erroneous_header.$bitmap_data;
+                $content = pack('v', $bitmap_id).$erroneous_header.$bitmap_data;
                 $tag = array('Code' => 21,
                              'Content' => $content);
             } else {
