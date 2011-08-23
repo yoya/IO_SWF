@@ -166,13 +166,21 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
         $fillStyleType = $fillStyle['FillStyleType'];
         switch ($fillStyleType) {
           case 0x00: // solid fill
-            $color = $fillStyle['Color'];
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                $color_str = IO_SWF_Type_RGB::string($color);
-            } else {
-                $color_str = IO_SWF_Type_RGBA::string($color);
+            if ($isMorph === false) {
+                $color = $fillStyle['Color'];
+                if ($tagCode < 32 ) { // 32:DefineShape3
+                    $color_str = IO_SWF_Type_RGB::string($color);
+                } else {
+                    $color_str = IO_SWF_Type_RGBA::string($color);
+                }
+                $text .= "\tsolid fill: $color_str\n";
+            } else{
+                $startColor = $fillStyle['StartColor'];
+                $endColor = $fillStyle['EndColor'];
+                $startColor_str = IO_SWF_Type_RGBA::string($startColor);
+                $endColor_str = IO_SWF_Type_RGBA::string($EndColor);
+                $text .= "\tsolid fill: $startColor_str => $endColor_str\n";
             }
-            $text .= "\tsolid fill: $color_str\n";
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
