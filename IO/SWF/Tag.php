@@ -26,7 +26,7 @@ class IO_SWF_Tag {
              8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg'),
              9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
             10 => array('name' => 'DefineFont'),
-            11 => array('name' => 'DefineText'),
+            11 => array('name' => 'DefineText', 'klass' => 'Text'),
             12 => array('name' => 'DoAction', 'klass' => 'Action'),
             13 => array('name' => 'DefineFontInfo'),
             14 => array('name' => 'DefineSound'),
@@ -45,7 +45,7 @@ class IO_SWF_Tag {
             28 => array('name' => 'RemoveObject2'),
             // 29,30,31 missing
             32 => array('name' => 'DefineShape3', 'klass' => 'Shape'),
-            33 => array('name' => 'DefineText2'),
+            33 => array('name' => 'DefineText2', 'klass' => 'Text'),
             34 => array('name' => 'DefineButton2'),
             35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
             36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
