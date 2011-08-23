@@ -4,11 +4,12 @@
  * 2010/8/12- (c) yoya@awm.jp
  */
 
+require_once dirname(__FILE__).'/Exception.php';
 require_once dirname(__FILE__).'/../SWF.php';
-require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
-require_once dirname(__FILE__).'/../SWF/Tag/Action.php';
-require_once dirname(__FILE__).'/../SWF/Tag/Sprite.php';
-require_once dirname(__FILE__).'/../SWF/Lossless.php';
+require_once dirname(__FILE__).'/Tag/Shape.php';
+require_once dirname(__FILE__).'/Tag/Action.php';
+require_once dirname(__FILE__).'/Tag/Sprite.php';
+require_once dirname(__FILE__).'/Lossless.php';
 require_once dirname(__FILE__).'/../SWF/Bitmap.php';
 
 class IO_SWF_Editor extends IO_SWF {
