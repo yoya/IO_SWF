@@ -60,8 +60,8 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                     }
                 } else { // Morph
                     $gradientRecord['StartRatio'] = $reader->getUI8();
-                    $gradientRecord['EndRatio'] = $reader->getUI8();
                     $gradientRecord['StartColor'] = IO_SWF_Type_RGBA::parse($reader);
+                    $gradientRecord['EndRatio'] = $reader->getUI8();
                     $gradientRecord['EndColor'] = IO_SWF_Type_RGBA::parse($reader);
                 }
                 $fillStyle['GradientRecords'] []= $gradientRecord;
@@ -133,8 +133,8 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                     }
                 } else {
                     $writer->putUI8($gradientRecord['StartRatio']);
-                    $writer->putUI8($gradientRecord['EndRatio']);
                     IO_SWF_Type_RGBA::build($writer, $gradientRecord['StartColor']);
+                    $writer->putUI8($gradientRecord['EndRatio']);
                     IO_SWF_Type_RGBA::build($writer, $gradientRecord['EndColor']);
                 }
             }
@@ -205,10 +205,11 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                     $text .= "\t\tRatio: $ratio Color:$color_str\n";
                 } else {
                     $startRatio = $gradientRecord['StartRatio'];
-                    $endRatio   = $gradientRecord['EndRatio'];
                     $startColorStr = IO_SWF_Type_RGBA::string($gradientRecord['StartColor']);
+                    $endRatio   = $gradientRecord['EndRatio'];
+
                     $endColorStr = IO_SWF_Type_RGBA::string($gradientRecord['EndColor']);
-                    $text .= "\t\tRatio: $startRatio => $endRatio Color:$startColorStr => endColorStr\n";
+                    $text .= "\t\tStart: Ratio:$startRatio Color:$startColorStr => End: Ratio:$endRatio Color:$endColorStr\n";
                 }
             }
             break;
