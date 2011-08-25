@@ -22,6 +22,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         if ($tagCode == 34) { // DefineButton2
             $this->_trackAsMenu = $reader->getUIBits(7);
             $this->_characters = $reader->getUIBit();
+            list($offset_actionOffset, $dummy) = $reader->getOffset();
             $this->_actionOffset = $reader->getUI16LE();
         }
         $characters = array();
@@ -33,11 +34,23 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         if ($tagCode == 34) { // DefineButton2
             // TODO: skip ActionOffset - CurrentOffsetUntilCharactersField
             $actions = array();
-            while ($reader->hasNextData()) {
-                $reader->incrementOffset(-1, 0); // 1 byte back
-                $actions []= IO_SWF_Type_BUTTONCONDACTION::parse($reader);
+            if ($this->_actionOffset > 0) {
+                list($offset_buttonCondition, $dummy) = $reader->getOffset();
+                if ($offset_actionOffset + $this->_actionOffset != $offset_buttonCondition) {
+                    // TODO: warning
+                    $reader->setOffset($offset_actionOffset + $this->_actionOffset, 0);
+                }
+                while (true) {
+                    $action  = IO_SWF_Type_BUTTONCONDACTION::parse($reader);
+                    $actions []= $action;
+                    if ($action['CondActionSize'] == 0) {
+                        break; // last action
+                    }
+                }
+                $this->_actions = $actions;
+            } else {
+                $this->_actions = null;
             }
-            $this->_actions = $actions;
         } else {
             $actions = array();
             while ($reader->getUI8() != 0) {
@@ -74,6 +87,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
         $writer->putUI16LE($this->_buttonId);
+        ;
     	return $writer->output();
     }
 }
