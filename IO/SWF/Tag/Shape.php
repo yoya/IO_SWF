@@ -39,12 +39,18 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             $this->_startBounds = IO_SWF_TYPE_RECT::parse($reader);
             $this->_endBounds = IO_SWF_TYPE_RECT::parse($reader);
+            list($offset_offset, $dummy) = $reader->getOffset();
             $this->_offset = $reader->getUI32LE();
         	// 描画スタイル
             $this->_morphFillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
         	$this->_morphLineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
         	// 描画枠
             $this->_startEdge = IO_SWF_Type_SHAPE::parse($reader, $opts);
+            list($end_edge_offset, $dummy) = $reader->getOffset();
+            if ($offset_offset + $this->_offset + 4 != $end_edge_offset) {
+                // warn!
+                $reader->setOffset($offset_offset + $this->_offset + 4, 9);
+            }
             $this->_endEdge   = IO_SWF_Type_SHAPE::parse($reader, $opts);
         }
     }
