@@ -178,7 +178,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                 $startColor = $fillStyle['StartColor'];
                 $endColor = $fillStyle['EndColor'];
                 $startColor_str = IO_SWF_Type_RGBA::string($startColor);
-                $endColor_str = IO_SWF_Type_RGBA::string($EndColor);
+                $endColor_str = IO_SWF_Type_RGBA::string($endColor);
                 $text .= "\tsolid fill: $startColor_str => $endColor_str\n";
             }
             break;
