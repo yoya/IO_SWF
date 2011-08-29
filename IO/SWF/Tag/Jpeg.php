@@ -11,7 +11,7 @@ class IO_SWF_Tag_Jpeg extends IO_SWF_Tag_Base {
     function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
-        if ($tagCode != 8) { // ! JPEGTablesa
+        if ($tagCode != 8) { // ! JPEGTable
             $this->_CharacterID = $reader->getUI16LE();
         }
         if ($tagCode == 35) { // DefgineBitsJPEG3
