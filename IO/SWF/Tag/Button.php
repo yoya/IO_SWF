@@ -20,8 +20,8 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         $this->_buttonId = $reader->getUI16LE();
         $opts['tagCode'] = $tagCode;
         if ($tagCode == 34) { // DefineButton2
-            $this->_trackAsMenu = $reader->getUIBits(7);
-            $this->_characters = $reader->getUIBit();
+            $this->_reservedFlags = $reader->getUIBits(7);
+            $this->_trackAsMenu = $reader->getUIBit();
             list($offset_actionOffset, $dummy) = $reader->getOffset();
             $this->_actionOffset = $reader->getUI16LE();
         }
@@ -64,7 +64,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
     
     function dumpContent($tagCode, $opts = array()) {
         $opts['tagCode'] = $tagCode;
-        echo "\tButton: ButtonID={$this->_buttonId}\n";
+        echo "\tButtonID:{$this->_buttonId} TrackAsMenu:{$this->_trackAsMenu} (ActionOffset:{$this->_actionOffset})\n";
         echo "\t    Characters:\n";
         foreach ($this->_characters as $character) {
             $buttonrecord_str = IO_SWF_Type_BUTTONRECORD::string($character, $opts);
