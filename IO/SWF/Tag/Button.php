@@ -87,7 +87,38 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
         $writer->putUI16LE($this->_buttonId);
-        ;
+        $opts['tagCode'] = $tagCode;        ;
+        if ($tagCode == 34) { // DefineButton2
+            $writer->putUIBits($this->_trackAsMenu, 7);
+            $writer->putUIBit($this->_characters);
+            list($offset_actionOffset, $dummy) = $writer->getOffset();
+            $writer->putUI16LE(0); // dummy;
+        }
+        foreach ($this->_characters as $character) {
+            IO_SWF_Type_BUTTONRECORD::build($writer, $character, $opts);
+        }
+        $writer->putUI8(0); // terminater of button record
+        if ($tagCode == 34) { // DefineButton2
+            $actions = array();
+            if (is_null($this->_actions) === false) {
+                list($offset_buttonCondition, $dummy) = $writer->getOffset();
+                $writer->setUI16LE($offset_buttonCondition - $offset_actionOffset, $offset_buttonCondition);
+                foreach ($this->_actions as $idx => $action) {
+                    if (isset($this->_actions[$idx + 1]) === false) {
+                        $opts['lastAction'] = true;
+                    } else {
+                        $opts['lastAction'] = false;
+                    }
+                    IO_SWF_Type_BUTTONCONDACTION::build($writer, $action, $opts);
+                }
+            }
+        } else {
+            foreach ($this->_actions as $action) {
+                IO_SWF_Type_Action::build($writer, $action);
+            }
+            $writer->putUI8(0); // terminator of actions
+            
+        }
     	return $writer->output();
     }
 }
