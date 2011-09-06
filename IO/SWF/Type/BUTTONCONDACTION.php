@@ -31,7 +31,22 @@ class IO_SWF_Type_BUTTONCONDACTION extends IO_SWF_Type {
     	return $condAction; 
     }
     static function build(&$writer, $condAction, $opts = array()) {
-        ;
+        list($offset_condAction, $dummy) = $writer->getOffset();
+        $writer->putUI16LE(0);
+        foreach (self::$buttoncond_list as $key) {
+            $writer->putUIBit($condAction['Cond'.$key]);
+        }
+        $writer->putUIBits($condAction['CondKeyPress'], 7);
+        $writer->putUIBit($condAction['CondOverDownToIdle']);
+        foreach ($condAction['Actions'] as $action) {
+            IO_SWF_Type_Action::build($writer, $action);
+        }
+        $writer->putUI8(0); // terminate
+        if ($opts['lastAction'] === false) {
+            list($offset_next, $dummy) = $writer->getOffset();
+            $writer->setUI16LE($offset_next - $offset_condAction, $offset_condAction);
+        }
+        return true;
     }
     static function string($condAction, $opts = array()) {
         $text = "\tBUTTONCONDACTION (CondActionSize:{$condAction['CondActionSize']})\n";
