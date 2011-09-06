@@ -33,8 +33,8 @@ class IO_SWF_Type_BUTTONCONDACTION extends IO_SWF_Type {
     static function build(&$writer, $condAction, $opts = array()) {
         ;
     }
-    static function string($rect, $opts = array()) {
-        $text = "BUTTONCONDACTION\n";
+    static function string($condAction, $opts = array()) {
+        $text = "\tBUTTONCONDACTION (CondActionSize:{$condAction['CondActionSize']})\n";
         return $text;
     }
 }
