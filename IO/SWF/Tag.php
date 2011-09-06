@@ -22,7 +22,7 @@ class IO_SWF_Tag {
              4 => array('name' => 'PlaceObject', 'klass' => 'Place'),
              5 => array('name' => 'RemoveObject'),
              6 => array('name' => 'DefineBits', 'klass' => 'Jpeg'),
-             7 => array('name' => 'DefineButton'),
+             7 => array('name' => 'DefineButton', 'klass' => 'Button'),
              8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg'),
              9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
             10 => array('name' => 'DefineFont'),
@@ -46,7 +46,7 @@ class IO_SWF_Tag {
             // 29,30,31 missing
             32 => array('name' => 'DefineShape3', 'klass' => 'Shape'),
             33 => array('name' => 'DefineText2', 'klass' => 'Text'),
-            34 => array('name' => 'DefineButton2'),
+            34 => array('name' => 'DefineButton2', 'klass' => 'Button'),
             35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
             36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
             37 => array('name' => 'DefineEditText'),
