@@ -102,7 +102,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
             $actions = array();
             if (is_null($this->_actions) === false) {
                 list($offset_buttonCondition, $dummy) = $writer->getOffset();
-                $writer->setUI16LE($offset_buttonCondition - $offset_actionOffset, $offset_buttonCondition);
+                $writer->setUI16LE($offset_buttonCondition - $offset_actionOffset, $offset_actionOffset);
                 foreach ($this->_actions as $idx => $action) {
                     if (isset($this->_actions[$idx + 1]) === false) {
                         $opts['lastAction'] = true;
