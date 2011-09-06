@@ -54,7 +54,7 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
         $writer->putUIBit($buttonrecord['ButtonStateUp']);
         //
         $writer->putUI16LE($buttonrecord['CharacterID']);
-        $reader->putUI16LE($buttonrecord['PlaceDepth']);
+        $writer->putUI16LE($buttonrecord['PlaceDepth']);
         IO_SWF_Type_MATRIX::build($writer, $buttonrecord['PlaceMatrix']);
         if ($opts['tagCode'] == 34) { // DefineButton2
             IO_SWF_Type_CXFORMWITHALPHA::build($writer, $buttonrecord['ColorTransform']);
