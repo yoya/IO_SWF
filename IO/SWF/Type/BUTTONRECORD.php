@@ -8,6 +8,7 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/CXFORM.php';
 require_once dirname(__FILE__).'/CXFORMWITHALPHA.php';
+require_once dirname(__FILE__).'/FILTERLIST.php';
 
 class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
@@ -31,12 +32,13 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
         } else {
             $buttonrecord['ColorTransform'] = IO_SWF_Type_CXFORM::parse($reader);
         }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasFilterList == 1)) {
-            $buttonrecord['FilterList'] = IO_SWF_Type_FILTERLIST::parse($reader);
+        if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
+            // DefineButton2 & SWF8 later
+            if ($buttonHasFilterList == 1) {
+                $buttonrecord['FilterList'] = IO_SWF_Type_FILTERLIST::parse($reader);
+            }
         }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasBlendMode == 1)) {
+        if ($buttonHasBlendMode == 1) {
             $buttonrecord['BlendMode'] = $reader->getUI8();
         }
     	return $buttonrecord;
