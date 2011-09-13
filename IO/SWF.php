@@ -12,7 +12,7 @@ require_once dirname(__FILE__).'/SWF/Tag.php';
 class IO_SWF {
     // instance variable
     var $_headers = array(); // protected
-    var $_header_size;
+    var $_header_size; // XXX
     var $_tags = array();    // protected
     // for debug
     var $_swfdata = null;
@@ -78,11 +78,11 @@ class IO_SWF {
         /* SWF Tags */
         foreach ($this->_tags as $idx => $tag) {
             $tagData = $tag->build();
-	    if ($tagData != false) {
+            if ($tagData != false) {
                 $writer->putData($tagData);
-	    } else {
-	        throw new IO_SWF_Exception("tag build failed (tag idx=$idx)");
-	    }
+            } else {
+                throw new IO_SWF_Exception("tag build failed (tag idx=$idx)");
+            }
         }
         list($fileLength, $bit_offset_dummy) = $writer->getOffset();
         $fileLength += 8; // swf header
