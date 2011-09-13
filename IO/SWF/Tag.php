@@ -130,7 +130,9 @@ class IO_SWF_Tag {
     }
     function build($opts = array()) {
         $code = $this->code;
-        $content = $this->content;
+        if (is_null($this->content)) {
+            $this->content = $this->buildTagContent();
+        }
         $length = strlen($this->content);
         $writer = new IO_Bit();
         switch ($code) {
@@ -154,7 +156,7 @@ class IO_SWF_Tag {
             $writer->putUI16LE($tagAndLength);
             $writer->putUI32LE($length);
         }
-        return $writer->output() . $this->buildTagContent();
+        return $writer->output() . $this->content;
     }
     function parseTagContent() {
         if (is_null($this->tag) === false) {
