@@ -66,6 +66,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         $opts['tagCode'] = $tagCode;
         echo "\tButtonID:{$this->_buttonId} TrackAsMenu:{$this->_trackAsMenu} (ActionOffset:{$this->_actionOffset})\n";
         echo "\t    Characters:\n";
+        $opts['indent']++;
         foreach ($this->_characters as $character) {
             $buttonrecord_str = IO_SWF_Type_BUTTONRECORD::string($character, $opts);
             echo "\t\t$buttonrecord_str\n";
