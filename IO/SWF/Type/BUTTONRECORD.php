@@ -76,12 +76,15 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
         $text = '';
         $buttonHasBlendMode = $buttonrecord['ButtonHasBlandMode'];
         $buttonHasFilterList = $buttonrecord['ButtonHasFilterList'];
-        echo 'ButtonHasBlandMode:'.$buttonrecord['ButtonHasBlandMode'].' ButtonHasFilterList:'. $buttonrecord['ButtonHasFilterList']."\n";
-        foreach (array('ButtonStateHitTest', 'ButtonStateDown', 'ButtonStateOver', 'ButtonStateUp') as $label) {
-            $text .= $label.':'.$buttonrecord[$label].' ';
+        $text .= "HasBlandMode:".$buttonrecord['ButtonHasBlandMode'].' HasFilterList:'. $buttonrecord['ButtonHasFilterList']."\n\t\t";
+        foreach (array('StateHitTest', 'StateDown', 'StateOver', 'StateUp') as $label) {
+            $text .= $label.':'.$buttonrecord['Button'.$label].' ';
         }
+        $text .= "\n\t\t";
+        $text .= "CharacterID:{$buttonrecord['CharacterID']} PlaceDepth:{$buttonrecord['PlaceDepth']}";
         $text .= "\n";
-        $text .= IO_SWF_Type_MATRIX::string($buttonrecord['PlaceMatrix']);
+        $opts['indent']++;
+        $text .= IO_SWF_Type_MATRIX::string($buttonrecord['PlaceMatrix'], $opts)."\n";
         if ($opts['tagCode'] == 34) { // DefineButton2
             $text .= 'ColorTransform:'. IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
         } else {
