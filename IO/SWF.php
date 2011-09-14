@@ -111,7 +111,7 @@ class IO_SWF {
             $bitio->hexdump(0, $this->_header_size);
             $opts['bitio'] =& $bitio; // for tag
         }
-
+        $opts['indent'] = 0;
         /* SWF Tags */
         
         echo 'Tags:'.PHP_EOL;
