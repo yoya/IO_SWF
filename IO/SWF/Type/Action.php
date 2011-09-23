@@ -23,7 +23,7 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         0x09 => 'StopSounds',
         //
         0x0A => 'Add',
-        0x0B => 'Substract',
+        0x0B => 'Subtract',
         0x0C => 'Multiply',
         0x0D => 'Divide',
         0x0E => 'Equals',
