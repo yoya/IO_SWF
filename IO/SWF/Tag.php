@@ -53,7 +53,7 @@ class IO_SWF_Tag {
             // 38 missing
             39 => array('name' => 'DefineSprite', 'klass' => 'Sprite'),
             // 40,41,42 missing
-            43 => array('name' => 'FrameLabel'),
+            43 => array('name' => 'FrameLabel', 'klass' => 'FrameLabel'),
             // 44 missing
             45 => array('name' => 'SoundStreamHead2'),
             46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape'),
