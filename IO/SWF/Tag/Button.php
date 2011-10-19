@@ -73,14 +73,22 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         }
         echo "\t    Actions:\n";
         if ($tagCode == 34) { // DefineButton2
-            foreach ($this->_actions as $action) {
-                $action_str = IO_SWF_Type_BUTTONCONDACTION::string($action, $opts);
-                echo "\t\t$action_str\n";
+            if (is_null($this->_actions)) {
+                echo "\t\t(no actions)\n";
+            } else {
+                foreach ($this->_actions as $action) {
+                    $action_str = IO_SWF_Type_BUTTONCONDACTION::string($action, $opts);
+                    echo "\t\t$action_str\n";
+                }
             }
         } else {
-            foreach ($this->_actions as $action) {
-                $action_str = IO_SWF_Type_Action::string($action, $opts);
-                echo "\t\t$action_str\n";
+            if (is_null($this->_actions)) {
+                echo "\t\t(no actions)\n";
+            } else {
+                foreach ($this->_actions as $action) {
+                    $action_str = IO_SWF_Type_Action::string($action, $opts);
+                    echo "\t\t$action_str\n";
+                }
             }
         }
     }
