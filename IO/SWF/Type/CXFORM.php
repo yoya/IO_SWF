@@ -10,6 +10,7 @@ require_once dirname(__FILE__).'/../Type.php';
 class IO_SWF_Type_CXFORM extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$cxform = array();
+    	$reader->byteAlign();
     	$hasAddTerms = $reader->getUIBit();
     	$hasMultiTerms = $reader->getUIBit();
     	$cxform['HasAddTerms'] = $hasAddTerms;
@@ -32,6 +33,7 @@ class IO_SWF_Type_CXFORM extends IO_SWF_Type {
         $hasAddTerms = 0;
         $hasMultiTerms = 0;
         $multi_term_list = array('RedMultiTerm', 'GreenMultiTerm', 'BlueMultiTerm');
+        $writer->byteAlign();
         foreach ($multi_term_list as $term) {
             if (isset($cxform[$term])) {
                 $hasMultiTerms = 1;
