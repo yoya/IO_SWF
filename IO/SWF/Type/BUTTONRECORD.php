@@ -13,17 +13,17 @@ require_once dirname(__FILE__).'/FILTERLIST.php';
 class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$buttonrecord = array();
-
         $buttonrecord['ButtonReserved'] = $reader->getUIBits(2); // must be 0
         $buttonHasBlendMode = $reader->getUIBit();
-        $buttonHasFilterList = $reader->getUIBit(); 
+        $buttonHasFilterList = $reader->getUIBit();
         $buttonrecord['ButtonHasBlandMode'] = $buttonHasBlendMode;
         $buttonrecord['ButtonHasFilterList'] = $buttonHasFilterList;
-        $buttonrecord['ButtonStateHitTest'] = $reader->getUIBit(); 
-        $buttonrecord['ButtonStateDown'] = $reader->getUIBit(); 
-        $buttonrecord['ButtonStateOver'] = $reader->getUIBit(); 
-        $buttonrecord['ButtonStateUp'] = $reader->getUIBit(); 
-        //
+
+        $buttonrecord['ButtonStateHitTest'] = $reader->getUIBit();
+        $buttonrecord['ButtonStateDown'] = $reader->getUIBit();
+        $buttonrecord['ButtonStateOver'] = $reader->getUIBit();
+        $buttonrecord['ButtonStateUp'] = $reader->getUIBit();
+
         $buttonrecord['CharacterID'] = $reader->getUI16LE();
         $buttonrecord['PlaceDepth'] = $reader->getUI16LE();
         $buttonrecord['PlaceMatrix'] = IO_SWF_Type_MATRIX::parse($reader);
@@ -37,9 +37,9 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
             if ($buttonHasFilterList == 1) {
                 $buttonrecord['FilterList'] = IO_SWF_Type_FILTERLIST::parse($reader);
             }
-        }
-        if ($buttonHasBlendMode == 1) {
-            $buttonrecord['BlendMode'] = $reader->getUI8();
+            if ($buttonHasBlendMode == 1) {
+                $buttonrecord['BlendMode'] = $reader->getUI8();
+            }
         }
     	return $buttonrecord;
     }
@@ -63,13 +63,14 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
         } else {
             IO_SWF_Type_CXFORM::build($writer, $buttonrecord['ColorTransform']);
         }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasFilterList == 1)) {
-            IO_SWF_Type_FILTERLIST::build($writer, $buttonrecord['FilterList']);
-        }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasBlendMode == 1)) {
-            $writer->putUI8($buttonrecord['BlendMode']);
+        if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
+            // DefineButton2 & SWF8 later
+            if ($buttonHasFilterList == 1) {
+                IO_SWF_Type_FILTERLIST::build($writer, $buttonrecord['FilterList']);
+            }
+            if ($buttonHasBlendMode == 1) {
+                $writer->putUI8($buttonrecord['BlendMode']);
+            }
         }
     }
     static function string($buttonrecord, $opts = array()) {
@@ -86,17 +87,18 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
         $opts['indent']++;
         $text .= IO_SWF_Type_MATRIX::string($buttonrecord['PlaceMatrix'], $opts)."\n";
         if ($opts['tagCode'] == 34) { // DefineButton2
-            $text .= 'ColorTransform:'. IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
+            $text .= "\t\tColorTransform:". IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
         } else {
             $text .= 'ColorTransform:'.IO_SWF_Type_CXFORM::string($buttonrecord['ColorTransform']).' ';
         }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasFilterList == 1)) {
-            $text .= 'FilterList:'.IO_SWF_Type_FILTERLIST::string($buttonrecord['FilterList'])."\n";
-        }
-        if (($opts['tagCode'] == 34) &&  // DefineButton2
-            ($buttonHasBlendMode == 1)) {
-            $text .= 'BlendMode:'.$buttonrecord['BlendMode']."\n";
+        if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
+            // DefineButton2 & SWF8 later
+            if ($buttonHasFilterList == 1) {
+                $text .= 'FilterList:'.IO_SWF_Type_FILTERLIST::string($buttonrecord['FilterList'])."\n";
+            }
+            if ($buttonHasBlendMode == 1) {
+                $text .= 'BlendMode:'.$buttonrecord['BlendMode']."\n";
+            }
         }
         return $text;
     }
