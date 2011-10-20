@@ -3,8 +3,8 @@
 require 'IO/SWF/Editor.php';
 
 if ($argc != 2) {
-    echo "Usage: php swfconvlossless2png.php <swf_file>\n";
-    echo "ex) php swfconvlossless2png.php test.swf\n";
+    echo "Usage: php swfconvlossless2pngjpeg.php <swf_file>\n";
+    echo "ex) php swfconvlossless2pngjpeg.php test.swf\n";
     exit(1);
 }
 
