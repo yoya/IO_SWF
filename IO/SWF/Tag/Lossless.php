@@ -9,7 +9,7 @@ class IO_SWF_Tag_Lossless extends IO_SWF_Tag_Base {
     var $_BitmapWidth;
     var $_BitmapHeight;
     var $_BitmapColorTableSize = null;
-    var $_ZlibBitmapFormat;
+    var $_ZlibBitmapData;
    function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
@@ -21,7 +21,7 @@ class IO_SWF_Tag_Lossless extends IO_SWF_Tag_Base {
         if ($bitmapFormat == 3) {
             $this->_BitmapColorTableSize = $reader->getUI8() + 1;
         }
-        $this->_ZlibBitmapFormat = $reader->getDataUntil(false);
+        $this->_ZlibBitmapData = $reader->getDataUntil(false);
     }
 
     function dumpContent($tagCode, $opts = array()) {
@@ -43,7 +43,7 @@ class IO_SWF_Tag_Lossless extends IO_SWF_Tag_Base {
         if ($bitmapFormat == 3) {
             $writer->putUI8($this->_BitmapColorTableSize - 1);
         }
-        $writer->putData($this->_ZlibBitmapFormat);
+        $writer->putData($this->_ZlibBitmapData);
     	return $writer->output();
     }
 }
