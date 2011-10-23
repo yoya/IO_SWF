@@ -13,6 +13,7 @@ require_once dirname(__FILE__).'/FILTERLIST.php';
 class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$buttonrecord = array();
+        $reader->byteAlign();
         $buttonrecord['ButtonReserved'] = $reader->getUIBits(2); // must be 0
         $buttonHasBlendMode = $reader->getUIBit();
         $buttonHasFilterList = $reader->getUIBit();
@@ -45,6 +46,7 @@ class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
     }
 
     static function build(&$writer, $buttonrecord, $opts = array()) {
+        $writer->byteAlign();
         $writer->putUIBits(0, 2); // ButtonReserved
         $buttonHasBlendMode = $buttonrecord['ButtonHasBlandMode'];
         $buttonHasFilterList = $buttonrecord['ButtonHasFilterList'];
