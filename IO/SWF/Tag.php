@@ -184,7 +184,7 @@ class IO_SWF_Tag {
         }
         $code = $this->code;
         $opts['Version'] = $this->swfInfo['Version'];
-        $this->content = $this->tag->buildContent($code, $this->content, $opts);
+        $this->content = $this->tag->buildContent($code, $opts); // XXXq
         return $this->content;
     }
 
