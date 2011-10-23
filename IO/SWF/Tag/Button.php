@@ -41,7 +41,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
                     $reader->setOffset($offset_actionOffset + $this->_actionOffset, 0);
                 }
                 while (true) {
-                    $action  = IO_SWF_Type_BUTTONCONDACTION::parse($reader);
+                    $action  = IO_SWF_Type_BUTTONCONDACTION::parse($reader, $opts);
                     $actions []= $action;
                     if ($action['CondActionSize'] == 0) {
                         break; // last action
