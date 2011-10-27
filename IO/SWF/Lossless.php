@@ -141,9 +141,6 @@ class IO_SWF_Lossless {
                     $blue  = ord($palette_data[$j++]);
                     $gd_palette []= imagecolorallocate($im, $red, $green, $blue);
                 }
-                if ($width % 4) {
-                    $padding = 4 - ($width % 4);
-                }
             } else { // DefineBitsLossless2
                 for ($i = 0, $j = 0; $i <  $palette_num; $i++) {
                     $red   = ord($palette_data[$j++]);
@@ -153,6 +150,9 @@ class IO_SWF_Lossless {
                     $alpha = 127 - $alpha / 2;
                     $gd_palette []= imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
                 }
+            }
+            if ($width % 4) {
+                $padding = 4 - ($width % 4);
             }
             $i = 0;
             for ($y = 0 ; $y < $height ; $y++) {
