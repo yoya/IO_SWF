@@ -26,13 +26,15 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($this->_tags as &$tag) {
             if ($tag->parseTagContent()) {
                 $tag->content = null;
-                $tag->buildTagContent();
             }
         }
     }
 
     function setCharacterId() {
         foreach ($this->_tags as &$tag) {
+            if (is_null($tag->content)) {
+                throw IO_SWF_Exception("setCharacterId method must be called at next of parse");
+            }
             $content_reader = new IO_Bit();
             $content_reader->input($tag->content);
             switch ($tag->code) {
@@ -185,7 +187,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $shape = new IO_SWF_Tag_Shape();
                 $shape->parseContent($code, $tag->content);
                 $shape->deforme($threshold);
-                $tag->content = $shape->buildContent($code);
+                $tag->content = $shape->buildContent($code); // XXX
                 break;
             }
         }
@@ -263,7 +265,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $action = new IO_SWF_Tag_Action();
                 $action->parseContent($code, $tag->content);
                 $action->replaceActionStrings($trans_table);
-                $tag->content = $action->buildContent($code);
+                $tag->content = null;
                 break;
               case 39: // Sprite
                 $sprite = new IO_SWF_Tag_Sprite();
