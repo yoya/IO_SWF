@@ -243,7 +243,9 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 }
                 break;
               default:
-                $action['Data'] =  $reader->getData($length);
+                if ($length > 0) {
+                    $action['Data'] =  $reader->getData($length);
+                }
                 break;
             }
         }
@@ -371,9 +373,13 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 }
                 break;
               default:
-                $data = $action['Data'];
-                $writer->putUI16LE(strlen($data));
-                $writer->putData($data);
+                if (isset($action['Data'])) {
+                    $data = $action['Data'];
+                    $writer->putUI16LE(strlen($data));
+                    $writer->putData($data);
+                } else {
+                    $writer->putUI16LE(0);
+                }
                 break;
             }
         }
@@ -383,7 +389,6 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         $str = sprintf('%s(Code=0x%02X)', self::getCodeName($code), $code);
         if (isset($action['Length'])) {
             $str .= sprintf(" (Length=%d):", $action['Length']);
-            $str .= PHP_EOL."\t";
             switch ($code) {
               case 0x88: // ActonConstantPool
                 $str .= " Count=".$action['Count'].PHP_EOL;
@@ -392,7 +397,6 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 }
                 break;
               case 0x96: // ActonPush
-                $str .= "   ";
                 foreach ($action['Values'] as $value) {
                   unset($value['Type']);
                   list($type_name) = array_keys($value);
@@ -401,16 +405,18 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 break;
               default:
                 $data_keys = array_diff(array_keys($action), array('Code', 'Length'));
-                foreach ($data_keys as $key) {
-                    $value = $action[$key];
-                    if (is_array($value)) {
-                        $new_value = array();
-                        foreach ($value as $k => $v) {
-                            $new_value[] = "$k:$v";
+                if (count($data_keys) > 0) {
+                    foreach ($data_keys as $key) {
+                        $value = $action[$key];
+                        if (is_array($value)) {
+                            $new_value = array();
+                            foreach ($value as $k => $v) {
+                                $new_value[] = "$k:$v";
+                            }
+                            $value = implode(' ', $new_value);
                         }
-                        $value = implode(' ', $new_value);
+                        $str .= " " ."$key=$value";
                     }
-                    $str .= "   " ."$key=$value";
                 }
                 break;
             }
