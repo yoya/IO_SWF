@@ -50,6 +50,22 @@ class IO_SWF_Type_BUTTONCONDACTION extends IO_SWF_Type {
     }
     static function string($condAction, $opts = array()) {
         $text = "\tBUTTONCONDACTION (CondActionSize:{$condAction['CondActionSize']})\n";
+
+        $text = "\t\tCondAction: ";
+        foreach (self::$buttoncond_list as $key) {
+            $text = " $key:".$condAction['Cond'.$key];
+        }
+        $text .= "\n";
+        $text .= "\t\tCondKeyPress:".$condAction['CondKeyPress']." CondOverDownToIdle:".$condAction['CondOverDownToIdle']."\n";
+        
+        
+        $text .= "\t\tActions:\n";
+        foreach ($condAction['Actions'] as $action) {
+            $text .= "\t\t\t".IO_SWF_Type_Action::string($action, $opts)."\n";
+        }
+
+
+
         return $text;
     }
 }
