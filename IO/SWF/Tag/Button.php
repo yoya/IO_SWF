@@ -98,8 +98,8 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         $writer->putUI16LE($this->_buttonId);
         $opts['tagCode'] = $tagCode;        ;
         if ($tagCode == 34) { // DefineButton2
-            $writer->putUIBits($this->_trackAsMenu, 7);
-            $writer->putUIBit($this->_characters);
+            $writer->putUIBits($this->_reservedFlags, 7);
+            $writer->putUIBit($this->_trackAsMenu);
             list($offset_actionOffset, $dummy) = $writer->getOffset();
             $writer->putUI16LE(0); // dummy;
         }
