@@ -10,7 +10,7 @@ require_once dirname(__FILE__).'/../Type.php';
 class IO_SWF_Type_BUTTONCONDACTION extends IO_SWF_Type {
     static $buttoncond_list =  array(
         'IdleToOverDown', 'OutDownToIdle', 'OutDownToOverDown',
-        'OverDownToOutDown', 'OverDownToOver', 'OverUpToOverDown',
+        'OverDownToOutDown', 'OverDownToOverUp', 'OverUpToOverDown',
         'OverUpToIdle', 'IdleToOverUp');
     static function parse(&$reader, $opts = array()) {
         $condAction = array();
