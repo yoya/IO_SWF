@@ -28,8 +28,7 @@ if (isset($argv[4])) { // with jpeg alphadata
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
 
-$swf->setCharacterId($swfdata);
-
+// $swf->setShapeAdjustMode(IO_SWF_Editor::SHAPE_BITMAP_RECT_RESIZE);
 $ret = $swf->replaceBitmapData($bitmap_id, $bitmapdata, $jpeg_alphadata);
 
 echo $swf->build();

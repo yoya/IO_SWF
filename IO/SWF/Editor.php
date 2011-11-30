@@ -22,6 +22,9 @@ class IO_SWF_Editor extends IO_SWF {
     const SHAPE_BITMAP_RECT_RESIZE    = 2;
     const SHAPE_BITMAP_TYPE_TILED     = 4;
 
+    var $setCharacterIdDone = false;
+    var $setReferenceIdDone = false;
+
     function rebuild() {
         foreach ($this->_tags as &$tag) {
             if ($tag->parseTagContent()) {
@@ -31,6 +34,9 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function setCharacterId() {
+        if ($this->setCharacterIdDone) {
+            return ;  
+        }
         foreach ($this->_tags as &$tag) {
             if (is_null($tag->content)) {
                 throw IO_SWF_Exception("setCharacterId method must be called at next of parse");
@@ -55,9 +61,13 @@ class IO_SWF_Editor extends IO_SWF {
                 break;
             }
         }
+        $this->setCharacterIdDone = true;
     }
 
     function setReferenceId() {
+        if ($this->setReferenceIdDone) {
+            return ;
+        }
         foreach ($this->_tags as &$tag) {
             $content_reader = new IO_Bit();
             $content_reader->input($tag->content);
@@ -81,6 +91,7 @@ class IO_SWF_Editor extends IO_SWF {
             }
 
         }
+        $this->setReferenceIdDone = true;
     }
 
     function replaceTagContent($tagCode, $content, $limit = 1) {
@@ -289,6 +300,7 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
+        $this->setCharacterId();
         // TODO: 後で IO_SWF_Bitmap::detect_bitmap_format を使うよう書き換える
         if ((strncmp($bitmap_data, 'GIF', 3) == 0) ||
             (strncmp($bitmap_data, "\x89PNG", 4) == 0)) {
