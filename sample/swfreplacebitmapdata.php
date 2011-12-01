@@ -4,10 +4,10 @@ require_once 'IO/SWF/Editor.php';
 // require dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if (($argc != 4) && ($argc != 5)) {
-    echo "Usage: php swfreplacebitmap.php <swf_file> <bitmap_id> <bitmap_file> [<alpha_file>]\n";
-    echo "ex) php swfreplacebitmap.php test.swf 1 test.jpg test.alpha\n";
-    echo "ex) php swfreplacebitmap.php test.swf 1 test.png\n";
-    echo "ex) php swfreplacebitmap.php test.swf 1 test.git\n";
+    echo "Usage: php swfreplacebitmapdata.php <swf_file> <bitmap_id> <bitmap_file> [<alpha_file>]\n";
+    echo "ex) php swfreplacebitmapdata.php test.swf 1 test.jpg test.alpha\n";
+    echo "ex) php swfreplacebitmapdata.php test.swf 1 test.png\n";
+    echo "ex) php swfreplacebitmapdata.php test.swf 1 test.git\n";
     exit(1);
 }
 
