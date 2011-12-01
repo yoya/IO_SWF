@@ -86,7 +86,9 @@ class IO_SWF_Editor extends IO_SWF {
               case 22: // DefineShape2　 (Bitmap ReferenceId)
               case 32: // DefineShape3    (Bitmap ReferenceId)
               case 46: // DefineMorphShape (Bitmap ReferenceId)
-                throw new IO_SWF_Exception("setReferenceId DefineShape not implemented yet.");
+                  if ($tag->parseTagContent() === false) {
+                      throw new IO_SWF_Exception("failed to parseTagContent");
+                  }
                 break;
             }
 
@@ -386,5 +388,117 @@ class IO_SWF_Editor extends IO_SWF {
     }
     function setShapeAdjustMode($mode) {
         $this->shape_adjust_mode = $mode;
+    }
+    function replaceMovieClip($target_path, $mc_swfdata) {
+        $this->setCharacterId();
+        $mc_tag_idx = null;
+        if ($target_path === '') {
+            trigger_error('target_path is null string');
+            return false;
+        }
+        $opts = array('Version' => $this->_headers['Version']); // for parser
+
+        /*
+         * scanning for target sprite tag
+         */
+        $target_sprite_tag_idx = -1;
+        $target_path_list = explode('/', $target_path);
+        $tag_scan_state = 1; // 1:scan for name 2: scan for character id
+        $tag_scan_character_id = -1;
+        foreach (array_reverse(array_keys($this->_tags)) as $tag_idx) {
+            $tag = $this->_tags[$tag_idx];
+            $code = $tag->code;
+            switch($tag_scan_state) {
+              case 1: // scan for name
+                if ($code == 26) { // PlaceObject2
+                    if ($tag->parseTagContent($opts) &&
+                        isset($tag->tag->_name) &&
+                        ($tag->tag->_name == $target_path_list[0])) {
+                        array_shift($target_path_list);
+                        $tag_scan_character_id = $tag->tag->_characterId;
+                        $tag_scan_state = 2; // scan for character id
+                    }
+                }
+                break;
+              case 2: // scan for character id
+                if ($code == 39) { // DefineSprite
+                    if (isset($tag->characterId) && ($tag->characterId == $tag_scan_character_id)) {
+                        if (count($target_path_list) === 0) {
+                            $target_sprite_tag_idx = $tag_idx;
+                            break; // sprite tag found !!
+                        }
+                        if ($tag->parseTagContent($opts)) {
+                            foreach ($tag->tag->_controlTags as $tag_in_sprite) {
+                                // PlaceObject2 in DefineSprite
+                                if ($tag_in_sprite->code == 26) {
+                                    if ($tag_in_sprite->parseTagContent($opts) &&
+                                        isset($tag_in_sprite->tag->_name) &&
+                                        ($tag_in_sprite->tag->_name == $target_path_list[0])) {
+                                        array_shift($target_path_list);
+                                        $tag_scan_character_id = $tag_in_sprite->tag->_characterId;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (0 <= $target_sprite_tag_idx) {
+                break; // target sprite found
+            }
+        }
+
+        /*
+         * base swf character id check
+         */
+        $base_character_id_table = array();
+        foreach ($this->_tags as $tag) {
+            if (isset($tag->characterId)) {
+                $base_character_id_table[$tag->characterId] = true;
+            }
+        }
+        /*
+         * new sprite tag character id renumbering
+         */
+        $character_id_trans_table = array();
+        $mc_swf = new IO_SWF_Editor();
+        $mc_swf->parse($mc_swfdata);
+        $mc_swf->setCharacterId();
+        $mc_swf->setReferenceId();
+        $mc_character_tag_list = array();
+        foreach ($mc_swf->_tags as $tag_idx => $tag) {
+            if (isset($tag->characterId)) {
+                $cid = $tag->characterId;
+                $new_cid = $cid;
+                while (isset($base_character_id_table[$new_cid]) ||
+                       isset($character_id_trans_table[$new_cid])) {
+                    $new_cid++;
+                }
+                $character_id_trans_table[$new_cid] = $cid;
+                // let id
+                $tag->characterId = $new_cid;
+                if (isset($tag->content)) {
+                    $content_writer = new IO_Bit();
+                    $content_writer->input($tag->content);
+                    
+                } else {
+                    ; // XXX
+                }
+                
+                $mc_character_tag_list[] = $tag;
+                unset($mc_swf->_tags[$tag_idx]); // delete
+            }
+            if (isset($tag->referenceId)) {
+                ;
+            }
+        }
+        /*
+         * replace
+         */
+        $this->_tags[$target_sprite_tag_idx]->tag->_controlTags = $mc_swf->_tags;
+        /*
+         * character tag insert
+         */
+        $this->_tags = array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
     }
 }
