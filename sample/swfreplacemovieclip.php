@@ -22,6 +22,6 @@ $swf->parse($swfdata);
 
 $ret = $swf->replaceMovieClip($target_path, $mc_swfdata);
 
-// echo $swf->build();
+echo $swf->build();
 
 exit(0);
