@@ -492,13 +492,14 @@ class IO_SWF_Editor extends IO_SWF {
                     $new_cid++;
                 }
                 $character_id_trans_table[$cid] = $new_cid;
-                // let id
                 $tag->characterId = $new_cid;
                 if (isset($tag->content)) {
+                    $tag->tag = null;
                     $content_writer = new IO_Bit();
                     $content_writer->input($tag->content);
                     $content_writer->setUI16LE($new_cid, 0);
-                } else {
+                }
+                if (isset($tag->tag)) {
                     switch ($tag->code) {
                       case 6:  // DefineBits
                       case 21: // DefineBitsJPEG2
@@ -513,9 +514,10 @@ class IO_SWF_Editor extends IO_SWF {
                       case 33: // DefineText2
                       case 37: // DefineTextEdit
                       case 39: // DefineSprite
-                        foreach (array('_spriteId', '_shapeId', '_CharacterID') as $id_instance_name) {
-                            if (isset($tag->tag->$id_instance_name)) {
-                                $tag->tag->$id_instance_name = $new_cid;
+                          foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
+                            if (isset($tag->tag->$id_prop_name)) {
+                                $tag->tag->$id_prop_name = $new_cid;
+                                break;
                             }
                         }
                     }
@@ -524,7 +526,9 @@ class IO_SWF_Editor extends IO_SWF {
                 unset($mc_swf->_tags[$tag_idx]); // delete
             }
             if (isset($tag->referenceId)) {
-                $tag->tag->parseContent($tag->code, $tag->content);
+                if ($tag->parseTagContent() === false) {
+                    new IO_SWF_Exception("parseTagContent failed");
+                }
                 switch ($tag->code) {
                   case 4:  // PlaceObject
                   case 5:  // RemoveObject
@@ -536,7 +540,6 @@ class IO_SWF_Editor extends IO_SWF {
                   case 22: // DefineShape2　 (Bitmap ReferenceId)
                   case 32: // DefineShape3    (Bitmap ReferenceId)
                   case 46: // DefineMorphShape (Bitmap ReferenceId)
-                    $refIds = array();
                     if ($tag->parseTagContent() === false) {
                         throw new IO_SWF_Exception("failed to parseTagContent");
                     }
@@ -565,10 +568,16 @@ class IO_SWF_Editor extends IO_SWF {
         /*
          * replace
          */
-        $this->_tags[$target_sprite_tag_idx]->tag->_controlTags = $mc_swf->_tags;
+        $sprite_tag_ref =& $this->_tags[$target_sprite_tag_idx];
+        if ($sprite_tag_ref->parseTagContent() === false) {
+            
+            return ;
+        }
+        $sprite_tag_ref->tag->_controlTags = $mc_swf->_tags;
+        $sprite_tag_ref->content = null;
         /*
          * character tag insert
          */
-        $this->_tags = array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
+        array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
     }
 }
