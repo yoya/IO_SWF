@@ -208,6 +208,9 @@ class IO_SWF_Tag {
     }
     function replaceCharacterId($trans_table) {
         $new_cid = $trans_table[$this->characterId];
+        if ($new_cid == $this->characterId) {
+            return true; // no change
+        }
         $this->characterId = $new_cid;
         if (isset($this->content)) {
             $this->content[0] = chr($new_cid & 0xff);
@@ -237,6 +240,7 @@ class IO_SWF_Tag {
                 break;
             }
         }
+        return true;
     }
     function replaceReferenceId($trans_table) {
         if ($this->parseTagContent() === false) {
@@ -247,12 +251,9 @@ class IO_SWF_Tag {
         case 5:  // RemoveObject
         case 26: // PlaceObject2 (Shape Reference)
             $new_cid = $trans_table[$this->tag->_characterId];
-            if ($trans_table[$this->tag->_characterId] != $new_cid) {
-                $this->content = null;
-            }
-            $this->tag->_characterId = $new_cid;
-            if ($this->tag) {
+            if ($this->tag->_characterId != $new_cid) {
                 $this->tag->_characterId = $new_cid;
+                $this->content = null;
             }
             break;
         case 2:  // DefineShape   (Bitmap ReferenceId)
@@ -262,11 +263,15 @@ class IO_SWF_Tag {
             if ($this->parseTagContent() === false) {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
+            $modified = false;
             foreach ($this->tag->_fillStyles as &$fillStyle) {
                 if (isset($fillStyle['BitmapId'])) {
                     if ($fillStyle['BitmapId'] != 65535) {
                         $new_id = $trans_table[$fillStyle['BitmapId']];
-                        $fillStyle['BitmapId'] = $new_id;
+                        if ($fillStyle['BitmapId'] != $new_id) {
+                            $modified = true;
+                            $fillStyle['BitmapId'] = $new_id;
+                        }
                     }
                 }
             }
@@ -275,12 +280,19 @@ class IO_SWF_Tag {
                     foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
                         if ($fillStyle['BitmapId'] != 65535) {
                             $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
-                            $fillStyle['BitmapId'] = $new_id;
+                            if ($fillStyle['BitmapId'] != $new_id) {
+                                $modified = true;
+                                $fillStyle['BitmapId'] = $new_id;
+                            }
                         }
                     }
                 }
             }
+            if ($modified) {
+                $tag->content = null;
+            }
             break;
         }
+        return true;
     }
 }
