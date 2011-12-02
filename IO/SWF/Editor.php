@@ -245,8 +245,8 @@ class IO_SWF_Editor extends IO_SWF {
             // 1 frame 目に Action タグがないので新規作成
             $bytecode = '';
             foreach ($trans_table as $key_str => $value_str) {
-                $key_strs   = exlode("\0", $key_str);   // \0 除去
-                $value_strs = exlode("\0", $value_str); // \0 除去
+                $key_strs   = explode("\0", $key_str);   // \0 除去
+                $value_strs = explode("\0", $value_str); // \0 除去
                 $key_data   = chr(0).$key_strs[0]."\0";
                 $value_data = chr(0).$value_strs[0]."\0";
                 // Push
