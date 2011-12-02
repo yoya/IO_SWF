@@ -506,20 +506,27 @@ class IO_SWF_Editor extends IO_SWF {
             if (isset($tag->referenceId)) {
                 $tag->replaceReferenceId($character_id_trans_table);
             }
+            if ($tag->code == 39) { // DefineSprite
+                if ($tag->parseTagContent()) {
+                    foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
+                        $tag_in_sprite->replaceReferenceId($character_id_trans_table);
+                    }
+                }
+            }
         }
         /*
          * replace
          */
         $sprite_tag_ref =& $this->_tags[$target_sprite_tag_idx];
         if ($sprite_tag_ref->parseTagContent() === false) {
-            
-            return ;
+            return false;
         }
-        $sprite_tag_ref->tag->_controlTags = $mc_swf->_tags;
+        $sprite_tag_ref->tag->_controlTags = array_values($mc_swf->_tags);
         $sprite_tag_ref->content = null;
         /*
          * character tag insert
          */
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
+        return true;
     }
 }
