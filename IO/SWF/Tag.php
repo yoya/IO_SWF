@@ -247,12 +247,10 @@ class IO_SWF_Tag {
         case 5:  // RemoveObject
         case 26: // PlaceObject2 (Shape Reference)
             $new_cid = $trans_table[$this->tag->_characterId];
-            $this->tag->_characterId = $new_cid;
-            if ($this->content) {
-                $this->content[0] = chr($new_cid & 0xff);
-                $this->content[1] = chr($new_cid >> 8);
-                
+            if ($trans_table[$this->tag->_characterId] != $new_cid) {
+                $this->content = null;
             }
+            $this->tag->_characterId = $new_cid;
             if ($this->tag) {
                 $this->tag->_characterId = $new_cid;
             }
