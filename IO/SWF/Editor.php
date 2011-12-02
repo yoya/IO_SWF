@@ -473,10 +473,10 @@ class IO_SWF_Editor extends IO_SWF {
         /*
          * base swf character id check
          */
-        $base_character_id_table = array();
+        $used_base_character_id_table = array();
         foreach ($this->_tags as $tag) {
             if (isset($tag->characterId)) {
-                $base_character_id_table[$tag->characterId] = true;
+                $used_base_character_id_table[$tag->characterId] = true;
             }
         }
         /*
@@ -492,14 +492,14 @@ class IO_SWF_Editor extends IO_SWF {
             if (isset($tag->characterId)) {
                 $cid = $tag->characterId;
                 $new_cid = $cid;
-                while (isset($base_character_id_table[$new_cid]) ||
+                while (isset($used_base_character_id_table[$new_cid]) ||
                        isset($character_id_trans_table[$new_cid])) {
                     $new_cid++;
                 }
                 $character_id_trans_table[$cid] = $new_cid;
+                $used_base_character_id_table[$new_cid] = true;
                 $tag->characterId = $new_cid;
                 if (isset($tag->content)) {
-                    $tag->tag = null;
                     $tag->content[0] = chr($new_cid & 0xff);
                     $tag->content[1] = chr($new_cid >> 8);
                 }
@@ -518,12 +518,13 @@ class IO_SWF_Editor extends IO_SWF {
                       case 33: // DefineText2
                       case 37: // DefineTextEdit
                       case 39: // DefineSprite
-                          foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
+                        foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
                             if (isset($tag->tag->$id_prop_name)) {
                                 $tag->tag->$id_prop_name = $new_cid;
                                 break;
                             }
                         }
+                        break;
                     }
                 }
                 $mc_character_tag_list[] = $tag;
