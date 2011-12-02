@@ -35,7 +35,7 @@ class IO_SWF_Editor extends IO_SWF {
 
     function setCharacterId() {
         if ($this->setCharacterIdDone) {
-            return ;  
+            return ;
         }
         foreach ($this->_tags as &$tag) {
             if (is_null($tag->content)) {
@@ -490,6 +490,7 @@ class IO_SWF_Editor extends IO_SWF {
         $mc_character_tag_list = array();
         foreach ($mc_swf->_tags as $tag_idx => &$tag) {
             if (isset($tag->characterId)) {
+//                echo "code={$tag->code}\n";
                 $cid = $tag->characterId;
                 $new_cid = $cid;
                 while (isset($used_base_character_id_table[$new_cid]) ||
@@ -498,84 +499,12 @@ class IO_SWF_Editor extends IO_SWF {
                 }
                 $character_id_trans_table[$cid] = $new_cid;
                 $used_base_character_id_table[$new_cid] = true;
-                $tag->characterId = $new_cid;
-                if (isset($tag->content)) {
-                    $tag->content[0] = chr($new_cid & 0xff);
-                    $tag->content[1] = chr($new_cid >> 8);
-                }
-                if (isset($tag->tag)) {
-                    switch ($tag->code) {
-                      case 6:  // DefineBits
-                      case 21: // DefineBitsJPEG2
-                      case 35: // DefineBitsJPEG3
-                      case 20: // DefineBitsLossless
-                      case 36: // DefineBitsLossless2
-                      case 2:  // DefineShape (ShapeId)
-                      case 22: // DefineShape2 (ShapeId)
-                      case 32: // DefineShape3 (ShapeId)
-                      case 46: // DefineMorphShape (ShapeId)
-                      case 11: // DefineText
-                      case 33: // DefineText2
-                      case 37: // DefineTextEdit
-                      case 39: // DefineSprite
-                        foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
-                            if (isset($tag->tag->$id_prop_name)) {
-                                $tag->tag->$id_prop_name = $new_cid;
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
+                $tag->replaceCharacterId($character_id_trans_table);
                 $mc_character_tag_list[] = $tag;
                 unset($mc_swf->_tags[$tag_idx]); // delete
             }
             if (isset($tag->referenceId)) {
-                if ($tag->parseTagContent() === false) {
-                    new IO_SWF_Exception("parseTagContent failed");
-                }
-                switch ($tag->code) {
-                  case 4:  // PlaceObject
-                  case 5:  // RemoveObject
-                  case 26: // PlaceObject2 (Shape Reference)
-                      $new_id = $character_id_trans_table[$tag->tag->_characterId];
-                      $tag->tag->_characterId = $new_id;
-                      if ($tag->content) {
-                          $tag->content[0] = chr($new_cid & 0xff);
-                          $tag->content[1] = chr($new_cid >> 8);
-
-                      }
-                      if ($tag->tag) {
-                          $tag->tag->_characterId = $new_cid;
-                      }
-                     break;
-                  case 2:  // DefineShape   (Bitmap ReferenceId)
-                  case 22: // DefineShape2　 (Bitmap ReferenceId)
-                  case 32: // DefineShape3    (Bitmap ReferenceId)
-                  case 46: // DefineMorphShape (Bitmap ReferenceId)
-                    if ($tag->parseTagContent() === false) {
-                        throw new IO_SWF_Exception("failed to parseTagContent");
-                    }
-                    foreach ($tag->tag->_fillStyles as &$fillStyle) {
-                        if (isset($fillStyle['BitmapId'])) {
-                            if ($fillStyle['BitmapId'] != 65535) {
-                                $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
-                                $fillStyle['BitmapId'] = $new_id;
-                            }
-                        }
-                    }
-                    foreach ($tag->tag->_shapeRecords as &$shapeRecord) {
-                        if (isset($shapeRecord['FillStyles'])) {
-                            foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
-                                if ($fillStyle['BitmapId'] != 65535) {
-                                    $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
-                                    $fillStyle['BitmapId'] = $new_id;
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
+                $tag->replaceReferenceId($character_id_trans_table);
             }
         }
         /*

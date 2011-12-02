@@ -206,4 +206,83 @@ class IO_SWF_Tag {
             break;
         }
     }
+    function replaceCharacterId($trans_table) {
+        $new_cid = $trans_table[$this->characterId];
+        $this->characterId = $new_cid;
+        if (isset($this->content)) {
+            $this->content[0] = chr($new_cid & 0xff);
+            $this->content[1] = chr($new_cid >> 8);
+        }
+        if (isset($this->tag)) {
+            switch ($this->code) {
+            case 6:  // DefineBits
+            case 21: // DefineBitsJPEG2
+            case 35: // DefineBitsJPEG3
+            case 20: // DefineBitsLossless
+            case 36: // DefineBitsLossless2
+            case 2:  // DefineShape (ShapeId)
+            case 22: // DefineShape2 (ShapeId)
+            case 32: // DefineShape3 (ShapeId)
+            case 46: // DefineMorphShape (ShapeId)
+            case 11: // DefineText
+            case 33: // DefineText2
+            case 37: // DefineTextEdit
+            case 39: // DefineSprite
+                foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
+                    if (isset($this->tag->$id_prop_name)) {
+                        $this->tag->$id_prop_name = $new_cid;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    function replaceReferenceId($trans_table) {
+        if ($this->parseTagContent() === false) {
+            new IO_SWF_Exception("parseTagContent failed");
+        }
+        switch ($this->code) {
+        case 4:  // PlaceObject
+        case 5:  // RemoveObject
+        case 26: // PlaceObject2 (Shape Reference)
+            $new_cid = $trans_table[$this->tag->_characterId];
+            $this->tag->_characterId = $new_cid;
+            if ($this->content) {
+                $this->content[0] = chr($new_cid & 0xff);
+                $this->content[1] = chr($new_cid >> 8);
+                
+            }
+            if ($this->tag) {
+                $this->tag->_characterId = $new_cid;
+            }
+            break;
+        case 2:  // DefineShape   (Bitmap ReferenceId)
+        case 22: // DefineShape2　 (Bitmap ReferenceId)
+        case 32: // DefineShape3    (Bitmap ReferenceId)
+        case 46: // DefineMorphShape (Bitmap ReferenceId)
+            if ($this->parseTagContent() === false) {
+                throw new IO_SWF_Exception("failed to parseTagContent");
+            }
+            foreach ($this->tag->_fillStyles as &$fillStyle) {
+                if (isset($fillStyle['BitmapId'])) {
+                    if ($fillStyle['BitmapId'] != 65535) {
+                        $new_id = $trans_table[$fillStyle['BitmapId']];
+                        $fillStyle['BitmapId'] = $new_id;
+                    }
+                }
+            }
+            foreach ($this->tag->_shapeRecords as &$shapeRecord) {
+                if (isset($shapeRecord['FillStyles'])) {
+                    foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
+                        if ($fillStyle['BitmapId'] != 65535) {
+                            $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
+                            $fillStyle['BitmapId'] = $new_id;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
 }
