@@ -465,6 +465,11 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
 
+        if ($target_sprite_tag_idx < 0) {
+            trigger_error("target_path symbol not found($target_path)");
+            return false;
+        }
+
         /*
          * base swf character id check
          */
