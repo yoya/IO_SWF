@@ -500,9 +500,8 @@ class IO_SWF_Editor extends IO_SWF {
                 $tag->characterId = $new_cid;
                 if (isset($tag->content)) {
                     $tag->tag = null;
-                    $content_writer = new IO_Bit();
-                    $content_writer->input($tag->content);
-                    $content_writer->setUI16LE($new_cid, 0);
+                    $tag->content[0] = chr($new_cid & 0xff);
+                    $tag->content[1] = chr($new_cid >> 8);
                 }
                 if (isset($tag->tag)) {
                     switch ($tag->code) {
@@ -540,6 +539,14 @@ class IO_SWF_Editor extends IO_SWF {
                   case 26: // PlaceObject2 (Shape Reference)
                       $new_id = $character_id_trans_table[$tag->tag->_characterId];
                       $tag->tag->_characterId = $new_id;
+                      if ($tag->content) {
+                          $tag->content[0] = chr($new_cid & 0xff);
+                          $tag->content[1] = chr($new_cid >> 8);
+
+                      }
+                      if ($tag->tag) {
+                          $tag->tag->_characterId = $new_cid;
+                      }
                      break;
                   case 2:  // DefineShape   (Bitmap ReferenceId)
                   case 22: // DefineShape2　 (Bitmap ReferenceId)
