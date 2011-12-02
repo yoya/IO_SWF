@@ -289,7 +289,7 @@ class IO_SWF_Tag {
                 }
             }
             if ($modified) {
-                $tag->content = null;
+                $this->content = null;
             }
             break;
         }
