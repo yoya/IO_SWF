@@ -266,26 +266,30 @@ class IO_SWF_Tag {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
             $modified = false;
-            foreach ($this->tag->_fillStyles as &$fillStyle) {
-                if (isset($fillStyle['BitmapId'])) {
-                    if ($fillStyle['BitmapId'] != 65535) {
-                        $new_id = $trans_table[$fillStyle['BitmapId']];
-                        if ($fillStyle['BitmapId'] != $new_id) {
-                            $modified = true;
-                            $fillStyle['BitmapId'] = $new_id;
+            if (is_null($this->tag->_fillStyles) === false) {
+                foreach ($this->tag->_fillStyles as &$fillStyle) {
+                    if (isset($fillStyle['BitmapId'])) {
+                        if ($fillStyle['BitmapId'] != 65535) {
+                            $new_id = $trans_table[$fillStyle['BitmapId']];
+                            if ($fillStyle['BitmapId'] != $new_id) {
+                                $modified = true;
+                                $fillStyle['BitmapId'] = $new_id;
+                            }
                         }
                     }
                 }
             }
-            foreach ($this->tag->_shapeRecords as &$shapeRecord) {
-                if (isset($shapeRecord['FillStyles'])) {
-                    foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
-                        if (isset($fillStyle['BitmapId'])) {
-                            if ($fillStyle['BitmapId'] != 65535) {
-                                $new_id = $trans_table[$fillStyle['BitmapId']];
-                                if ($fillStyle['BitmapId'] != $new_id) {
-                                    $modified = true;
-                                    $fillStyle['BitmapId'] = $new_id;
+            if (is_null($this->tag->_shapeRecords) === false) {
+                foreach ($this->tag->_shapeRecords as &$shapeRecord) {
+                    if (isset($shapeRecord['FillStyles'])) {
+                        foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
+                            if (isset($fillStyle['BitmapId'])) {
+                                if ($fillStyle['BitmapId'] != 65535) {
+                                    $new_id = $trans_table[$fillStyle['BitmapId']];
+                                    if ($fillStyle['BitmapId'] != $new_id) {
+                                        $modified = true;
+                                        $fillStyle['BitmapId'] = $new_id;
+                                    }
                                 }
                             }
                         }

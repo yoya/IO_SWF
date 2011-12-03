@@ -90,19 +90,23 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                foreach ($tag->tag->_fillStyles as $fillStyle) {
-                    if (isset($fillStyle['BitmapId'])) {
-                        if ($fillStyle['BitmapId'] != 65535) {
-                            $refIds []= $fillStyle['BitmapId'];
+                if (is_null($tag->tag->_fillStyles) === false) {
+                    foreach ($tag->tag->_fillStyles as $fillStyle) {
+                        if (isset($fillStyle['BitmapId'])) {
+                            if ($fillStyle['BitmapId'] != 65535) {
+                                $refIds []= $fillStyle['BitmapId'];
+                            }
                         }
                     }
                 }
-                foreach ($tag->tag->_shapeRecords as $shapeRecord) {
-                    if (isset($shapeRecord['FillStyles'])) {
-                        foreach ($shapeRecord['FillStyles'] as $fillStyle) {
-                            if (isset($fillStyle['BitmapId'])) {
-                                if ($fillStyle['BitmapId'] != 65535) {
-                                    $refIds []= $fillStyle['BitmapId'];
+                if (is_null($tag->tag->_shapeRecords) === false) {
+                    foreach ($tag->tag->_shapeRecords as $shapeRecord) {
+                        if (isset($shapeRecord['FillStyles'])) {
+                            foreach ($shapeRecord['FillStyles'] as $fillStyle) {
+                                if (isset($fillStyle['BitmapId'])) {
+                                    if ($fillStyle['BitmapId'] != 65535) {
+                                        $refIds []= $fillStyle['BitmapId'];
+                                    }
                                 }
                             }
                         }
