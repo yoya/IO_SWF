@@ -250,10 +250,12 @@ class IO_SWF_Tag {
         case 4:  // PlaceObject
         case 5:  // RemoveObject
         case 26: // PlaceObject2 (Shape Reference)
-            $new_cid = $trans_table[$this->tag->_characterId];
-            if ($this->tag->_characterId != $new_cid) {
-                $this->tag->_characterId = $new_cid;
-                $this->content = null;
+            if (isset($this->tag->_characterId)) {
+                $new_cid = $trans_table[$this->tag->_characterId];
+                if ($this->tag->_characterId != $new_cid) {
+                    $this->tag->_characterId = $new_cid;
+                    $this->content = null;
+                }
             }
             break;
         case 2:  // DefineShape   (Bitmap ReferenceId)
