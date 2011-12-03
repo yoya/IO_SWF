@@ -278,11 +278,13 @@ class IO_SWF_Tag {
             foreach ($this->tag->_shapeRecords as &$shapeRecord) {
                 if (isset($shapeRecord['FillStyles'])) {
                     foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
-                        if ($fillStyle['BitmapId'] != 65535) {
-                            $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
-                            if ($fillStyle['BitmapId'] != $new_id) {
-                                $modified = true;
-                                $fillStyle['BitmapId'] = $new_id;
+                        if (isset($fillStyle['BitmapId'])) {
+                            if ($fillStyle['BitmapId'] != 65535) {
+                                $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
+                                if ($fillStyle['BitmapId'] != $new_id) {
+                                    $modified = true;
+                                    $fillStyle['BitmapId'] = $new_id;
+                                }
                             }
                         }
                     }
