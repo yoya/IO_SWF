@@ -511,6 +511,7 @@ class IO_SWF_Editor extends IO_SWF {
                     foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
                         $tag_in_sprite->replaceReferenceId($character_id_trans_table);
                     }
+                    $tag->content = null;
                 }
             }
         }
