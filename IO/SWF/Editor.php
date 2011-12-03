@@ -100,8 +100,10 @@ class IO_SWF_Editor extends IO_SWF {
                 foreach ($tag->tag->_shapeRecords as $shapeRecord) {
                     if (isset($shapeRecord['FillStyles'])) {
                         foreach ($shapeRecord['FillStyles'] as $fillStyle) {
-                            if ($fillStyle['BitmapId'] != 65535) {
-                                $refIds []= $fillStyle['BitmapId'];
+                            if (isset($fillStyle['BitmapId'])) {
+                                if ($fillStyle['BitmapId'] != 65535) {
+                                    $refIds []= $fillStyle['BitmapId'];
+                                }
                             }
                         }
                     }
