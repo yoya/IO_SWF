@@ -282,7 +282,7 @@ class IO_SWF_Tag {
                     foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
                         if (isset($fillStyle['BitmapId'])) {
                             if ($fillStyle['BitmapId'] != 65535) {
-                                $new_id = $character_id_trans_table[$fillStyle['BitmapId']];
+                                $new_id = $trans_table[$fillStyle['BitmapId']];
                                 if ($fillStyle['BitmapId'] != $new_id) {
                                     $modified = true;
                                     $fillStyle['BitmapId'] = $new_id;
