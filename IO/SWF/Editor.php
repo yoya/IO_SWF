@@ -552,7 +552,7 @@ class IO_SWF_Editor extends IO_SWF {
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
         return true;
     }
-    function replaceEditTextString($id, $initialText) {
+    function replaceEditString($id, $initialText) {
         $this->setCharacterId();
         foreach ($this->_tags as &$tag) {
             if ($tag->code == 37) { // DefineEditText
@@ -568,7 +568,6 @@ class IO_SWF_Editor extends IO_SWF {
                         return false;
                     }
                     if ($tag->tag->VariableName === $id) {
-                        var_dump($tag);
                         $tag->tag->InitialText = $initialText;
                         $tag->content = null;
                         return true;

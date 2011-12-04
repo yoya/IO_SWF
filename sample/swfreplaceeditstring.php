@@ -4,9 +4,9 @@ require_once 'IO/SWF/Editor.php';
 // require dirname(__FILE__).'/../IO/SWF/Editor.php';
 
 if ($argc != 4) {
-    echo "Usage: php swfreplaceedittextstring.php <swf_file> <id> <initial_text>\n";
-    echo "ex) php swfreplaceedittextstring.php test.swf 1 baa\n";
-    echo "ex) php swfreplaceedittextstring.php test.swf foo baa\n";
+    echo "Usage: php swfreplaceeditstring.php <swf_file> <id> <initial_text>\n";
+    echo "ex) php swfreplaceeditstring.php test.swf 1 baa\n";
+    echo "ex) php swfreplaceeditstring.php test.swf foo baa\n";
     exit(1);
 }
 
@@ -19,10 +19,10 @@ $initialText = $argv[3];
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
 
-$ret = $swf->replaceEditTextString($id, $initialText);
+$ret = $swf->replaceEditString($id, $initialText);
 
 if ($ret === false) {
-    echo "failed to replaceEditTextString($id, $initialText)\n";
+    echo "failed to replaceEditString($id, $initialText)\n";
     exit(1);
 }
 
