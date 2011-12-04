@@ -49,7 +49,8 @@ class IO_SWF_Tag {
             34 => array('name' => 'DefineButton2', 'klass' => 'Button'),
             35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
             36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
-            37 => array('name' => 'DefineEditText'),
+//            37 => array('name' => 'DefineEditText'),
+             37 => array('name' => 'DefineEditText', 'klass' => 'EditText'),
             // 38 missing
             39 => array('name' => 'DefineSprite', 'klass' => 'Sprite'),
             // 40,41,42 missing
@@ -231,7 +232,7 @@ class IO_SWF_Tag {
             case 33: // DefineText2
             case 37: // DefineTextEdit
             case 39: // DefineSprite
-                foreach (array('_CharacterID', '_spriteId', '_shapeId') as $id_prop_name) {
+                foreach (array('_CharacterID', '_spriteId', '_shapeId', 'CharacterID') as $id_prop_name) {
                     if (isset($this->tag->$id_prop_name)) {
                         $this->tag->$id_prop_name = $new_cid;
                         break;
