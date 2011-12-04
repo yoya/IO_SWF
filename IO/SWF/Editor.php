@@ -528,7 +528,15 @@ class IO_SWF_Editor extends IO_SWF {
         if ($sprite_tag_ref->parseTagContent() === false) {
             return false;
         }
-        $sprite_tag_ref->tag->_controlTags = array_values($mc_swf->_tags);
+        $frameCount = 0;
+        $controlTags = array_values($mc_swf->_tags);
+        foreach ($controlTags as $tag) {
+            if ($tag->code == 1) {
+                $frameCount++;
+            }
+        }
+        $sprite_tag_ref->tag->_frameCount = $frameCount;
+        $sprite_tag_ref->tag->_controlTags = $controlTags;
         $sprite_tag_ref->content = null;
         /*
          * character tag insert
