@@ -49,8 +49,7 @@ class IO_SWF_Tag {
             34 => array('name' => 'DefineButton2', 'klass' => 'Button'),
             35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
             36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
-//            37 => array('name' => 'DefineEditText'),
-             37 => array('name' => 'DefineEditText', 'klass' => 'EditText'),
+            37 => array('name' => 'DefineEditText', 'klass' => 'EditText'),
             // 38 missing
             39 => array('name' => 'DefineSprite', 'klass' => 'Sprite'),
             // 40,41,42 missing
