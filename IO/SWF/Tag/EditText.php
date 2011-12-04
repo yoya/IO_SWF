@@ -21,6 +21,7 @@ class IO_SWF_Tag_EditText extends IO_SWF_Tag_Base {
         $this->CharacterID = $reader->getUI16LE();
         $this->Bounds = IO_SWF_Type_RECT::parse($reader);
         // ----
+        $reader->byteAlign();
         $hasText         = $reader->getUIBit();
         $this->WordWrap  = $reader->getUIBit();
         $this->Multiline = $reader->getUIBit();
@@ -87,7 +88,7 @@ class IO_SWF_Tag_EditText extends IO_SWF_Tag_Base {
             echo "Align:{$this->Align} LeftMargin:{$this->LeftMargin} RightMargin:{$this->RightMargin} Indent:{$this->Indent} Leading:".($this->Leading/20)."\n";
         }
         echo "VariableName:{$this->VariableName}\n";
-        if (is_null($this->InitialText)) {
+        if (is_null($this->InitialText) == false) {
             echo "InitialText:{$this->InitialText}\n";
         }
     }
@@ -104,6 +105,7 @@ class IO_SWF_Tag_EditText extends IO_SWF_Tag_Base {
         $hasFontClass = is_null($this->FontClass)?0:1;
         $hasLayout = is_null($this->Align)?0:1;
         // ----
+        $writer->byteAlign();
         $writer->putUIBit($hasText);
         $writer->putUIBit($this->WordWrap);
         $writer->putUIBit($this->Multiline);
