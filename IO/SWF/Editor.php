@@ -495,6 +495,13 @@ class IO_SWF_Editor extends IO_SWF {
         $mc_swf->setReferenceId();
         $mc_character_tag_list = array();
         foreach ($mc_swf->_tags as $tag_idx => &$tag) {
+            switch ($tag->code) {
+              case 8: //JPEGTables
+              case 9: // SetBackgroundColor
+              case 69: // FileAttributes
+                unset($mc_swf->_tags[$tag_idx]); // delete
+                continue;
+            }
             if (isset($tag->characterId)) {
 //                echo "code={$tag->code}\n";
                 $cid = $tag->characterId;
@@ -521,6 +528,7 @@ class IO_SWF_Editor extends IO_SWF {
                 }
             }
         }
+        unset($tag);
         /*
          * replace
          */
