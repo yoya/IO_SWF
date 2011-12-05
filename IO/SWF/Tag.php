@@ -83,7 +83,7 @@ class IO_SWF_Tag {
             78 => array('name' => 'DefineScalingGrid'),
             // 79,80,81 missing
             82 => array('name' => 'DoABC'),
-            83 => array('name' => 'DefineShape4'),
+            83 => array('name' => 'DefineShape4', 'klass' => 'Shape'),
             84 => array('name' => 'DefineMorphShape2'),
             // 85 missing
             86 => array('name' => 'DefineSceneAndFrameLabelData'),

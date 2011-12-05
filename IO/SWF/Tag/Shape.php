@@ -20,7 +20,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_startEdge, $_endEdges;
 
    function parseContent($tagCode, $content, $opts = array()) {
-
+       // DefineMorphShape, DefineMorphShape2
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
 
         $reader = new IO_Bit();
@@ -32,6 +32,12 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if ($isMorph === false) {
         	// 描画スタイル
             $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
+            if ($tagCode == 83) { // DefineShape4
+                $this->_edgeBounds = IO_SWF_TYPE_RECT::parse($reader);
+                $this->_reserved = $reader->getUIBits(6);
+                $this->_usesNonScalingStrokes = $reader->getUIBit();
+                $this->_UsesScalingStrokes = $reader->getUIBit();
+            }
             $this->_fillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
         	$this->_lineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
         	// 描画枠

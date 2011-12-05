@@ -16,10 +16,31 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
         $lineStyle = array();
         if ($isMorph === false) {
             $lineStyle['Width'] = $reader->getUI16LE();
-            if ($tagCode < 32 ) { // 32:DefineShape3
+            if ($tagCode == 83) { // DefineShape4
+                $lineStyle['StartCapStyle'] = $reader->getUIBits(2);
+                $lineStyle['JoinStyle'] = $reader->getUIBits(2);
+                $lineStyle['HasFillFlag'] = $reader->getUIBit();
+                $lineStyle['NoHScaleFlag'] = $reader->getUIBit();
+                $lineStyle['NoVScaleFlag'] = $reader->getUIBit();
+                $lineStyle['PixelHintingFlag'] = $reader->getUIBit();
+                // ----
+                $lineStyle['(Reserved)'] = $reader->getUIBits(5);
+                $lineStyle['NoClose'] = $reader->getUIBit();
+                $lineStyle['EndCapStyle'] = $reader->getUIBits(2);
+                if ($lineStyle['JoinStyle'] == 2) {
+                    $lineStyle['MiterLimitFactor'] = $reader->getUI16LE();
+                }
+            }
+            if ($tagCode < 32 ) { // DefineShape1,2
                 $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
-            } else {
+            } else if ($tagCode == 32) { // DefineShape3
                 $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
+            } else { // DefineShape4
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
+                } else {
+                    $lineStyle['FillType'] = IO_SWF_Type_FILLSTYLE::parse($reader, $opts);
+                }
             }
         } else {
             $lineStyle['StartWidth'] = $reader->getUI16LE();
@@ -34,10 +55,31 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
         if ($isMorph === false) {
             $writer->putUI16LE($lineStyle['Width']);
-            if ($tagCode < 32 ) { // 32:DefineShape3
+            if ($tagCode == 83) { // DefineShape4
+                $writer->putUIBits($lineStyle['StartCapStyle'], 2);
+                $writer->putUIBits($lineStyle['JoinStyle'], 2);
+                $writer->putUIBit($lineStyle['HasFillFlag']);
+                $writer->putUIBit($lineStyle['NoHScaleFlag']);
+                $writer->putUIBit($lineStyle['NoVScaleFlag']);
+                $writer->putUIBit($lineStyle['PixelHintingFlag']);
+                // ----
+                $writer->putUIBits(0, 5); //Reserved
+                $writer->putUIBit($lineStyle['NoClose']);
+                $writer->putUIBits($lineStyle['EndCapStyle'], 2);
+                if ($lineStyle['JoinStyle'] == 2) {
+                    $writer->putUI16LE($lineStyle['MiterLimitFactor']);
+                }
+            }
+            if ($tagCode < 32 ) { // DefineShape1,2
                 IO_SWF_Type_RGB::build($writer, $lineStyle['Color']);
-            } else {
+            } else if ($tagCode == 32) { // DefineShape3
                 IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
+            } else { // DefineShape4
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    IO_SWF_Type_RGBA::build($writer, $lineStyle['Color']);
+                } else {
+                    IO_SWF_Type_FILLSTYLE::build($writer, $lineStyle['FillType'], $opts);
+                }
             }
         } else {
             $writer->putUI16LE($lineStyle['StartWidth']);
@@ -53,13 +95,26 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
         $text = '';
 
         if ($isMorph === false) {
-            $width = $lineStyle['Width'];
-            if ($tagCode < 32 ) { // 32:DefineShape3
-                $color_str = IO_SWF_Type_RGB::string($lineStyle['Color']);
-            } else {
-                $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
+            $text .= "\tWidth:{$lineStyle['Width']}\n";
+            if ($tagCode == 83) { // DefineShape4
+                $text .= "\tStartCapStyle:{$lineStyle['StartCapStyle']} JoinStyle:{$lineStyle['JoinStyle']}\n";
+                $text .= "\tHasFillFlag:{$lineStyle['HasFillFlag']} NoHScaleFlag:{$lineStyle['NoHScaleFlag']} NoVScaleFlag:{$lineStyle['NoVScaleFlag']} PixelHintingFlag:{$lineStyle['PixelHintingFlag']}\n";
             }
-            $text .= "\tWidth: $width Color: $color_str\n";
+            if ($tagCode < 32 ) { // DefineShape1,2
+                $color_str = IO_SWF_Type_RGB::string($lineStyle['Color']);
+                $text .= "Color: $color_str\n";
+            } else if ($tagCode < 32 ) { // DefineShape3
+                $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
+                $text .= "Color: $color_str\n";
+            } else { // DefineShape4
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
+                    $text .= "\tColor: $color_str\n";
+                } else {
+                    $filltype_str = IO_SWF_Type_FILLSTYLE::string($lineStyle['FillType']);
+                    $text .= "\tFillType: ".$filltype_str;
+                }
+            }
         } else {
             $startWidth = $lineStyle['StartWidth'];
             $endWidth = $lineStyle['EndWidth'];
