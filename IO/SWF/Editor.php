@@ -57,6 +57,8 @@ class IO_SWF_Editor extends IO_SWF {
               case 10: // DefineFont
               case 48: // DefineFont2
               case 75: // DefineFont3
+              case 13: // DefineFontInfo
+              case 73: // DefineFontAlignZones
               case 11: // DefineText
               case 33: // DefineText2
               case 37: // DefineTextEdit
@@ -78,8 +80,6 @@ class IO_SWF_Editor extends IO_SWF {
             switch ($tag->code) {
               case 4:  // PlaceObject
               case 5:  // RemoveObject
-              case 13:  // DefineFontInfo
-              case 73:  // DefineFontAlignZones
                 $tag->referenceId = $content_reader->getUI16LE();
                 break;
               case 26: // PlaceObject2 (Shape Reference)

@@ -218,19 +218,33 @@ class IO_SWF_Tag {
         }
         if (isset($this->tag)) {
             switch ($this->code) {
-            case 6:  // DefineBits
-            case 21: // DefineBitsJPEG2
-            case 35: // DefineBitsJPEG3
-            case 20: // DefineBitsLossless
-            case 36: // DefineBitsLossless2
-            case 2:  // DefineShape (ShapeId)
-            case 22: // DefineShape2 (ShapeId)
-            case 32: // DefineShape3 (ShapeId)
-            case 46: // DefineMorphShape (ShapeId)
-            case 11: // DefineText
-            case 33: // DefineText2
-            case 37: // DefineTextEdit
-            case 39: // DefineSprite
+              case 2: // DefineShape (ShapeId)
+              case 6: // DefineBits
+              case 7: // DefineButton
+              case 10: // DefineFont (FontID)
+              case 11: // DefineText
+              case 13: // DefineFontInfo (FontID)
+              case 14: // DefineSound
+              case 17: // DefineButtonSound
+              case 18: // SoundStreamHead"
+              case 19: // SoundStreamBlock
+              case 20: // DefineBitsLossless
+              case 21: // DefineBitsJPEG2
+              case 22: // DefineShape2 (ShapeId)
+              case 32: // DefineShape3 (ShapeId)
+              case 33: // DefineText2
+              case 34: // DefineButton2
+              case 35: // DefineBitsJPEG3
+              case 36: // DefineBitsLossless2
+              case 37: // DefineEditText
+              case 39: // DefineSprite (SpriteId)
+              case 46: // DefineMorphShape
+              case 48: // DefineFont2 (FontID)
+              case 73: // DefineFontAlignZones (FontID)
+              case 75: // DefineFont3 (FontID)
+              case 83: // DefineShape4 (ShapeId)
+              case 84: // DefineMorphShape2 (ShapeId)
+              case 88: // DefineFontName (FontID)
                 foreach (array('_CharacterID', '_spriteId', '_shapeId', 'CharacterID') as $id_prop_name) {
                     if (isset($this->tag->$id_prop_name)) {
                         $this->tag->$id_prop_name = $new_cid;
@@ -247,9 +261,17 @@ class IO_SWF_Tag {
             new IO_SWF_Exception("parseTagContent failed");
         }
         switch ($this->code) {
-        case 4:  // PlaceObject
-        case 5:  // RemoveObject
-        case 26: // PlaceObject2 (Shape Reference)
+            if (isset($this->content)) {
+                $this->content[0] = chr($new_cid & 0xff);
+                $this->content[1] = chr($new_cid >> 8);
+            }
+            if (isset($this->tag)) {
+                $this->tag->FontId = $new_cid;
+            }
+            break;
+          case 4:  // PlaceObject
+          case 5:  // RemoveObject
+          case 26: // PlaceObject2 (Shape Reference)
             if (isset($this->tag->_characterId)) {
                 $new_cid = $trans_table[$this->tag->_characterId];
                 if ($this->tag->_characterId != $new_cid) {
@@ -258,10 +280,13 @@ class IO_SWF_Tag {
                 }
             }
             break;
-        case 2:  // DefineShape   (Bitmap ReferenceId)
-        case 22: // DefineShape2　 (Bitmap ReferenceId)
-        case 32: // DefineShape3    (Bitmap ReferenceId)
-        case 46: // DefineMorphShape (Bitmap ReferenceId)
+          case 2:  // DefineShape   (Bitmap ReferenceId)
+          case 22: // DefineShape2　 (Bitmap ReferenceId)
+          case 32: // DefineShape3    (Bitmap ReferenceId)
+          case 46: // DefineMorphShape (Bitmap ReferenceId)
+            if ($this->parseTagContent() === false) {
+                new IO_SWF_Exception("parseTagContent failed");
+            }
             if ($this->parseTagContent() === false) {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
