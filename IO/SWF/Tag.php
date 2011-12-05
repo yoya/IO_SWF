@@ -261,14 +261,6 @@ class IO_SWF_Tag {
             new IO_SWF_Exception("parseTagContent failed");
         }
         switch ($this->code) {
-            if (isset($this->content)) {
-                $this->content[0] = chr($new_cid & 0xff);
-                $this->content[1] = chr($new_cid >> 8);
-            }
-            if (isset($this->tag)) {
-                $this->tag->FontId = $new_cid;
-            }
-            break;
           case 4:  // PlaceObject
           case 5:  // RemoveObject
           case 26: // PlaceObject2 (Shape Reference)
