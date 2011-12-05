@@ -52,6 +52,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 2:  // DefineShape (ShapeId)
               case 22: // DefineShape2 (ShapeId)
               case 32: // DefineShape3 (ShapeId)
+              case 83: // DefineShape4 (ShapeId)
               case 46: // DefineMorphShape (ShapeId)
               case 10: // DefineFont
               case 48: // DefineFont2
@@ -87,9 +88,10 @@ class IO_SWF_Editor extends IO_SWF {
                     $tag->referenceId = $content_reader->getUI16LE();
                 }
                 break;
-              case 2:  // DefineShape   (Bitmap ReferenceId)
-              case 22: // DefineShape2　 (Bitmap ReferenceId)
-              case 32: // DefineShape3    (Bitmap ReferenceId)
+              case 2:  // DefineShape  (Bitmap ReferenceId)
+              case 22: // DefineShape2　(Bitmap ReferenceId)
+              case 32: // DefineShape3   (Bitmap ReferenceId)
+              case 83: // DefineShape4    (Bitmap ReferenceId)
               case 46: // DefineMorphShape (Bitmap ReferenceId)
                 $refIds = array();
                 if ($tag->parseTagContent() === false) {
