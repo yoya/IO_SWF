@@ -486,10 +486,10 @@ class IO_SWF_Editor extends IO_SWF {
         /*
          * base swf character id check
          */
-        $used_base_character_id_table = array();
+        $used_character_id_table = array();
         foreach ($this->_tags as $tag) {
             if (isset($tag->characterId)) {
-                $used_base_character_id_table[$tag->characterId] = true;
+                $used_character_id_table[$tag->characterId] = true;
             }
         }
         /*
@@ -512,14 +512,18 @@ class IO_SWF_Editor extends IO_SWF {
             if (isset($tag->characterId)) {
 //                echo "code={$tag->code}\n";
                 $cid = $tag->characterId;
-                $new_cid = $cid;
-                while (isset($used_base_character_id_table[$new_cid]) ||
-                       isset($character_id_trans_table[$new_cid])) {
-                    $new_cid++;
+                if (isset($used_character_id_table[$cid]) &&
+                    (isset($character_id_trans_table[$cid]) === false)) {
+                    $new_cid = $cid;
+                    while (isset($used_character_id_table[$new_cid])) {
+                        $new_cid++;
+                    }
+                    $character_id_trans_table[$cid] = $new_cid;
+                    $used_character_id_table[$new_cid] = true;
                 }
-                $character_id_trans_table[$cid] = $new_cid;
-                $used_base_character_id_table[$new_cid] = true;
-                $tag->replaceCharacterId($character_id_trans_table);
+                if (isset($character_id_trans_table[$cid])) {
+                    $tag->replaceCharacterId($character_id_trans_table);
+                }
                 $mc_character_tag_list[] = $tag;
                 unset($mc_swf->_tags[$tag_idx]); // delete
             }
