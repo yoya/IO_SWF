@@ -563,31 +563,53 @@ class IO_SWF_Editor extends IO_SWF {
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
         return true;
     }
-    function listMovieClip_r() {
-        ;
+    function listMovieClip_r($prefix, $characterId, $name, $parent_cids, &$spriteTable) {
+        $spriteId = $characterId;
+        $spriteTable[$spriteId]['name'] = $name;
+        if (is_null($prefix)) {
+            $path = $name;
+        } else {
+            $path = $prefix.'/'.$name;
+        }
+        if (isset($spriteTable[$spriteId]['path_list']) === false) {
+            $spriteTable[$spriteId]['path_list'] = array();
+        }
+        $spriteTable[$spriteId]['path_list'] []= array('path' => $path, 'parent_cids' => $parent_cids);
+        foreach ($spriteTable[$spriteId]['Places'] as $place) {
+            $this->listMovieClip_r($path, $place['cid'], $place['name'], array_merge($parent_cids, array($spriteId)), $spriteTable);
+        }
+        return true;
     }
     function listMovieClip() {
-        $mc_table = array();
-        $root_name_table = array(); // $cid => $name
-        $name_table = array(); // $cid => $name
+        $spriteTable = array();
         foreach ($this->_tags as $tag) {
             $opts = array();
             switch ($tag->code) {
             case 26: //  PlaceObject2
                 $tag->parseTagContent($opts);
                 if (is_null($tag->tag->_name) === false) {
-                    $root_name_table[$tag->tag->_characterId] = $tag->tag->_name;
+                    $cid = $tag->tag->_characterId;
+                    $name = $tag->tag->_name;
+                    $mc_list = $this->listMovieClip_r(null, $cid, $name, array(), $spriteTable);
                 }
                 break;
             case 39: // DefineSprite
                 $tag->parseTagContent($opts);
                 $spriteId = $tag->tag->_spriteId;
+                $spriteTable[$spriteId] = array('FrameCount' => $tag->tag->_frameCount, 'TagCount' => count($tag->tag->_controlTags), 'Places' => array());
                 foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
                     if ($tag_in_sprite->code == 26) { // PlaceObject2
                         $tag_in_sprite->parseTagContent();
                         if (is_null($tag_in_sprite->tag->_name) === false) {
-                            $name_table[$tag_in_sprite->tag->_characterId] = $tag_in_sprite->tag->_name;
-                            $name_table_sprite_rev[$tag_in_sprite->tag->_name] = $spriteId;
+                            $cid = $tag_in_sprite->tag->_characterId;
+                            $name = $tag_in_sprite->tag->_name;
+                            if (isset($spriteTable[$spriteId]['name'])) {
+                                $parent_name = $spriteTable[$spriteId]['name'];
+                            } else {
+                                $parent_name = '*';
+                            }
+                            $this->listMovieClip_r($parent_name, $cid, $name, array($spriteId), $spriteTable);
+                            $spriteTable[$spriteId]['Places'][]= array('cid' => $cid, 'name' => $name);
                         }
                     }
                 }
@@ -596,45 +618,7 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
         unset($tag);
-        foreach ($this->_tags as $tag) {
-            $opts = array();
-            if ($tag->code == 39) { // DefineSprite
-                $tag->parseTagContent($opts);
-                $spriteId = $tag->tag->_spriteId;                
-                $mc_table[$spriteId] = array('FrameCount' => $tag->tag->_frameCount, 'TagCount' => count($tag->tag->_controlTags));
-                if (isset($root_name_table[$spriteId])) {
-                    $mc_table[$spriteId]['name'] = $root_name_table[$spriteId];
-                } else if (isset($name_table[$spriteId])) {
-                    $current_name = $name_table[$spriteId];
-                    $name = $current_name;
-                    while (isset($name_table_sprite_rev[$current_name])) {
-                        $current_spriteId = $name_table_sprite_rev[$current_name];
-                        if (isset($name_table[$current_spriteId])) {
-                            if ($current_name == $name_table[$current_spriteId]) {
-                                trigger_error("listMovieClip: current_name:$current_name");
-                                break;
-                            }
-                            $current_name = $name_table[$current_spriteId];
-                            $name = $current_name.'/'.$name;
-                        } else if (isset($root_name_table[$current_spriteId])) {
-                            if ($current_name == $root_name_table[$current_spriteId]) {
-                                trigger_error("listMovieClip: current_name:$current_name");
-                                break;
-                            }
-                            $current_name =  $root_name_table[$current_spriteId];
-                            $name = $current_name.'/'.$name;
-                            break;
-                        } else {
-                            $name = "*".'/'.$name;
-                            break;
-                        }
-                    }
-                    $mc_table[$spriteId]['name'] = $name;
-                }
-            }
-        }
-        unset($tag);
-        return $mc_table;
+        return $spriteTable;
     }
     function replaceEditString($id, $initialText) {
         $this->setCharacterId();

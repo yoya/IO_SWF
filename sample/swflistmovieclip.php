@@ -28,6 +28,15 @@ foreach ($mc_list as $spriteId => $mc) {
             echo ' name:'.$mc['name'];
     }
     echo PHP_EOL;
+    if (isset($mc['path_list'])) {
+        foreach ($mc['path_list'] as $path) {
+            echo "\t".$path['path'];
+            if (count($path['parent_cids']) > 0) {
+                echo ' ('.implode(',', $path['parent_cids']).')';
+            }
+            echo PHP_EOL;
+        }
+    }
 }
 
 exit(0);
