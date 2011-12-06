@@ -617,11 +617,22 @@ class IO_SWF_Editor extends IO_SWF {
                     while (isset($name_table_sprite_rev[$current_name])) {
                         $current_spriteId = $name_table_sprite_rev[$current_name];
                         if (isset($name_table[$current_spriteId])) {
+                            if ($current_name == $name_table[$current_spriteId]) {
+                                trigger_error("listMovieClip: current_name:$current_name");
+                                break;
+                            }
                             $current_name = $name_table[$current_spriteId];
                             $name = $current_name.'/'.$name;
-                        } else if ($root_name_table[$current_spriteId]) {
+                        } else if (isset($root_name_table[$current_spriteId])) {
+                            if ($current_name == $root_name_table[$current_spriteId]) {
+                                trigger_error("listMovieClip: current_name:$current_name");
+                                break;
+                            }
                             $current_name =  $root_name_table[$current_spriteId];
                             $name = $current_name.'/'.$name;
+                            break;
+                        } else {
+                            $name = "*".'/'.$name;
                             break;
                         }
                     }
@@ -644,6 +655,7 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($this->_tags as $tag) {
             ;
         }
+        unset($tag);
         return $mc_table;
     }
 }
