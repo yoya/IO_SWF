@@ -563,32 +563,6 @@ class IO_SWF_Editor extends IO_SWF {
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
         return true;
     }
-    function replaceEditString($id, $initialText) {
-        $this->setCharacterId();
-        foreach ($this->_tags as &$tag) {
-            if ($tag->code == 37) { // DefineEditText
-                if ($tag->characterId === $id) {
-                    if ($tag->parseTagContent() === false) {
-                        return false;                        
-                    }
-                    $tag->tag->initialText = $initialText;
-                    $tag->content = null;
-                    return true;
-                } else {
-                    if ($tag->parseTagContent() === false) {
-                        return false;
-                    }
-                    if ($tag->tag->VariableName === $id) {
-                        $tag->tag->InitialText = $initialText;
-                        $tag->content = null;
-                        return true;
-                    }
-                }
-            }
-        }
-        trigger_error("Can't found EditText($id)");
-        return false;
-    }
     function listMovieClip_r() {
         ;
     }
@@ -661,5 +635,31 @@ class IO_SWF_Editor extends IO_SWF {
         }
         unset($tag);
         return $mc_table;
+    }
+    function replaceEditString($id, $initialText) {
+        $this->setCharacterId();
+        foreach ($this->_tags as &$tag) {
+            if ($tag->code == 37) { // DefineEditText
+                if ($tag->characterId === $id) {
+                    if ($tag->parseTagContent() === false) {
+                        return false;                        
+                    }
+                    $tag->tag->initialText = $initialText;
+                    $tag->content = null;
+                    return true;
+                } else {
+                    if ($tag->parseTagContent() === false) {
+                        return false;
+                    }
+                    if ($tag->tag->VariableName === $id) {
+                        $tag->tag->InitialText = $initialText;
+                        $tag->content = null;
+                        return true;
+                    }
+                }
+            }
+        }
+        trigger_error("Can't found EditText($id)");
+        return false;
     }
 }
