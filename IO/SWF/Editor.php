@@ -589,4 +589,61 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
+    function listMovieClip_r() {
+        ;
+    }
+    function listMovieClip() {
+        $mc_table = array();
+        $root_name_table = array(); // $cid => $name
+        $name_table = array(); // $cid => $name
+        foreach (array_reverse($this->_tags) as $tag) {
+            $opts = array();
+            $tag->parseTagContent($opts);
+            switch ($tag->code) {
+            case 26: //  PlaceObject2
+                if (is_null($tag->tag->_name) === false) {
+                    $root_name_table[$tag->tag->_characterId] = $tag->tag->_name;
+                }
+                break;
+            case 39: // DefineSprite
+                $spriteId = $tag->tag->_spriteId;
+                $mc_table[$spriteId] = array('FrameCount' => $tag->tag->_frameCount, 'TagCount' => count($tag->tag->_controlTags));
+                if (isset($root_name_table[$spriteId])) {
+                    $mc_table[$spriteId]['name'] = $root_name_table[$spriteId];
+                } else if (isset($name_table[$spriteId])) {
+                    $mc_table[$spriteId]['name'] = $name_table[$spriteId];
+                    $current_name = $name_table[$spriteId];
+                    $name = $current_name;
+                    while (isset($name_table_sprite_rev[$current_name])) {
+                        $current_spriteId = $name_table_sprite_rev[$current_name];
+                        if (isset($name_table[$current_spriteId])) {
+                            $current_name = $name_table[$current_spriteId];
+                            $name = $current_name.'/'.$name;
+                        } else if ($root_name_table[$current_spriteId]) {
+                            $current_name =  $root_name_table[$current_spriteId];
+                            $name = $current_name.'/'.$name;
+                            break;
+                        }
+                    }
+                    $mc_table[$spriteId]['name'] = $name;
+                }
+                foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
+                    if ($tag_in_sprite->code == 26) { // PlaceObject2
+                        $tag_in_sprite->parseTagContent();
+                        if (is_null($tag_in_sprite->tag->_name) === false) {
+                            $name_table[$tag_in_sprite->tag->_characterId] = $tag_in_sprite->tag->_name;
+                            $name_table_sprite_rev[$tag_in_sprite->tag->_name] = $spriteId;
+                        }
+                    }
+                }
+                unset($tag_in_sprite);
+                break;
+            }
+        }
+        unset($tag);
+        foreach ($this->_tags as $tag) {
+            ;
+        }
+        return $mc_table;
+    }
 }
