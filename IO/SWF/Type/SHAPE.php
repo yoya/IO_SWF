@@ -290,7 +290,17 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
     }
     static function string($shapeRecords, $opts = array()) {
         $tagCode = $opts['tagCode'];
+        if (isset($opts['indent'])) {
+            $indent_text = '';
+            for ($i = 0 ; $i < $opts['indent'] ; $i++) {
+                $indent_text .= "\t"; // str_pad? str_repeat ?
+            }
+        } else {
+            $indent_text = "\t";
+        }
+        $text = '';
         foreach ($shapeRecords as $shapeRecord) {
+            $text .= $indent_text;
             $typeFlag = $shapeRecord['TypeFlag'];
             if ($typeFlag == 0) {
                if (isset($shapeRecord['EndOfShape'])) {
@@ -298,17 +308,17 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                } else {
                    $moveX = $shapeRecord['MoveX'] / 20;
                    $moveY = $shapeRecord['MoveY'] / 20;
-                   echo "\tChangeStyle: MoveTo: ($moveX, $moveY)";
+                   $text .= "ChangeStyle: MoveTo: ($moveX, $moveY)";
                    $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
-                   echo "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
-                   echo "  LineStyle: ".$shapeRecord['LineStyle']."\n";
+                   $text .= "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
+                   $text .= "  LineStyle: ".$shapeRecord['LineStyle']."\n";
                    if (isset($shapeRecord['FillStyles'])) {
-                       echo "    FillStyles:\n";
-                       echo IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
+                       $text .= "    FillStyles:\n";
+                       $text .= IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
                    }
                    if (isset($shapeRecord['LineStyles'])) {
-                       echo "    LineStyles:\n";
-                       echo IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
+                       $text .= "    LineStyles:\n";
+                       $text .= IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
                    }
                }
             } else {
@@ -316,15 +326,16 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                 if ($straightFlag) {
                     $x = $shapeRecord['X'] / 20;
                     $y = $shapeRecord['Y'] / 20;
-                    echo "\tStraightEdge: MoveTo: ($x, $y)\n";
+                    $text .= "StraightEdge: MoveTo: ($x, $y)\n";
                 } else {
                     $controlX = $shapeRecord['ControlX'] / 20;
                     $controlY = $shapeRecord['ControlY'] / 20;
                     $anchorX = $shapeRecord['AnchorX'] / 20;
                     $anchorY = $shapeRecord['AnchorY'] / 20;
-                    echo "\tCurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)\n";
+                    $text .=  "CurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)\n";
                 }
             }
         }
+        return $text;
     }
 }

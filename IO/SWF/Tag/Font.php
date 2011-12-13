@@ -11,7 +11,6 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     var $FontFlagsWideOffsets;
     var $FontFlagsWideCodes;
     var $LanguageCode;
-    var $FontNameLen;
     var $FontName;
     var $OffsetTable = array();
     var $GlyphShapeTable = array();
@@ -55,7 +54,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             $codeTableOffset  = $reader->getUI16LE();
         }
         for ($i = 0 ; $i < $numGlyphs ; $i++) {
-            $GlyphShapeTable = IO_SWF_Type_SHAPE::parse($reader, $opts);
+            $this->GlyphShapeTable []= IO_SWF_Type_SHAPE::parse($reader, $opts);
         }
         list($startOfOffsetCodeTable, $dummy) = $reader->getOffset();
         if ($startOfOffsetCodeTable != $startOfOffsetTable + $codeTableOffset) {
@@ -96,7 +95,22 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "\tFontID:{$this->FontID} FontFlagsWideOffsets:{$this->FontFlagsWideOffsets} FontFlagsWideCodes:{$this->FontFlagsWideCodes} LanguageCode:".IO_SWF_Type_LANGCODE::string($this->LanguageCode).PHP_EOL;
+        echo "\tFontID:{$this->FontID} FontFlagsWideOffsets:{$this->FontFlagsWideOffsets} FontFlagsWideCodes:{$this->FontFlagsWideCodes}".PHP_EOL;;
+        echo "\tLanguageCode:".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName:{$this->FontName}".PHP_EOL;
+        echo "\tOffsetTable:";
+        foreach ($this->OffsetTable as $idx => $offset) {
+            echo " [$idx]$offset";
+        }
+        echo PHP_EOL;
+        echo "\tGlyphShapeTable:".PHP_EOL;
+        $opts['indent']  = 2;
+        foreach ($this->GlyphShapeTable as $idx => $glyph) {
+            echo IO_SWF_Type_SHAPE::string($glyph, $opts);
+        }
+        echo "\tCodeTable:";
+        foreach ($this->CodeTable as $idx => $c) {
+            echo " [$idx]$c";
+        }
     }
 
     function buildContent($tagCode, $opts = array()) {
