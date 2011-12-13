@@ -111,6 +111,19 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         foreach ($this->CodeTable as $idx => $c) {
             echo " [$idx]$c";
         }
+        echo PHP_EOL;
+        if ($this->FontAscent) {
+            echo "\tFontAscent:{$this->FontAscent} FontDescent:{$this->FontDescent} FontLeading:{$this->FontLeading}".PHP_EOL;
+            foreach ($this->FontAdvanceTable as $idx => $advance) {
+                echo " [$idx]$advance";
+            }
+            echo PHP_EOL;
+            echo "\tFontBoundsTable:";
+            echo IO_SWF_TYPE_RECT::string($this->FontBoundsTable);
+        } else {
+            echo "\t(FontFlagsHasLayout is false)".PHP_EOL;
+        }
+        echo "\tFontAdvanceTable:";
     }
 
     function buildContent($tagCode, $opts = array()) {
