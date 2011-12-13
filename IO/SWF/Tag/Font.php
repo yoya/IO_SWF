@@ -2,15 +2,27 @@
 
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
+require_once dirname(__FILE__).'/../Type/LANGCODE.php';
 require_once dirname(__FILE__).'/../Type/SHAPE.php';
+require_once dirname(__FILE__).'/../Type/KERNINGRECORD.php';
 
 class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     var $FontID;
     var $FontFlagsWideOffsets;
+    var $FontFlagsWideCodes;
     var $LanguageCode;
     var $FontNameLen;
     var $FontName;
     var $OffsetTable = array();
+    var $GlyphShapeTable = array();
+    var $CodeTable = array();
+    // Layout Information
+    var $FontAscent;
+    var $FontDescent;
+    var $FontLeading;
+    var $FontAdvanceTable;
+    var $FontBoundsTable;
+    var $FontKerningTable;
     function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
@@ -20,14 +32,14 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $fontFlagsSmallText = $reader->getUIBit();
         $fontFlagsANSI = $reader->getUIBit();
         $this->FontFlagsWideOffsets = $reader->getUIBit();
-        $fontFlagsWideCodes = $reader->getUIBit();
+        $this->FontFlagsWideCodes = $reader->getUIBit();
         $fontFlagsItalic = $reader->getUIBit();
         $fontFlagsBold = $reader->getUIBit();
         $this->LanguageCode = IO_SWF_Type_LANGCODE::parse($reader);
         $fontNameLen = $reader->getUI8();
         $this->FontName = $reader->getData($fontNameLen);
         $numGlyphs = $reader->getUI16LE();
-        list($startOfOffsetTable, $dummy) = 
+        list($startOfOffsetTable, $dummy) = $reader->getOffset();
         if ($this->FontFlagsWideOffsets) {
             for ($i = 0 ; $i < $numGlyphs ; $i++) {
                 $this->OffsetTable []= $reader->getUI32LE();
@@ -42,11 +54,49 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         } else {
             $codeTableOffset  = $reader->getUI16LE();
         }
+        for ($i = 0 ; $i < $numGlyphs ; $i++) {
+            $GlyphShapeTable = IO_SWF_Type_SHAPE::parse($reader, $opts);
+        }
+        list($startOfOffsetCodeTable, $dummy) = $reader->getOffset();
+        if ($startOfOffsetCodeTable != $startOfOffsetTable + $codeTableOffset) {
+            // trigger_error("startOfOffsetCodeTable:$startOfOffsetCodeTable != startOfOffsetTable:$startOfOffsetTable + codeTableOffset:$codeTableOffset", E_USER_WARNING);
+        }
+        $reader->setOffset($startOfOffsetTable + $codeTableOffset, 0);
+        if ($this->FontFlagsWideCodes) {
+            for ($i = 0 ; $i < $numGlyphs ; $i++) {
+                $this->CodeTable []= $reader->getUI16LE();
+            }
+        } else {
+            for ($i = 0 ; $i < $numGlyphs ; $i++) {
+                $this->CodeTable []= $reader->getUI8();
+            }
+        }
+        if ($fontFlagsHasLayout) {
+            $this->FontAscent = $reader->getSI16LE();
+            $this->FontDescent = $reader->getSI16LE();
+            $this->FontLeading = $reader->getSI16LE();
+            $this->FontAdvanceTable[] = array();
+            for ($i = 0 ; $i < $numGlyphs ; $i++) {
+                $this->FontAdvanceTable[] = $reader->getSI16LE();
+            }
+            $this->FontBoundsTable[] = array();
+            for ($i = 0 ; $i < $numGlyphs ; $i++) {
+                $this->FontBoundsTable[] = IO_SWF_TYPE_RECT::parse($reader);
+            }
+            $kerningCount =  $reader->getUI16LE();
+            if ($kerningCount > 0) {
+                $this->FontKerningTable = array();
+                for ($i = 0 ; $i < $kerningCount ; $i++) {
+                    $opts = array('FontFlagsWideCodes' => $this->FontFlagsWideCodes);
+                    $this->FontKerningTable[] = IO_SWF_TYPE_KERNINGRECORD::parse($reader, $opts);
+                }
+            }
+        }
+    
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        $color_str = IO_SWF_Type_RGB::string($this->_color);
-        echo "\tColor: $color_str\n";
+        echo "\tFontID:{$this->FontID} FontFlagsWideOffsets:{$this->FontFlagsWideOffsets} FontFlagsWideCodes:{$this->FontFlagsWideCodes} LanguageCode:".IO_SWF_Type_LANGCODE::string($this->LanguageCode).PHP_EOL;
     }
 
     function buildContent($tagCode, $opts = array()) {
