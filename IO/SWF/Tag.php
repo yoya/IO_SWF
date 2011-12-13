@@ -120,6 +120,7 @@ class IO_SWF_Tag {
         $length = strlen($this->content);
         echo "Code: $code($name)  Length: $length".PHP_EOL;
         $opts['Version'] = $this->swfInfo['Version'];
+        $opts['tagCode'] = $code;
         if ($this->parseTagContent($opts)) {
             $this->tag->dumpContent($code, $opts);
         }
@@ -158,7 +159,7 @@ class IO_SWF_Tag {
         }
         return $writer->output() . $this->content;
     }
-    function parseTagContent() {
+    function parseTagContent($opts = array()) {
         if (is_null($this->tag) === false) {
             return true;
         }
