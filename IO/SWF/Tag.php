@@ -162,6 +162,9 @@ class IO_SWF_Tag {
         if (is_null($this->tag) === false) {
             return true;
         }
+        if (is_null($this->content)) {
+            throw new IO_SWF_Exception("no tag and no content in ".var_export($this, true));
+        }
         $code = $this->code;
         $klass = self::getTagInfo($code, 'klass');
         if ($klass === false) {
