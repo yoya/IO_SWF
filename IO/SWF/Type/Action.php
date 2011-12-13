@@ -423,4 +423,35 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         }
         return $str;
     }
+    function replaceActionString(&$action, $trans_table) {
+        switch($action['Code']) {
+          case 0x83: // ActionGetURL
+            ;
+            if (isset($trans_table[$action['UrlString']])) {
+                $action['UrlString'] = $trans_table[$action['UrlString']];
+            }
+            if (isset($trans_table[$action['TargetString']])) {
+                $action['TargetString'] = $trans_table[$action['TargetString']];
+            }
+            break;
+          case 0x88: // ActionConstantPool
+            foreach ($action['ConstantPool'] as $idx_cp => $cp) {
+                if (isset($trans_table[$cp])) {
+                    $action['ConstantPool'][$idx_cp] = $trans_table[$cp];
+                }
+            }
+            break;
+          case 0x96: // ActionPush
+            foreach ($action['Values'] as &$value) {
+                if ($value['Type'] == 0) { // Type String
+                    if (isset($trans_table[$value['String']])) {
+                        $value['String'] = $trans_table[$value['String']];
+                    }
+                }
+            }
+            unset($value);
+            break;
+        }
+        return true;
+    }
 }

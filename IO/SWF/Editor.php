@@ -295,6 +295,7 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function replaceActionStrings($trans_table_or_from_str, $to_str = null) {
+        $opts = array('Version' => $this->_headers['Version']); // for parser
         if(is_array($trans_table_or_from_str)) {
             $trans_table = $trans_table_or_from_str;
         } else {
@@ -305,15 +306,29 @@ class IO_SWF_Editor extends IO_SWF {
             switch($code) {
               case 12: // DoAction
               case 59: // DoInitAction
-                $action = new IO_SWF_Tag_Action();
-                $action->parseContent($code, $tag->content);
-                $action->replaceActionStrings($trans_table);
+                $tag->parseTagContent($opts);
+                if ($tag->tag->replaceActionStrings($trans_table)) {
+                    $tag->content = null;
+                }
+                break;
+              case 34: // DefineButton2
+                $tag->parseTagContent($opts);
+                if (is_null($tag->tag->_actions) === false) {
+                    foreach ($tag->tag->_actions as &$buttoncondaction) {
+                        if (isset($buttoncondaction['Actions'])) {
+                            foreach ($buttoncondaction['Actions'] as &$action) {
+                                IO_SWF_Type_Action::replaceActionString($action, $trans_table);
+                            }
+                            unset($action);
+                        }
+                    }
+                    unset($buttoncondaction);
+                }
                 $tag->content = null;
                 break;
               case 39: // Sprite
-                $sprite = new IO_SWF_Tag_Sprite();
-                $sprite->parseContent($code, $tag->content);
-                foreach ($sprite->_controlTags as &$tag_in_sprite) {
+                $tag->parseTagContent($opts);
+                foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
                     $code_in_sprite = $tag_in_sprite->code;
                     switch ($code_in_sprite) {
                       case 12: // DoAction
@@ -321,11 +336,12 @@ class IO_SWF_Editor extends IO_SWF {
                         $action_in_sprite = new IO_SWF_Tag_Action();
                         $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
                         $action_in_sprite->replaceActionStrings($trans_table);
-                        $tag_in_sprite->content = $action_in_sprite->buildContent($code_in_sprite);
+                        $tag_in_sprite->content = null;
                         break;
                     }
                 }
-                $tag->content = $sprite->buildContent($code);
+                unset($tag_in_sprite);
+                $tag->content = null;
                 break;
             }
         }

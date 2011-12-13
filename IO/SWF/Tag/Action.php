@@ -7,6 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/../Type/Action.php';
+require_once dirname(__FILE__).'/../Tag/Button.php';
 
 class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     var $_actions = array();
@@ -141,37 +142,10 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
 
     function replaceActionStrings($trans_table) {
         foreach ($this->_actions as &$action) {
-            switch($action['Code']) {
-            case 0x83: // ActionGetURL
-                ;
-                if (isset($trans_table[$action['UrlString']])) {
-                    $action['UrlString'] = $trans_table[$action['UrlString']];
-                }
-                if (isset($trans_table[$action['TargetString']])) {
-                    $action['TargetString'] = $trans_table[$action['TargetString']];
-                }
-                break;
-            case 0x88: // ActionConstantPool
-                foreach ($action['ConstantPool'] as $idx_cp => $cp) {
-                    if (isset($trans_table[$cp])) {
-                        $action['ConstantPool'][$idx_cp] = $trans_table[$cp];
-                    }
-                }
-                break;
-            case 0x96: // ActionPush
-                foreach ($action['Values'] as &$value) {
-                    if ($value['Type'] == 0) { // Type String
-                        if (isset($trans_table[$value['String']])) {
-                            $value['String'] = $trans_table[$value['String']];
-                        }
-                    }
-                }
-                break;
-                
-            }
-            
+            IO_SWF_Type_Action::replaceActionString($action, $trans_table);
         }
-        // don't touch $action(reference), danger!
+        unset($action);
+        return true;
     }
 
     function insertAction($pos, $action) {
