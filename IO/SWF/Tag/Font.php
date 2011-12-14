@@ -60,8 +60,8 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         }
         for ($i = 0 ; $i < $numGlyphs ; $i++) {
             $this->GlyphShapeTable []= IO_SWF_Type_SHAPE::parse($reader, $opts);
+            $reader->byteAlign();
         }
-        $reader->byteAlign();
         list($startOfOffsetCodeTable, $dummy) = $reader->getOffset();
         if ($startOfOffsetCodeTable != $startOfOffsetTable + $codeTableOffset) {
             trigger_error("startOfOffsetCodeTable:$startOfOffsetCodeTable != startOfOffsetTable:$startOfOffsetTable + codeTableOffset:$codeTableOffset", E_USER_WARNING);
@@ -113,7 +113,9 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         echo PHP_EOL;
         echo "    GlyphShapeTable:".PHP_EOL;
         $opts['indent'] = 1;
-        foreach ($this->GlyphShapeTable as $idx => $glyph) {
+        foreach ($this->GlyphShapeTable as $idx => $glyph)
+        {
+            echo "      [$idx]".PHP_EOL;
             echo IO_SWF_Type_SHAPE::string($glyph, $opts);
         }
         echo "    CodeTable:";
@@ -163,13 +165,16 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $numGlyphs = count($this->OffsetTable);
         $writer->putUI16LE($numGlyphs);
         list($startOfOffsetTable, $dummy) = $writer->getOffset();
+        $startOfOffsetTable2 = array();
         if ($this->FontFlagsWideOffsets) {
-            foreach ($this->OffsetTable as $offset) {
-                $writer->putUI32LE($offset);
+            foreach ($this->OffsetTable as $idx => $offset) {
+                list($startOfOffsetTables[$idx], $dummy) = $writer->getOffset();
+                $writer->putUI32LE(0); // dummy
             }
         } else {
-            foreach ($this->OffsetTable as $offset) {
-                $writer->putUI16LE($offset);
+            foreach ($this->OffsetTable as $idx => $offset) {
+                list($startOfOffsetTables[$idx], $dummy) = $writer->getOffset();
+                $writer->putUI16LE(0); // dummy
             }
         }
         list($startOfcodeTableOffset, $dummy) = $writer->getOffset();
@@ -178,12 +183,18 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         } else {
             $writer->putUI16LE(0); // dummy
         }
-        foreach ($this->GlyphShapeTable as $glyphShape) {
-            $opts['fillStyleCount'] = 1;
-            $opts['lineStyleCount'] = 0;
+        $opts['fillStyleCount'] = 1;
+        $opts['lineStyleCount'] = 0;
+        foreach ($this->GlyphShapeTable as $idx => $glyphShape) {
+            list($startOfGlyphShape, $dummy) = $writer->getOffset();
+            if ($this->FontFlagsWideOffsets) {
+                $writer->setUI32LE($startOfGlyphShape - $startOfOffsetTable, $startOfOffsetTables[$idx]);
+            } else {
+                $writer->setUI16LE($startOfGlyphShape - $startOfOffsetTable, $startOfOffsetTables[$idx]);
+            }
             IO_SWF_Type_SHAPE::build($writer, $glyphShape, $opts);
+            $writer->byteAlign();
         }
-        $writer->byteAlign();
         //
         list($startOfCodeTable, $dummy) = $writer->getOffset();
         $codeTableOffset  = $startOfCodeTable - $startOfOffsetTable;
