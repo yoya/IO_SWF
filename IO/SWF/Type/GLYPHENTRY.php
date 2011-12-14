@@ -19,6 +19,6 @@ class IO_SWF_Type_GLYPHENTRY extends IO_SWF_Type {
     	$writer->putUIBits($glyphentry['GlyphAdvance'], $opts['AdvanceBits']);
     }
     static function string($glyphentry, $opts = array()) {
-    	return sprintf("GlyphIndex:%s GlyphAdvance:%s", $glyphentry['GlyphIndex'], $glyphentry['GlyphAdvance']);
+    	return "GlyphIndex: {$glyphentry['GlyphIndex']} GlyphAdvance: {$glyphentry['GlyphAdvance']}";
     }
 }
