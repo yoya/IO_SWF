@@ -96,9 +96,7 @@ class IO_SWF_Type_TEXTRECORD extends IO_SWF_Type {
     static function string($textrecord, $opts = array()) {
         $text = '';
         if ($textrecord['StyleFlagsHasFont']) {
-            $text .= sprintf("FontID:%d TextHeight:%d ",
-                             $textrecord['FontID'],
-                             $textrecord['TextHeight']);
+            $text .= "FontID: {$textrecord['FontID']} TextHeight: {$textrecord['TextHeight']} ";
         }
         if ($textrecord['StyleFlagsHasColor']) {
             if ($opts['tagCode'] == 11) {// DefintText
@@ -106,13 +104,13 @@ class IO_SWF_Type_TEXTRECORD extends IO_SWF_Type {
             } else { // DefineText2
                 $color_str = IO_SWF_Type_RGBA::string($textrecord['TextColor']);
             }
-            $text .= "TextColor:$color_str ";
+            $text .= "TextColor: $color_str ";
         }
         if ($textrecord['StyleFlagsHasXOffeet']) {
-            $text .= sprintf("XOffset: %s", $textrecord['XOffset']);
+            $text .= "XOffset: {$textrecord['XOffset']}";
         }
         if ($textrecord['StyleFlagsHasYOffeet']) {
-            $text .= sprintf("YOffset: %s", $textrecord['YOffset']);
+            $text .= "YOffset: {$textrecord['YOffset']}";
         }
         if ($text != '') {
             $text .= "\n\t";

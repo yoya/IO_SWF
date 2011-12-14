@@ -41,7 +41,7 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
 
     function dumpContent($tagCode, $opts = array()) {
         $opts['tagCode'] = $tagCode;
-        echo "\tCharacterID:{$this->_CharacterID}\n";
+        echo "\tCharacterID: {$this->_CharacterID}\n";
         echo "\tTextBounds:\n";
         $rect_str = IO_SWF_Type_RECT::string($this->_TextBounds, $opts);
         echo "\t$rect_str\n";
@@ -50,7 +50,7 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
         $matrix_str = IO_SWF_Type_MATRIX::string($this->_TextMatrix, $opts);
         echo "\tTextMatrix:\n";
         echo "$matrix_str\n";
-        echo "\tGlyphBits:{$this->_GlyphBits} AdvanceBits:{$this->_AdvanceBits}\n";
+        echo "\tGlyphBits: {$this->_GlyphBits} AdvanceBits: {$this->_AdvanceBits}\n";
         if (count($this->_TextRecords) == 0) {
             echo "\t(TEXTRECORD empty)\n";
         } else {
