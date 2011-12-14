@@ -62,7 +62,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             if (isset($byteOffsetToRecordOffset[$targetByteOffset])) {
                 $targetRecordOffset = $byteOffsetToRecordOffset[$targetByteOffset];
                 if (isset($this->_labels[$targetRecordOffset]) === false) {
-                    $this->_labels[$targetRecordOffset] = "L$targetRecordOffset";
+                    $this->_labels[$targetRecordOffset] = $targetRecordOffset;
                 }
                 $this->_branches[$i] = $this->_labels[$targetRecordOffset];
             }
@@ -75,16 +75,15 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             echo " SpriteID=".$this->_spriteId;
         }
         echo "\n";
-        for ($i = 0; $i < count($this->_actions); $i++) {
-            $action = $this->_actions[$i];
+        foreach ($this->_actions as $i => $action) {
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_labels[$i])) {
-                echo "    (LABEL" . $this->_labels[$i] . "):\n";
+                echo "    (LABEL: " . $this->_labels[$i] . "):\n";
             }
             $action_str = IO_SWF_Type_Action::string($action);
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_branches[$i])) {
-                echo "\t[$i] $action_str (LABEL" . $this->_branches[$i] . ")\n";
+                echo "\t[$i] $action_str (LABEL: " . $this->_branches[$i] . ")\n";
             } else {
                 echo "\t[$i] $action_str\n";
             }
