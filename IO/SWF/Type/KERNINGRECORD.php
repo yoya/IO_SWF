@@ -31,9 +31,9 @@ class IO_SWF_Type_KERNINGRECORD extends IO_SWF_Type {
         $writer->getSI16LE($kerningrecord['FontKerningAdjustment']);
     }
     static function string($kerningrecord, $opts = array()) {
-        $text = "FontKerningCode1:{$kerningrecord['FontKerningCode1']}";
-        $text .= " FontKerningCode2:{$kerningrecord['FontKerningCode2']}";
-        $text .= " FontKerningAdjustment:{$kerningrecord['FontKerningAdjustment']}";
+        $text = "FontKerningCode1: {$kerningrecord['FontKerningCode1']}";
+        $text .= " FontKerningCode2: {$kerningrecord['FontKerningCode2']}";
+        $text .= " FontKerningAdjustment: {$kerningrecord['FontKerningAdjustment']}";
         return $text;
     }
 }

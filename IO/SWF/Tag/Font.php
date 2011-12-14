@@ -95,8 +95,8 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "\tFontID:{$this->FontID} FontFlagsWideOffsets:{$this->FontFlagsWideOffsets} FontFlagsWideCodes:{$this->FontFlagsWideCodes}".PHP_EOL;;
-        echo "\tLanguageCode:".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName:{$this->FontName}".PHP_EOL;
+        echo "\tFontID: {$this->FontID} FontFlagsWideOffsets: {$this->FontFlagsWideOffsets} FontFlagsWideCodes: {$this->FontFlagsWideCodes}".PHP_EOL;;
+        echo "\tLanguageCode: ".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName: {$this->FontName}".PHP_EOL;
         echo "\tOffsetTable:";
         foreach ($this->OffsetTable as $idx => $offset) {
             echo " [$idx]$offset";
@@ -113,7 +113,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         }
         echo PHP_EOL;
         if ($this->FontAscent) {
-            echo "\tFontAscent:{$this->FontAscent} FontDescent:{$this->FontDescent} FontLeading:{$this->FontLeading}".PHP_EOL;
+            echo "\tFontAscent: {$this->FontAscent} FontDescent: {$this->FontDescent} FontLeading: {$this->FontLeading}".PHP_EOL;
             foreach ($this->FontAdvanceTable as $idx => $advance) {
                 echo " [$idx]$advance";
             }
@@ -124,6 +124,14 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             echo "\t(FontFlagsHasLayout is false)".PHP_EOL;
         }
         echo "\tFontAdvanceTable:";
+        if ($this->FontKerningTable) {
+            echo "FontKerningTable:".PHP_EOL;
+            foreach ($this->FontKerningTable as $fontKerning) {
+                echo "\t\t".IO_SWF_Type_KERNINGRECORD::string($fontkerning).PHP_EOL;
+            }
+        } else {
+            echo "\t(FontKerningTable is null)".PHP_EOL;
+        }
     }
 
     function buildContent($tagCode, $opts = array()) {
