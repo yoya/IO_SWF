@@ -64,7 +64,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $reader->byteAlign();
         list($startOfOffsetCodeTable, $dummy) = $reader->getOffset();
         if ($startOfOffsetCodeTable != $startOfOffsetTable + $codeTableOffset) {
-            // trigger_error("startOfOffsetCodeTable:$startOfOffsetCodeTable != startOfOffsetTable:$startOfOffsetTable + codeTableOffset:$codeTableOffset", E_USER_WARNING);
+            trigger_error("startOfOffsetCodeTable:$startOfOffsetCodeTable != startOfOffsetTable:$startOfOffsetTable + codeTableOffset:$codeTableOffset", E_USER_WARNING);
         }
         $reader->setOffset($startOfOffsetTable + $codeTableOffset, 0);
         if ($this->FontFlagsWideCodes) {
@@ -100,42 +100,42 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "\tFontID: {$this->FontID}".PHP_EOL;
+        echo "    FontID: {$this->FontID}".PHP_EOL;
         $fontFlagsHasLayout = is_null($this->FontAscent)?0:1;
         echo "FontFlagsHasLayout: $fontFlagsHasLayout FontFlagsShiftJIS: {$this->FontFlagsShiftJIS} FontFlagsSmallText: {$this->FontFlagsSmallText} FontFlagsANSI: {$this->FontFlagsANSI}".PHP_EOL;
         echo "FontFlagsWideOffsets: {$this->FontFlagsWideOffsets} FontFlagsWideCodes: {$this->FontFlagsWideCodes}".PHP_EOL;
         
-        echo "\tLanguageCode: ".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName: {$this->FontName}".PHP_EOL;
-        echo "\tOffsetTable:";
+        echo "    LanguageCode: ".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName: {$this->FontName}".PHP_EOL;
+        echo "    OffsetTable:";
         foreach ($this->OffsetTable as $idx => $offset) {
             echo " [$idx]$offset";
         }
         echo PHP_EOL;
-        echo "\tGlyphShapeTable:".PHP_EOL;
-        $opts['indent']  = 2;
+        echo "    GlyphShapeTable:".PHP_EOL;
+        $opts['indent'] = 1;
         foreach ($this->GlyphShapeTable as $idx => $glyph) {
             echo IO_SWF_Type_SHAPE::string($glyph, $opts);
         }
-        echo "\tCodeTable:";
+        echo "    CodeTable:";
         foreach ($this->CodeTable as $idx => $c) {
             echo " [$idx]$c";
         }
         echo PHP_EOL;
         if ($this->FontAscent) {
-            echo "\tFontAscent: {$this->FontAscent} FontDescent: {$this->FontDescent} FontLeading: {$this->FontLeading}".PHP_EOL;
+            echo "    FontAscent: {$this->FontAscent} FontDescent: {$this->FontDescent} FontLeading: {$this->FontLeading}".PHP_EOL;
             foreach ($this->FontAdvanceTable as $idx => $advance) {
                 echo " [$idx]$advance";
             }
             echo PHP_EOL;
-            echo "\tFontBoundsTable:";
+            echo "    FontBoundsTable:";
             echo IO_SWF_TYPE_RECT::string($this->FontBoundsTable);
         } else {
-            echo "\t(FontFlagsHasLayout is false)".PHP_EOL;
+            echo "    (FontFlagsHasLayout is false)".PHP_EOL;
         }
         if ($this->FontKerningTable) {
-            echo "\tFontKerningTable:".PHP_EOL;
+            echo "    FontKerningTable:".PHP_EOL;
             foreach ($this->FontKerningTable as $fontKerning) {
-                echo "\t\t".IO_SWF_Type_KERNINGRECORD::string($fontkerning).PHP_EOL;
+                echo "\t".IO_SWF_Type_KERNINGRECORD::string($fontkerning).PHP_EOL;
             }
         } else {
             echo "\t(FontKerningTable is null)".PHP_EOL;
@@ -144,7 +144,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
 
     function buildContent($tagCode, $opts = array()) {
         $writer = new IO_Bit();
-        $writer->getUI16LE($this->FontID);
+        $writer->putUI16LE($this->FontID);
         //
         $fontFlagsHasLayout = is_null($this->FontAscent)?0:1;
         //
@@ -172,26 +172,26 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
                 $writer->putUI16LE($offset);
             }
         }
-        list($startOfCodeTableOffset, $dummy) = $writer->getOffset();
+        list($startOfcodeTableOffset, $dummy) = $writer->getOffset();
         if ($this->FontFlagsWideOffsets) {
             $writer->putUI32LE(0); // dummy
         } else {
             $writer->putUI16LE(0); // dummy
         }
         foreach ($this->GlyphShapeTable as $glyphShape) {
+            $opts['fillStyleCount'] = 1;
+            $opts['lineStyleCount'] = 0;
             IO_SWF_Type_SHAPE::build($writer, $glyphShape, $opts);
         }
         $writer->byteAlign();
         //
         list($startOfCodeTable, $dummy) = $writer->getOffset();
-        $codeTableOffset  = $startOfCodeOffsetTable - $startOfOffsetTable;
-        $writer->setOffset($startOfCodeTableOffset, 0);
+        $codeTableOffset  = $startOfCodeTable - $startOfOffsetTable;
         if ($this->FontFlagsWideOffsets) {
-            $writer->setUI32LE($codeTableOffset);
+            $writer->setUI32LE($codeTableOffset, $startOfcodeTableOffset);
         } else {
-            $writer->setUI16LE($codeTableOffset);
+            $writer->setUI16LE($codeTableOffset, $startOfcodeTableOffset);
         }
-        $writer->setOffset($startOfCodeTable, 0);
         if ($this->FontFlagsWideCodes) {
             foreach ($this->CodeTable as $c) {
                 $writer->putUI16LE($c);
