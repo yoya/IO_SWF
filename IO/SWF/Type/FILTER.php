@@ -14,7 +14,6 @@ class IO_SWF_Type_FILTER extends IO_SWF_Type {
     	$filter = array();
     	$filterID = $reader->getUI8();
     	$filter['FilterID'] = $filterID;
-        echo "XXX: filterID:$filterID\n";
         switch ($filterID) {
         case 0: // DropShadowFilter
             $dropshadowfilter = array();

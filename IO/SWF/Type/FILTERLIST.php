@@ -12,7 +12,6 @@ class IO_SWF_Type_FILTERLIST extends IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$filterlist = array();
     	$NumberOfFilters = $reader->getUI8();
-        echo "XXX: $NumberOfFilters:{$NumberOfFilters}\n";
     	$filterlist['NumberOfFilters'] = $NumberOfFilters;
         $filter = array();
         for ($i = 0 ; $i < $NumberOfFilters ; $i++) {
