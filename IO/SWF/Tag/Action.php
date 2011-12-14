@@ -46,8 +46,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             $this->_actions [] = $action;
             $i++;
         }
+        $recordOffsetToByteOffset[$i] = $nextByteOffset;
         $byteOffsetToRecordOffset[$nextByteOffset] = $i;
-        // ActionEndFlag
+        if ($i > 0) {
+            $byteOffsetToRecordOffset[$nextByteOffset] = $i;
+        }
 
         $label_num = 0;
         foreach ($this->_actions as $i => $action) {
