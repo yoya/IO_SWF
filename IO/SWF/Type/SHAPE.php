@@ -304,20 +304,20 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
             $typeFlag = $shapeRecord['TypeFlag'];
             if ($typeFlag == 0) {
                if (isset($shapeRecord['EndOfShape'])) {
-                   break;
+                   $text .= "EndOfShape";
                } else {
                    $moveX = $shapeRecord['MoveX'] / 20;
                    $moveY = $shapeRecord['MoveY'] / 20;
                    $text .= "ChangeStyle: MoveTo: ($moveX, $moveY)";
                    $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
                    $text .= "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
-                   $text .= "  LineStyle: ".$shapeRecord['LineStyle']."\n";
+                   $text .= "  LineStyle: ".$shapeRecord['LineStyle'];
                    if (isset($shapeRecord['FillStyles'])) {
-                       $text .= "    FillStyles:\n";
+                       $text .= "    FillStyles:";
                        $text .= IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
                    }
                    if (isset($shapeRecord['LineStyles'])) {
-                       $text .= "    LineStyles:\n";
+                       $text .= "    LineStyles:";
                        $text .= IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
                    }
                }
@@ -326,15 +326,16 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                 if ($straightFlag) {
                     $x = $shapeRecord['X'] / 20;
                     $y = $shapeRecord['Y'] / 20;
-                    $text .= "StraightEdge: MoveTo: ($x, $y)\n";
+                    $text .= "StraightEdge: MoveTo: ($x, $y)";
                 } else {
                     $controlX = $shapeRecord['ControlX'] / 20;
                     $controlY = $shapeRecord['ControlY'] / 20;
                     $anchorX = $shapeRecord['AnchorX'] / 20;
                     $anchorY = $shapeRecord['AnchorY'] / 20;
-                    $text .=  "CurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)\n";
+                    $text .=  "CurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)";
                 }
             }
+            $text .= PHP_EOL;
         }
         return $text;
     }
