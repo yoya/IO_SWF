@@ -82,13 +82,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
                 echo "    (LABEL" . $this->_labels[$i] . "):\n";
             }
             $action_str = IO_SWF_Type_Action::string($action);
-            $byteOffsetHex = sprintf("%x", $this->_byteOffsetTable[$i]);
-            $byteSizeHex = sprintf("%x", $this->_byteSizeTable[$i]);
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_branches[$i])) {
-                echo "\t(0x$byteOffsetHex+0x$byteSizeHex) $action_str (LABEL" . $this->_branches[$i] . ")\n";
+                echo "\t[$i] $action_str (LABEL" . $this->_branches[$i] . ")\n";
             } else {
-                echo "\t(0x$byteOffsetHex+0x$byteSizeHex) $action_str\n";
+                echo "\t[$i] $action_str\n";
             }
         }
         if (isset($opts['addlabel']) && $opts['addlabel']
