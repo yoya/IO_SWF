@@ -3,7 +3,7 @@
 require 'IO/SWF.php';
 // require dirname(__FILE__).'/../IO/SWF.php';
 
-$options = getopt("f:h");
+$options = getopt("f:hl");
 
 if (is_readable($options['f']) === false) {
     echo "Usage: php swfdump.php -f <swf_file> [-h]\n";
@@ -20,6 +20,9 @@ $swf->parse($swfdata);
 $opts = array();
 if (isset($options['h'])) {
     $opts['hexdump'] = true;
+}
+if (isset($options['l'])) {
+    $opts['addlabel'] = true;
 }
 
 $swf->dump($opts);
