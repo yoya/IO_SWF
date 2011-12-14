@@ -175,6 +175,7 @@ class IO_SWF_Tag {
         $klass = "IO_SWF_Tag_$klass";
         $obj = new $klass($this->swfInfo);
         $opts['Version'] = $this->swfInfo['Version'];
+        $opts['tagCode'] = $code;
         $obj->parseContent($code, $this->content, $opts);
         $this->tag = $obj;
         return true;
@@ -188,6 +189,7 @@ class IO_SWF_Tag {
         }
         $code = $this->code;
         $opts['Version'] = $this->swfInfo['Version'];
+        $opts['tagCode'] = $code;
         $this->content = $this->tag->buildContent($code, $opts); // XXX
         return $this->content;
     }
