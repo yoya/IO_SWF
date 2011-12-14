@@ -277,20 +277,22 @@ class IO_SWF_Editor extends IO_SWF {
             // 新規タグ挿入
             array_splice($this->_tags, $tagidx, 0, array($tag_action));
         } else { // 既にある Action タグに bytecode 追加。
-            $let_action = array();
             foreach ($trans_table as $key_str => $value_str) {
-                $let_action []= array('Code' => 0x96, // Push
+                $action_rec = array('Code' => 0x96, // Push
                                       'Values' => array(
                                           array('Type' => 0,
                                                 'String' => $key_str)));
-                $let_action []= array('Code' => 0x96, // Push
+                $action->insertAction(0, $action_rec);
+                $action_rec = array('Code' => 0x96, // Push
                                       'Values' => array(
                                           array('Type' => 0,
                                                 'String' => $value_str)));
-                $let_action []= array('Code' => 0x1d); // SetVariable
+                $action->insertAction(1, $action_rec);
+                $action_rec = array('Code' => 0x1d); // SetVariable
+                $action->insertAction(2, $action_rec);
             }
-            $action->_actions = array_merge($let_action, $action->_actions);
             $tag->content = $action->buildContent($code);
+//            $tag->content = null;
         }
     }
 
