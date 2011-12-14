@@ -59,6 +59,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             $codeTableOffset  = $reader->getUI16LE();
         }
         for ($i = 0 ; $i < $numGlyphs ; $i++) {
+            $reader->setOffset($startOfOffsetTable + $this->OffsetTable[$i], 0);
             $this->GlyphShapeTable []= IO_SWF_Type_SHAPE::parse($reader, $opts);
             $reader->byteAlign();
         }
