@@ -22,6 +22,7 @@ $swf->parse($swfdata);
 
 $ret = $swf->replaceMovieClip($target_path, $mc_swfdata);
 if ($ret === false) {
+    echo "replaceMovieClip($target_path, mc_swfdata) failed\n";;
     exit(1);
 }
 
