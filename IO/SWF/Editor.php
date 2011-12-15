@@ -86,6 +86,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 26: // PlaceObject2 (Shape Reference)
                 $tag->placeFlag = $content_reader->getUI8();
                 if ($tag->placeFlag & 0x02) {
+                    $content_reader->getUI16LE(); // depth
                     $tag->referenceId = $content_reader->getUI16LE();
                 }
                 break;
@@ -452,11 +453,23 @@ class IO_SWF_Editor extends IO_SWF {
         $this->shape_adjust_mode = $mode;
     }
 
-    function searchMovieClipTag($target_path, $opts) {
+    function searchMovieClipTagByCID($cid, $opts) {
+        foreach ($this->_tags as $tag_idx => $tag) {        
+            if ($tag->code == 39) { // DefineSprite
+                if ($tag->parseTagContent($opts)) {
+                    if ($tag->tag->_spriteId == $cid) {
+                        return $tag_idx;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    function searchMovieClipTagByTargetPath($target_path, $opts) {
         /*
          * scanning for target sprite tag
          */
-        $target_sprite_tag_idx = -1;
+        $target_sprite_tag_idx = false;
         $target_path_list = explode('/', $target_path);
         $tag_scan_state = 1; // 1:scan for name 2: scan for character id
         $tag_scan_character_id = -1;
@@ -498,7 +511,7 @@ class IO_SWF_Editor extends IO_SWF {
                     }
                 }
             }
-            if (0 <= $target_sprite_tag_idx) {
+            if ($target_sprite_tag_idx !== false) {
                 break; // target sprite found
             }
         }
@@ -513,8 +526,13 @@ class IO_SWF_Editor extends IO_SWF {
             return false;
         }
         $opts = array('Version' => $this->_headers['Version']); // for parser
-        $target_sprite_tag_idx = $this->searchMovieClipTag($target_path, $opts);
-        if ($target_sprite_tag_idx < 0) {
+        if (is_numeric($target_path)) {
+            $cid = $target_path;
+            $target_sprite_tag_idx = $this->searchMovieClipTagByCID($cid, $opts);
+        } else {
+            $target_sprite_tag_idx = $this->searchMovieClipTagByTargetPath($target_path, $opts);
+        }
+        if ($target_sprite_tag_idx === false) {
             trigger_error("target_path symbol not found($target_path)");
             return false;
         }
@@ -599,6 +617,87 @@ class IO_SWF_Editor extends IO_SWF {
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
         return true;
     }
+    function getMovieClip($target_path) {
+        return $this->getOrGrepMovieClip($target_path, false);
+    }
+    function grepMovieClip($target_path) {
+        return $this->getOrGrepMovieClip($target_path, true);
+    }
+    function getOrGrepMovieClip($target_path, $is_grep) {
+        $this->setCharacterId();
+        $mc_tag_idx = null;
+        if ($target_path === '') {
+            trigger_error('target_path is null string');
+            return false;
+        }
+        $opts = array('Version' => $this->_headers['Version']); // for parser
+        if (is_numeric($target_path)) {
+            $cid = $target_path;
+            $target_sprite_tag_idx = $this->searchMovieClipTagByCID($cid, $opts);
+        } else {
+            $target_sprite_tag_idx = $this->searchMovieClipTagByTargetPath($target_path, $opts);
+        }
+        if ($target_sprite_tag_idx === false) {
+            trigger_error("target_path symbol not found($target_path)");
+            return false;
+        }
+        $target_sprite_tag = $this->_tags[$target_sprite_tag_idx];
+        if ($target_sprite_tag->parseTagContent($opts) === false) {
+            trigger_error("target_sprite_tag parse failed");
+            return false;
+        }
+        $new_main_tags = array();
+        foreach ($this->_tags as $tag_idx => $tag) {
+            if ($tag_idx <= $target_sprite_tag_idx) {
+                switch ($tag->code) {
+                case 1: // ShowFrame
+                case 4: // PlaceObject
+                case 5: // RemoveObject
+                case 9: // SetBackgroundColor
+                case 12: // DoAction
+                case 26: // PlaceObject2
+                case 28: // RemoveObject2
+                case 43: // FrameLabel
+                case 59: // DoInitAction
+                    break; // skip non Define Tags;
+                default:
+                    $new_main_tags []= $tag;
+                }
+            } else {
+                break;
+            }
+        }
+        if ($is_grep) { // is grep
+            $new_main_tags []= $target_sprite_tag;
+            foreach ($this->_tags as $tag_idx => $tag) {
+                if ($tag_idx <= $target_sprite_tag_idx) {
+                    continue;
+                }
+                if ($tag->code == 26) { // PlaceObject
+                    if (($tag->parseTagContent($opts) === false) ||
+                        is_null($tag->tag->_characterId) === false) {
+                        continue;
+                    }
+                    if ($tag->tag->_characterId == $target_sprite_tag->tag->_spriteId) {
+                        $new_main_tags []= $tag;
+                        $end_tag = new IO_SWF_Tag();
+                        $end_tag->code = 0;
+                        $new_main_tags []= $end_tag;
+                        break;
+                    }
+                }
+            }
+        } else { // is get
+            // movieclip to maintimeline
+            foreach ($target_sprite_tag->tag->_controlTags as $tag_in_sprite) {
+                $new_main_tags []= $tag_in_sprite;
+            }
+        }
+        $swf = clone $this;
+        $swf->_tags = $new_main_tags;
+        $swf->purgeUselessContents();
+        return $swf->build();
+    }
     function listMovieClip_r($prefix, $characterId, $name, $parent_cids, &$spriteTable) {
         $spriteId = $characterId;
         $spriteTable[$spriteId]['name'] = $name;
@@ -655,6 +754,30 @@ class IO_SWF_Editor extends IO_SWF {
         }
         unset($tag);
         return $spriteTable;
+    }
+    function purgeUselessContents() {
+        $this->setCharacterId();
+        $this->setReferenceId();
+        $used_character_id_table = array();
+        foreach (array_reverse(array_keys($this->_tags)) as $tag_idx) {
+            $tag = $this->_tags[$tag_idx];
+            if (isset($tag->characterId)) {
+                $cid = $tag->characterId;
+                if (isset($used_character_id_table[$cid]) === false) {
+                    unset($this->_tags[$tag_idx]);
+                }
+            }
+            if (isset($this->_tags[$tag_idx]) && isset($tag->referenceId)) {
+                $refid = $tag->referenceId;
+                if (is_array($refid)) {
+                    foreach ($refid as $id) {
+                        $used_character_id_table[$id] = true;
+                    }
+                } else {
+                    $used_character_id_table[$refid] = true;
+                }
+            } 
+        }
     }
     function replaceEditString($id, $initialText) {
         $this->setCharacterId();
