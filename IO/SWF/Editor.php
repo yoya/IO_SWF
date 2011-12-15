@@ -63,6 +63,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 33: // DefineText2
               case 37: // DefineTextEdit
               case 39: // DefineSprite
+              case 34: // DefineButton2
                 $tag->characterId = $content_reader->getUI16LE();
                 break;
             }
@@ -105,6 +106,7 @@ class IO_SWF_Editor extends IO_SWF {
                             }
                         }
                     }
+                    $tag->referenceId = $refIds;
                 }
                 if (is_null($tag->tag->_shapeRecords) === false) {
                     foreach ($tag->tag->_shapeRecords as $shapeRecord) {
@@ -118,8 +120,20 @@ class IO_SWF_Editor extends IO_SWF {
                             }
                         }
                     }
+                    $tag->referenceId = $refIds;
                 }
-                $tag->referenceId = $refIds;
+                break;
+            case 34: // DefineButton2
+                $refIds = array();       
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                if (is_null($tag->tag->_characters) === false) {
+                    foreach ($tag->tag->_characters as $character) {
+                        $refIds []= $character['CharacterID'];
+                    }
+                    $tag->referenceId = $refIds;
+                }
                 break;
             }
         }
@@ -437,15 +451,8 @@ class IO_SWF_Editor extends IO_SWF {
     function setShapeAdjustMode($mode) {
         $this->shape_adjust_mode = $mode;
     }
-    function replaceMovieClip($target_path, $mc_swfdata) {
-        $this->setCharacterId();
-        $mc_tag_idx = null;
-        if ($target_path === '') {
-            trigger_error('target_path is null string');
-            return false;
-        }
-        $opts = array('Version' => $this->_headers['Version']); // for parser
 
+    function searchMovieClipTag($target_path, $opts) {
         /*
          * scanning for target sprite tag
          */
@@ -495,7 +502,18 @@ class IO_SWF_Editor extends IO_SWF {
                 break; // target sprite found
             }
         }
+        return $target_sprite_tag_idx;
+    }
 
+    function replaceMovieClip($target_path, $mc_swfdata) {
+        $this->setCharacterId();
+        $mc_tag_idx = null;
+        if ($target_path === '') {
+            trigger_error('target_path is null string');
+            return false;
+        }
+        $opts = array('Version' => $this->_headers['Version']); // for parser
+        $target_sprite_tag_idx = $this->searchMovieClipTag($target_path, $opts);
         if ($target_sprite_tag_idx < 0) {
             trigger_error("target_path symbol not found($target_path)");
             return false;

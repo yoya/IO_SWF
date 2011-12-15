@@ -251,7 +251,7 @@ class IO_SWF_Tag {
               case 83: // DefineShape4 (ShapeId)
               case 84: // DefineMorphShape2 (ShapeId)
               case 88: // DefineFontName (FontID)
-                foreach (array('_CharacterID', '_spriteId', '_shapeId', 'CharacterID') as $id_prop_name) {
+                  foreach (array('_CharacterID', '_spriteId', '_shapeId', 'CharacterID', '_buttonId') as $id_prop_name) {
                     if (isset($this->tag->$id_prop_name)) {
                         $this->tag->$id_prop_name = $new_cid;
                         break;
@@ -270,10 +270,17 @@ class IO_SWF_Tag {
           case 4:  // PlaceObject
           case 5:  // RemoveObject
           case 26: // PlaceObject2 (Shape Reference)
+          case 34: // DefineButton2
             if (isset($this->tag->_characterId)) {
                 $new_cid = $trans_table[$this->tag->_characterId];
                 if ($this->tag->_characterId != $new_cid) {
                     $this->tag->_characterId = $new_cid;
+                    $this->content = null;
+                }
+            } else if (isset($this->tag->_buttonId)) {
+                $new_cid = $trans_table[$this->tag->_buttonId];
+                if ($this->tag->_buttonId != $new_cid) {
+                    $this->tag->_buttonId = $new_cid;
                     $this->content = null;
                 }
             }
