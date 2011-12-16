@@ -35,11 +35,11 @@ class IO_SWF_Tag_Remove extends IO_SWF_Tag_Base {
         $writer = new IO_Bit();
         switch ($tagCode) {
         case 5:   // RemoveObject
-            $this->_characterId = $writer->getUI16LE();
-            $this->_depth = $writer->getUI16LE();
+            $this->_characterId = $writer->putUI16LE();
+            $this->_depth = $writer->putUI16LE();
             break;
         case 28:  // RemoveObject2
-            $this->_depth = $writer->getUI16LE();
+            $this->_depth = $writer->putUI16LE();
             break;
         }
     	return $writer->output();
