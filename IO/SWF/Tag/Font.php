@@ -85,7 +85,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             for ($i = 0 ; $i < $numGlyphs ; $i++) {
                 $this->FontAdvanceTable[] = $reader->getSI16LE();
             }
-            $this->FontBoundsTable[] = array();
+            $this->FontBoundsTable = array();
             for ($i = 0 ; $i < $numGlyphs ; $i++) {
                 $this->FontBoundsTable[] = IO_SWF_TYPE_RECT::parse($reader);
             }
@@ -131,7 +131,9 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             }
             echo PHP_EOL;
             echo "    FontBoundsTable:";
-            echo IO_SWF_TYPE_RECT::string($this->FontBoundsTable);
+            foreach ($this->FontBoundsTable as $idx => $fontBounds) {
+                echo "\t[$idx]".IO_SWF_TYPE_RECT::string($fontBounds).PHP_EOL;
+            }
         } else {
             echo "    (FontFlagsHasLayout is false)".PHP_EOL;
         }
