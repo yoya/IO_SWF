@@ -71,71 +71,96 @@ class IO_SWF_Editor extends IO_SWF {
         $this->setCharacterIdDone = true;
     }
 
+    function _setReferenceId(&$tag) {
+        $content_reader = new IO_Bit();
+        $content_reader->input($tag->content);
+        switch ($tag->code) {
+        case 4:  // PlaceObject
+        case 5:  // RemoveObject
+            $tag->referenceId = $content_reader->getUI16LE();
+            break;
+        case 26: // PlaceObject2 (Shape Reference)
+            $tag->placeFlag = $content_reader->getUI8();
+            if ($tag->placeFlag & 0x02) {
+                $content_reader->getUI16LE(); // depth
+                $tag->referenceId = $content_reader->getUI16LE();
+            }
+            break;
+        case 2:  // DefineShape  (Bitmap ReferenceId)
+        case 22: // DefineShape2　(Bitmap ReferenceId)
+        case 32: // DefineShape3   (Bitmap ReferenceId)
+        case 83: // DefineShape4    (Bitmap ReferenceId)
+        case 46: // DefineMorphShape (Bitmap ReferenceId)
+            $refIds = array();
+            if ($tag->parseTagContent() === false) {
+                throw new IO_SWF_Exception("failed to parseTagContent");
+            }
+            if (is_null($tag->tag->_fillStyles) === false) {
+                foreach ($tag->tag->_fillStyles as $fillStyle) {
+                    if (isset($fillStyle['BitmapId'])) {
+                        if ($fillStyle['BitmapId'] != 65535) {
+                            $refIds []= $fillStyle['BitmapId'];
+                        }
+                    }
+                }
+                $tag->referenceId = $refIds;
+            }
+            if (is_null($tag->tag->_shapeRecords) === false) {
+                foreach ($tag->tag->_shapeRecords as $shapeRecord) {
+                    if (isset($shapeRecord['FillStyles'])) {
+                        foreach ($shapeRecord['FillStyles'] as $fillStyle) {
+                            if (isset($fillStyle['BitmapId'])) {
+                                if ($fillStyle['BitmapId'] != 65535) {
+                                    $refIds []= $fillStyle['BitmapId'];
+                                }
+                            }
+                        }
+                    }
+                }
+                $tag->referenceId = $refIds;
+            }
+            break;
+        case 34: // DefineButton2
+            $refIds = array();       
+            if ($tag->parseTagContent() === false) {
+                throw new IO_SWF_Exception("failed to parseTagContent");
+            }
+            if (is_null($tag->tag->_characters) === false) {
+                foreach ($tag->tag->_characters as $character) {
+                    $refIds []= $character['CharacterID'];
+                }
+                $tag->referenceId = $refIds;
+            }
+            break;
+        }
+        return true;
+    }
     function setReferenceId() {
         if ($this->setReferenceIdDone) {
             return ;
         }
         foreach ($this->_tags as &$tag) {
-            $content_reader = new IO_Bit();
-            $content_reader->input($tag->content);
-            switch ($tag->code) {
-              case 4:  // PlaceObject
-              case 5:  // RemoveObject
-                $tag->referenceId = $content_reader->getUI16LE();
-                break;
-              case 26: // PlaceObject2 (Shape Reference)
-                $tag->placeFlag = $content_reader->getUI8();
-                if ($tag->placeFlag & 0x02) {
-                    $content_reader->getUI16LE(); // depth
-                    $tag->referenceId = $content_reader->getUI16LE();
+            if ($tag->code == 39) { // DefineSprite
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                break;
-              case 2:  // DefineShape  (Bitmap ReferenceId)
-              case 22: // DefineShape2　(Bitmap ReferenceId)
-              case 32: // DefineShape3   (Bitmap ReferenceId)
-              case 83: // DefineShape4    (Bitmap ReferenceId)
-              case 46: // DefineMorphShape (Bitmap ReferenceId)
                 $refIds = array();
-                if ($tag->parseTagContent() === false) {
-                    throw new IO_SWF_Exception("failed to parseTagContent");
-                }
-                if (is_null($tag->tag->_fillStyles) === false) {
-                    foreach ($tag->tag->_fillStyles as $fillStyle) {
-                        if (isset($fillStyle['BitmapId'])) {
-                            if ($fillStyle['BitmapId'] != 65535) {
-                                $refIds []= $fillStyle['BitmapId'];
-                            }
+                foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
+                    $this->_setReferenceId($tag_in_sprite);
+                    if (isset($tag_in_sprite->referenceId)) {
+                        $refIds_in_sprite = $tag_in_sprite->referenceId;
+                        if (is_array($refIds_in_sprite)) {
+                            $refIds += $refIds_in_sprite;
+                        } else {
+                            $refIds []= $refIds_in_sprite;
                         }
                     }
+                }
+                if (count($refIds) > 0) {
                     $tag->referenceId = $refIds;
                 }
-                if (is_null($tag->tag->_shapeRecords) === false) {
-                    foreach ($tag->tag->_shapeRecords as $shapeRecord) {
-                        if (isset($shapeRecord['FillStyles'])) {
-                            foreach ($shapeRecord['FillStyles'] as $fillStyle) {
-                                if (isset($fillStyle['BitmapId'])) {
-                                    if ($fillStyle['BitmapId'] != 65535) {
-                                        $refIds []= $fillStyle['BitmapId'];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    $tag->referenceId = $refIds;
-                }
-                break;
-            case 34: // DefineButton2
-                $refIds = array();       
-                if ($tag->parseTagContent() === false) {
-                    throw new IO_SWF_Exception("failed to parseTagContent");
-                }
-                if (is_null($tag->tag->_characters) === false) {
-                    foreach ($tag->tag->_characters as $character) {
-                        $refIds []= $character['CharacterID'];
-                    }
-                    $tag->referenceId = $refIds;
-                }
-                break;
+            } else {
+                $this->_setReferenceId($tag);
             }
         }
         $this->setReferenceIdDone = true;
