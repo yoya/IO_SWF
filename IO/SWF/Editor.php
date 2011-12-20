@@ -780,6 +780,78 @@ class IO_SWF_Editor extends IO_SWF {
         unset($tag);
         return $spriteTable;
     }
+    function selectByCIDs($cids) {
+        $cid_table = array();
+        foreach ($cids as $cid) {
+            $cid_table[$cid] = true;
+        }
+        $this->setCharacterId();
+        $this->setReferenceId();
+
+        $swf = clone $this;
+
+        foreach ($swf->_tags as $idx => $tag) {
+            $tag_keep = true;
+            if (isset($tag->referenceId)) {
+                $tag_keep = false;
+                $refid = $tag->referenceId;
+                if (is_array($refid)) {
+                    foreach ($refid as $id) {
+                        if (isset($cid_table[$id])) {
+                            $tag_keep = true;
+                        }
+                    }
+                } else {
+                    if (isset($cid_table[$refid])) {
+                        $tag_keep = true;
+                    }
+                }
+                if ($tag_keep && isset($tag->characterId)) {
+                    $cid_table[$tag->characterId] = true;
+                }
+            }
+            if ($tag->code == 39) { // DefineSprite
+                if ($tag->parseTagContent() === false) {
+                    foreach ($tag->tag->_controlTags as $idx_in_sprite => $tag_in_sprite) {
+                        $tag_in_sprite_keep = true;
+                        if (isset($tag_in_sprite->referenceId)) {
+                            $refid = $tag_in_sprite->referenceId;
+                            if (is_array($refid)) {
+                                foreach ($refid as $id) {
+                                    if (isset($cid_table[$id])) {
+                                        $tag_in_sprite_keep = true;
+                                    }
+                                }
+                            } else {
+                                if (isset($cid_table[$refid])) {
+                                    $tag_in_sprite_keep = true;
+                                }
+                            }
+                            if ($tag_keep && isset($tagin_sprite->characterId)) {
+                                $cid_table[$tag_in_sprite->characterId] = true;
+                            }
+                        }
+                        if ($tag_in_sprite_keep) {
+                            unset($tag->tag->_controlTags[$idx_in_sprite]);
+                            $tag->content = null; // XXX
+                        }
+                    }
+                }
+            } else if (isset($tag->characterId)) {
+                if (isset($cid_table[$tag->characterId])) {
+                    $tag_keep = true;
+                } else {
+                    $tag_keep = false;
+                }
+            }
+            
+            if ($tag_keep === false) {
+                unset($swf->_tags[$idx]);
+            }
+        }
+        // $swf->purgeUselessContents();
+        return $swf->build();
+    }
     function purgeUselessContents() {
         $this->setCharacterId();
         $this->setReferenceId();
