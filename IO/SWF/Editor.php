@@ -132,6 +132,23 @@ class IO_SWF_Editor extends IO_SWF {
                 $tag->referenceId = $refIds;
             }
             break;
+        case 11: // DefineText
+        case 33: // DefineText2
+            if ($tag->parseTagContent() === false) {
+                throw new IO_SWF_Exception("failed to parseTagContent");
+            }
+            if (is_null($tag->tag->_TextRecords) === false) {
+                $refIds = array();
+                foreach ($tag->tag->_TextRecords as $textRecord) {
+                    if (isset($textRecord['FontID'])) {
+                        $refIds []= $textRecord['FontID'];
+                    }
+                }
+                if (count($refIds) > 0) {
+                    $tag->referenceId = $refIds;
+                }
+            }
+            break;
         }
         return true;
     }
