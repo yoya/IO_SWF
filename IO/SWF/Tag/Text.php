@@ -41,20 +41,21 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
 
     function dumpContent($tagCode, $opts = array()) {
         $opts['tagCode'] = $tagCode;
-        echo "\tCharacterID: {$this->_CharacterID}\n";
-        echo "\tTextBounds:\n";
+        echo "    CharacterID: {$this->_CharacterID}\n";
+        echo "    TextBounds:\n";
         $rect_str = IO_SWF_Type_RECT::string($this->_TextBounds, $opts);
         echo "\t$rect_str\n";
-        echo "";
-        $opts['indent'] = 2;
+        $opts['indent'] = 1;
         $matrix_str = IO_SWF_Type_MATRIX::string($this->_TextMatrix, $opts);
-        echo "\tTextMatrix:\n";
+        echo "    TextMatrix:\n";
         echo "$matrix_str\n";
-        echo "\tGlyphBits: {$this->_GlyphBits} AdvanceBits: {$this->_AdvanceBits}\n";
+        echo "    GlyphBits: {$this->_GlyphBits} AdvanceBits: {$this->_AdvanceBits}\n";
         if (count($this->_TextRecords) == 0) {
-            echo "\t(TEXTRECORD empty)\n";
+            echo "    (TEXTRECORD empty)\n";
         } else {
-            foreach ($this->_TextRecords as $textRecord) {
+            echo "    TextRecords:\n";
+            foreach ($this->_TextRecords as $idx => $textRecord) {
+                echo "      [$idx]:\n";
                 echo "\t".IO_SWF_Type_TEXTRECORD::string($textRecord, $opts);
             }
         }
@@ -67,8 +68,8 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
         IO_SWF_TYPE_RECT::build($writer, $this->_TextBounds);
         IO_SWF_Type_MATRIX::build($writer, $this->_TextMatrix);
 
-        $glyphBits = $this->_GlyphBits;
-        $advanceBits = $this->_AdvanceBits;
+        $glyphBits = $this->_GlyphBits; // XXX
+        $advanceBits = $this->_AdvanceBits; // XXX
         $writer->putUI8($glyphBits);
         $writer->putUI8($advanceBits);
 
