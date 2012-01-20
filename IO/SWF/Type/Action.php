@@ -225,10 +225,15 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 $action['BranchOffset'] = $reader->getSI16LE();
                 break;
               case 0x9A: // ActionGetURL2
-                $action['SendVarsMethod'] = $reader->getUIBits(2);
-                $action['(Reserved)'] = $reader->getUIBits(4);
-                $action['LoadTargetFlag'] = $reader->getUIBit();
+//                $action['SendVarsMethod'] = $reader->getUIBits(2);
+//                $action['(Reserved)'] = $reader->getUIBits(4);
+//                $action['LoadTargetFlag'] = $reader->getUIBit();
+//                $action['LoadVariablesFlag'] = $reader->getUIBit();
+                // swf_file_format_spec_v10 bug, field reverse.
                 $action['LoadVariablesFlag'] = $reader->getUIBit();
+                $action['LoadTargetFlag'] = $reader->getUIBit();
+                $action['(Reserved)'] = $reader->getUIBits(4);
+                $action['SendVarsMethod'] = $reader->getUIBits(2);
                 break;
               case 0x9D: // ActionIf
                 $action['Offset'] = $reader->getSI16LE();
@@ -348,10 +353,15 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 break;
               case 0x9A: // ActionGetURL2
                 $writer->putUI16LE(1);
-                $writer->putUIBits($action['SendVarsMethod'], 2);
-                $writer->putUIBits(0, 4); // Reserved
-                $writer->putUIBit($action['LoadTargetFlag']);
+//                $writer->putUIBits($action['SendVarsMethod'], 2);
+//                $writer->putUIBits(0, 4); // Reserved
+//                $writer->putUIBit($action['LoadTargetFlag']);
+//                $writer->putUIBit($action['LoadVariablesFlag']);
+                // swf_file_format_spec_v10 bug, field reverse.
                 $writer->putUIBit($action['LoadVariablesFlag']);
+                $writer->putUIBit($action['LoadTargetFlag']);
+                $writer->putUIBits(0, 4); // Reserved
+                $writer->putUIBits($action['SendVarsMethod'], 2);
                 break;
               case 0x9D: // ActionIf
                 $writer->putUI16LE(2);
