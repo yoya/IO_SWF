@@ -34,6 +34,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
+          case 0x13: // focal gradient fill // 8 and later
             if ($isMorph === false) {
                 $fillStyle['GradientMatrix'] = IO_SWF_Type_MATRIX::parse($reader);
             } else {
@@ -66,9 +67,10 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                 }
                 $fillStyle['GradientRecords'] []= $gradientRecord;
             }
+            if ($fillStyleType == 0x13) { // focal gradient fill // 8 and later
+                $gradientRecord['FocalPoint'] = $reader->getUI8();
+            }
             break;
-          // case 0x13: // focal gradient fill // 8 and later
-          // break;
           case 0x40: // repeating bitmap fill
           case 0x41: // clipped bitmap fill
           case 0x42: // non-smoothed repeating bitmap fill
@@ -107,6 +109,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
+          case 0x13: // focal gradient fill // 8 and later
             if ($isMorph === false) {
                 IO_SWF_Type_MATRIX::build($writer, $fillStyle['GradientMatrix']);
             } else {
@@ -137,6 +140,9 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                     $writer->putUI8($gradientRecord['EndRatio']);
                     IO_SWF_Type_RGBA::build($writer, $gradientRecord['EndColor']);
                 }
+            }
+            if ($fillStyleType == 0x13) { // focal gradient fill // 8 and later
+                $writer->putUI8($gradientRecord['FocalPoint']);
             }
           break;
           // case 0x13: // focal gradient fill // 8 and later
