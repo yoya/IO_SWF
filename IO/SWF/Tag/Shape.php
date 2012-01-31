@@ -54,8 +54,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             $this->_startEdge = IO_SWF_Type_SHAPE::parse($reader, $opts);
             list($end_edge_offset, $dummy) = $reader->getOffset();
             if ($offset_offset + $this->_offset + 4 != $end_edge_offset) {
-                // warn!
-                $reader->setOffset($offset_offset + $this->_offset + 4, 9);
+                trigger_error("offset_offset($offset_offset) + this->_offset({$this->_offset}) + 4 != end_edge_offset($end_edge_offset)", E_USER_WARNING);
+                $reader->setOffset($offset_offset + $this->_offset + 4, 0);
             }
             $this->_endEdge   = IO_SWF_Type_SHAPE::parse($reader, $opts);
         }
@@ -80,6 +80,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             echo "    StartBounds: ". IO_SWF_Type_RECT::string($this->_startBounds)."\n";
             echo "    EndBounds: ". IO_SWF_Type_RECT::string($this->_endBounds)."\n";
+            echo "    Offset:{$this->_offset}\n";
             echo "    FillStyles:\n";
             echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_morphFillStyles, $opts);
             echo "    LineStyles:\n";
