@@ -43,6 +43,9 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $fontNameLen = $reader->getUI8();
         $this->FontName = $reader->getData($fontNameLen);
         $numGlyphs = $reader->getUI16LE();
+        if ($numGlyphs === 0) {
+            return ; // no glyphs field.
+        }
         list($startOfOffsetTable, $dummy) = $reader->getOffset();
         if ($this->FontFlagsWideOffsets) {
             for ($i = 0 ; $i < $numGlyphs ; $i++) {
@@ -167,6 +170,9 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $writer->putData($this->FontName);
         $numGlyphs = count($this->OffsetTable);
         $writer->putUI16LE($numGlyphs);
+        if ($numGlyphs === 0) {
+            return $writer->output(); // no glyphs field.
+        }
         list($startOfOffsetTable, $dummy) = $writer->getOffset();
         $startOfOffsetTable2 = array();
         if ($this->FontFlagsWideOffsets) {
