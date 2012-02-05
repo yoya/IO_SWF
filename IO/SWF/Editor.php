@@ -807,7 +807,7 @@ class IO_SWF_Editor extends IO_SWF {
 
         $swf = clone $this;
 
-        foreach ($swf->_tags as $idx => $tag) {
+        foreach ($swf->_tags as $idx => &$tag) {
             $tag_keep = true;
             if (isset($tag->referenceId)) {
                 $tag_keep = false;
@@ -826,34 +826,42 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag_keep && isset($tag->characterId)) {
                     $cid_table[$tag->characterId] = true;
                 }
+            } else if ($tag->code == 26) { // PlaceObject
+                $tag_keep = false;
             }
             if ($tag->code == 39) { // DefineSprite
                 if ($tag->parseTagContent() === false) {
-                    foreach ($tag->tag->_controlTags as $idx_in_sprite => $tag_in_sprite) {
-                        $tag_in_sprite_keep = true;
-                        if (isset($tag_in_sprite->referenceId)) {
-                            $refid = $tag_in_sprite->referenceId;
-                            if (is_array($refid)) {
-                                foreach ($refid as $id) {
-                                    if (isset($cid_table[$id])) {
-                                        $tag_in_sprite_keep = true;
-                                    }
-                                }
-                            } else {
-                                if (isset($cid_table[$refid])) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                foreach ($tag->tag->_controlTags as $idx_in_sprite => &$tag_in_sprite) {
+                    $tag_in_sprite_keep = true;
+                    if (isset($tag_in_sprite->referenceId)) {
+                        $refid = $tag_in_sprite->referenceId;
+                        if (is_array($refid)) {
+                            foreach ($refid as $id) {
+                                if (isset($cid_table[$id])) {
                                     $tag_in_sprite_keep = true;
                                 }
                             }
-                            if ($tag_keep && isset($tagin_sprite->characterId)) {
-                                $cid_table[$tag_in_sprite->characterId] = true;
+                        } else {
+                            if (isset($cid_table[$refid])) {
+                                $tag_in_sprite_keep = true;
                             }
                         }
-                        if ($tag_in_sprite_keep) {
-                            unset($tag->tag->_controlTags[$idx_in_sprite]);
-                            $tag->content = null; // XXX
+                        if ($tag_keep && isset($tag_in_sprite->characterId)) {
+                            $cid_table[$tag_in_sprite->characterId] = true;
                         }
+                    } else if ($tag_in_sprite->code == 26) { // PlaceObject2
+                        $tag_in_sprite_keep = false;
+                    } else if ($tag_in_sprite->code == 5 || $tag_in_sprite->code == 28) { // RemoveObject
+                        $tag_in_sprite_keep = false;
+                    }
+                    if ($tag_in_sprite_keep === false) {
+                        unset($tag->tag->_controlTags[$idx_in_sprite]);
+                        $tag->content = null; // XXX
                     }
                 }
+                unset($tag_in_sprite);
             } else if (isset($tag->characterId)) {
                 if (isset($cid_table[$tag->characterId])) {
                     $tag_keep = true;
@@ -861,11 +869,14 @@ class IO_SWF_Editor extends IO_SWF {
                     $tag_keep = false;
                 }
             }
-            
+            if ($tag->code == 5 || $tag->code == 28) { // RemoveObject
+                $tag_keep = false;
+            }
             if ($tag_keep === false) {
                 unset($swf->_tags[$idx]);
             }
         }
+        unset($tag);
         // $swf->purgeUselessContents();
         return $swf->build();
     }
