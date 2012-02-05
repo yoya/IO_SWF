@@ -908,7 +908,7 @@ class IO_SWF_Editor extends IO_SWF {
         $this->setCharacterId();
         foreach ($this->_tags as &$tag) {
             if ($tag->code == 37) { // DefineEditText
-                if ($tag->characterId === $id) {
+                if ($tag->characterId === (int) $id) {
                     if ($tag->parseTagContent() === false) {
                         return false;                        
                     }
@@ -923,6 +923,36 @@ class IO_SWF_Editor extends IO_SWF {
                         $tag->tag->InitialText = $initialText;
                         $tag->content = null;
                         return true;
+                    }
+                }
+            }
+        }
+        trigger_error("Can't found EditText($id)");
+        return false;
+    }
+    function getEditString($id) {
+        $this->setCharacterId();
+        foreach ($this->_tags as &$tag) {
+            if ($tag->code == 37) { // DefineEditText
+                if ($tag->characterId === (int) $id) {
+                    if ($tag->parseTagContent() === false) {
+                        return false;
+                    }
+                    if (isset($tag->tag->initialText)) {
+                        return $tag->tag->initialText;
+                    } else {
+                        return null;
+                    }
+                } else {
+                    if ($tag->parseTagContent() === false) {
+                        return false;
+                    }
+                    if ($tag->tag->VariableName === $id) {
+                        if (isset($tag->tag->initialText)) {
+                            return $tag->tag->initialText;
+                        } else {
+                            return null;
+                        }
                     }
                 }
             }
