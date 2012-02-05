@@ -103,7 +103,7 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
             if ($tagCode < 32 ) { // DefineShape1,2
                 $color_str = IO_SWF_Type_RGB::string($lineStyle['Color']);
                 $text .= "Color: $color_str\n";
-            } else if ($tagCode < 32 ) { // DefineShape3
+            } else if ($tagCode == 32 ) { // DefineShape3
                 $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
                 $text .= "Color: $color_str\n";
             } else { // DefineShape4
