@@ -161,7 +161,25 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                     $writer->putUIBits(0, 5);
                 } else {
                     // StyleChangeRecord
-                    $stateNewStyles =  isset($shapeRecord['FillStyles'])?1:0;
+                    if (isset($shapeRecord['FillStyles'])) {
+                        $stateNewStyles = 1;
+                        $fillStyleCount = count($shapeRecord['FillStyles']);
+                        if ($fillStyleCount == 0) {
+                            $numFillBits = 0;
+                        } else {
+                            // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
+                            $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
+                        }
+                        $lineStyleCount = count($shapeRecord['LineStyles']);
+                        if ($lineStyleCount == 0) {
+                            $numLineBits = 0;
+                        } else {
+                            // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
+                            $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
+                        }
+                    } else {
+                        $stateNewStyles = 0;
+                    }
                     $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
                     $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                     $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
@@ -209,19 +227,6 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                         $opts = array('tagCode' => $tagCode);
                         IO_SWF_Type_FILLSTYLEARRAY::build($writer, $shapeRecord['FillStyles'], $opts);
                         IO_SWF_Type_LINESTYLEARRAY::build($writer, $shapeRecord['LineStyles'], $opts);
-                        $fillStyleCount = count($shapeRecord['FillStyles']);
-                        if ($fillStyleCount == 0) {
-                            $numFillBits = 0;
-                        } else {
-                            // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
-                            $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
-                        }
-                        if ($lineStyleCount == 0) {
-                            $numLineBits = 0;
-                        } else {
-                            // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
-                            $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
-                        }
                         $writer->byteAlign();
                         $writer->putUIBits($numFillBits, 4);
                         $writer->putUIBits($numLineBits, 4);
