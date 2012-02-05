@@ -24,20 +24,22 @@ foreach ($swf->_tags as $idx => &$tag) {
         if ($tag->parseTagContent($opts) === false) {
             throw new IO_SWF_Exception("Can't parseTagContent tag_code=$tag_code");
         }
-        $transTable = swfwireflame($tag->tag->_fillStyles, $tag->tag->_lineStyles);
+        $transTable = swfwireframe($tag->tag->_fillStyles, $tag->tag->_lineStyles);
         foreach ($tag->tag->_shapeRecords as &$record) {
             if ($record['TypeFlag'] == 0 && (isset($record['EndOfShape']) === false)) {
-                if ($record['LineStyle'] === 0) {
+                if (isset($record['FillStyles'])) {
+                    $transTable = swfwireframe($record['FillStyles'], $record['LineStyles']);
+                }
+                if ($record['LineStyle'] == 0) {
                     if ($record['FillStyle0']) {
                         $record['LineStyle'] = $transTable[$record['FillStyle0']];
                     } else if ($record['FillStyle1']) {
                         $record['LineStyle'] = $transTable[$record['FillStyle1']];
+                    } else {
+                        $record['LineStyle'] = 1; // XXX
                     }
                     $record['FillStyle0'] = 0;
                     $record['FillStyle1'] = 0;
-                }
-                if (isset($record['FillStyles'])) {
-                    $transTable = swfwireflame($record['FillStyles'], $record['LineStyles']);
                 }
             }
         }
@@ -45,7 +47,7 @@ foreach ($swf->_tags as $idx => &$tag) {
     }
 }
 
-function swfwireflame(&$fillStyles, &$lineStyles) {
+function swfwireframe(&$fillStyles, &$lineStyles) {
     $transTable = array();
     $lineStylesIdx = count($lineStyles);
     foreach ($fillStyles as $idx => $fillStyle) {
