@@ -114,9 +114,17 @@ class IO_SWF {
         $opts['indent'] = 0;
         /* SWF Tags */
         
+        if ($this->_headers['Version'] < 6) {
+            ob_start('mb_convert_encoding_from_sjis');
+        }
         echo 'Tags:'.PHP_EOL;
         foreach ($this->_tags as $tag) {
     	    $tag->dump($opts);
+            ob_flush();
         }
     }
+}
+
+function mb_convert_encoding_from_sjis($a) {
+    return mb_convert_encoding($a, 'UTF-8', 'SJIS-win');
 }
