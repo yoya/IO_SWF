@@ -39,7 +39,7 @@ foreach ($swf->_tags as $idx => $tag) {
         }
         $spriteId = $tag->tag->_spriteId;
         $currentFrameInSprite = 1;
-        foreach ($tag->tag->_controlTags as &$tag_in_sprite) {
+        foreach ($tag->tag->_controlTags as $tag_in_sprite) {
             $tag_code_in_sprite = $tag_in_sprite->code;
             if ($tag_code_in_sprite == 1) { // ShowFrame
                 $currentFrameInSprite++;
