@@ -70,26 +70,26 @@ class IO_SWF_Tag_EditText extends IO_SWF_Tag_Base {
 
     function dumpContent($tagCode, $opts = array()) {
         echo "\tCharacterID:{$this->CharacterID}\n";
-        echo IO_SWF_Type_RECT::string($this->Bounds)."\n";
-        echo "WordWrap:{$this->WordWrap} Multiline:{$this->Multiline} Password:{$this->Password} ReadOnly:{$this->ReadOnly}\n";
+        echo "\t".IO_SWF_Type_RECT::string($this->Bounds)."\n";
+        echo "\tWordWrap:{$this->WordWrap} Multiline:{$this->Multiline} Password:{$this->Password} ReadOnly:{$this->ReadOnly}\n";
         if (is_null($this->FontID) === false) {
-            echo "FontID:{$this->FontID} FontHeight:".($this->FontHeight/20)."\n";
+            echo "\tFontID:{$this->FontID} FontHeight:".($this->FontHeight/20)."\n";
         }
         if (is_null($this->FontClass) === false) {
-            echo "FontClass:{$this->FontClass}({".bin2hex($this->FontClass).")\n";
+            echo "\tFontClass:{$this->FontClass}({".bin2hex($this->FontClass).")\n";
         }
         if (is_null($this->TextColor) === false) {
-            echo 'TextColor'.IO_SWF_Type_RGBA::string($this->TextColor)."\n";
+            echo "\tTextColor".IO_SWF_Type_RGBA::string($this->TextColor)."\n";
         }
         if (is_null($this->MaxLength) === false) {
-            echo "MaxLength:{$this->MaxLength}\n";
+            echo "\tMaxLength:{$this->MaxLength}\n";
         }
         if (is_null($this->Align) === false) {
-            echo "Align:{$this->Align} LeftMargin:{$this->LeftMargin} RightMargin:{$this->RightMargin} Indent:{$this->Indent} Leading:".($this->Leading/20)."\n";
+            echo "\tAlign:{$this->Align} LeftMargin:{$this->LeftMargin} RightMargin:{$this->RightMargin} Indent:{$this->Indent} Leading:".($this->Leading/20)."\n";
         }
-        echo "VariableName:{$this->VariableName}\n";
+        echo "\tVariableName:{$this->VariableName}\n";
         if (is_null($this->InitialText) == false) {
-            echo "InitialText:{$this->InitialText}\n";
+            echo "\tInitialText:{$this->InitialText}\n";
         }
     }
 
