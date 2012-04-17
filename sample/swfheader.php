@@ -43,15 +43,17 @@ if ($argc == 2) {
                 echo "Header key not exists ($key)\n";
                 exit (1);
             }
-        }
-        if (array_key_exists($key, $headers)) {
-            $swf->_headers[$key] = $value;
         } else {
-            echo "Header key not exists ($key)\n";
-            exit (1);
+            if (array_key_exists($key, $headers)) {
+                $swf->_headers[$key] = $value;
+            } else {
+                echo "Header key not exists ($key)\n";
+                exit (1);
+            }
         }
     }
-    echo $swf->build();
 }
+
+echo $swf->build();
 
 exit(0);
