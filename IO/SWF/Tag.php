@@ -107,8 +107,16 @@ class IO_SWF_Tag {
         if ($length == 0x3f) { // long format
             $length = $reader->getUI32LE();
         }
+        list($this->byte_offset_content, $dummy) = $reader->getOffset();
         $this->content = $reader->getData($length);
+
+        $reader->byteAlign();
         list($byte_offset, $dummy) = $reader->getOffset();
+/*
+        if ($length != $byte_offset - $this->byte_offset_content) {
+            throw new IO_SWF_Exception("Tag length:$length != byte_offset:$byte_offset - byte_offset_content:{$this->byte_offset_content}");
+        }
+*/
         $this->byte_size = $byte_offset - $this->byte_offset;
     }
     function dump($opts = array()) {
