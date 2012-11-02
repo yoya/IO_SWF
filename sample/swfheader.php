@@ -52,8 +52,8 @@ if ($argc == 2) {
             }
         }
     }
+    echo $swf->build();
 }
 
-echo $swf->build();
 
 exit(0);
