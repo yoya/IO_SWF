@@ -4,14 +4,21 @@ require 'IO/SWF/Editor.php';
 
 $tagMap = IO_SWF_Tag::$tagMap;
 
-if ($argc !== 3) {
-    echo "Usage: php swfextract.php <swf_file> <outfile_prefix>\n";
-    echo "ex) php swfextract.php test.swf test-\n";
+$options = getopt("f:p:m");
+
+
+if ((isset($options['f']) === false) ||
+    (is_readable($options['f']) === false) ||
+    (isset($options['p']) === false)) { 
+    echo "Usage: php swfextract.php [-m] -f <swf_file> -p <outfile_prefix>\n";
+    echo "ex) php swfextract.php -m -f test.swf -p test-\n";
     exit(1);
 }
 
-$swffile = $argv[1];
-$outfile_prefix  = $argv[2];
+$mc_extract = isset($options['m'])?true:false;
+
+$swffile = $options['f'];
+$outfile_prefix  = $options['p'];
 $swfdata = file_get_contents($swffile);
 
 $swf = new IO_SWF_Editor();
@@ -75,6 +82,9 @@ foreach ($swf->_tags as $tag) {
         }
         break;
     case 39: // Sprite
+        if ($mc_extract === false) {
+            continue; // skip
+        }
         $tag->parseTagContent();
         $cid = $tag->tag->_spriteId;
         $data = $swf->getMovieClip($cid);
@@ -88,6 +98,5 @@ foreach ($swf->_tags as $tag) {
         file_put_contents($outfile, $data);
     }
 }
-
 
 exit(0);
