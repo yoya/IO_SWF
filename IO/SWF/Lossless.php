@@ -1,7 +1,5 @@
 <?php
 
-require ('IO/SWF/Tag/Jpeg.php');
-
 class IO_SWF_Lossless {
     /* PNG と GIF の Bitmap データを Lossless 形式に変換する
      * return array('Code' => ..., 'Content' => ...)
