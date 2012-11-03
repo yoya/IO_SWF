@@ -2,6 +2,8 @@
 
 require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/../SWF/Tag/Shape.php';
+require_once dirname(__FILE__).'/Lossless.php';
+require_once dirname(__FILE__).'/JPEG.php';
 
 class IO_SWF_Tag {
     var $swfInfo;
@@ -340,5 +342,63 @@ class IO_SWF_Tag {
             break;
         }
         return true;
+    }
+    
+    function getJpegData($jpegTables) {
+        $tag_code = $this->code;
+        if (($tag_code != 6) && // DefineBits
+            ($tag_code != 21) && // DefineBitsJPEG2
+            ($tag_code != 35)) { // DefineBitsJPEG3
+            return false;
+        }
+        if (! $this->parseTagContent()) {
+            return false;
+        }
+        $jpegData = $this->tag->_JPEGData;
+
+        if (($tag_code == 6) && ($jpegTables !== false)) { // DefineBits
+            $jpegData .= $jpegTables;
+        }
+        $jpeg = new IO_SWF_JPEG();
+        $jpeg->input($jpegData);
+        
+        $ret = $jpeg->getStdJpegData();
+        return $ret;
+    }
+
+    function getPNGData() {
+        $tag_code = $this->code;
+        if (($tag_code != 20) && // DefineBitsLossless
+            ($tag_code != 36)) { // DefineBitsLossless2
+            return false;
+        }
+        if (! $this->parseTagContent()) {
+            return false;
+        }
+        $cid = $this->tag->_CharacterID;
+        $format = $this->tag->_BitmapFormat;
+        $width =  $this->tag->_BitmapWidth;
+        $height = $this->tag->_BitmapHeight;
+        $lossless_bitmap_data = gzuncompress($this->tag->_ZlibBitmapData);
+        
+        if ($format == 3) {
+            $palette_num = $this->tag->_BitmapColorTableSize;
+            if ($tag_code == 20) { // DefineBisLossless
+                $palette_bytesize = 3 * $palette_num;
+            } else {
+                $palette_bytesize = 4 * $palette_num;
+            }
+            $palette_data = substr($lossless_bitmap_data, 0, $palette_bytesize);
+            $lossless_bitmap_data = substr($lossless_bitmap_data, $palette_bytesize);
+        } else {
+            $palette_num = 0;
+            $palette_data = null;
+        }
+        $png_data = IO_SWF_Lossless::Lossless2PNG($tag_code, $format,
+                                                  $width, $height,
+                                                  $palette_num,
+                                                  $palette_data,
+                                                  $lossless_bitmap_data);
+        return $png_data;
     }
 }

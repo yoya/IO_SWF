@@ -213,7 +213,7 @@ class IO_SWF_Editor extends IO_SWF {
                 return $tag->content;
             }
         }
-        return null;
+        return false;
     }
     
     function replaceTagContentByCharacterId($tagCode, $characterId, $content_after_character_id) {
@@ -470,14 +470,10 @@ class IO_SWF_Editor extends IO_SWF {
         }
         $jpegData = $tag->tag->_JPEGData;
 
-        if ($tag_code == 6) { // DefineBits
-            $jpegTables = $this->getTagContent(8); // JPEGTables
-            $jpegData .= $jpegTables;
-        }
         $jpeg = new IO_SWF_JPEG();
         $jpeg->input($jpegData);
-        
-        $ret = $jpeg->getStdJpegData();
+        $jpegTables = $this->getTagContent(8); // JPEGTables
+        $ret = $jpeg->getStdJpegData($jpegTables);
         return $ret;
     }
 
@@ -489,35 +485,9 @@ class IO_SWF_Editor extends IO_SWF {
             ($tag_code != 36)) { // DefineBitsLossless2
             return false;
         }
-        if (! $tag->parseTagContent()) {
-            return false;
-        }
-        $cid = $tag->tag->_CharacterID;
-        $format = $tag->tag->_BitmapFormat;
-        $width =  $tag->tag->_BitmapWidth;
-        $height = $tag->tag->_BitmapHeight;
-        $lossless_bitmap_data = gzuncompress($tag->tag->_ZlibBitmapData);
-        
-        if ($format == 3) {
-            $palette_num = $tag->tag->_BitmapColorTableSize;
-            if ($tag_code == 20) { // DefineBisLossless
-                $palette_bytesize = 3 * $palette_num;
-            } else {
-                $palette_bytesize = 4 * $palette_num;
-            }
-            $palette_data = substr($lossless_bitmap_data, 0, $palette_bytesize);
-            $lossless_bitmap_data = substr($lossless_bitmap_data, $palette_bytesize);
-        } else {
-            $palette_num = 0;
-            $palette_data = null;
-        }
-        $png_data = IO_SWF_Lossless::Lossless2PNG($tag_code, $format,
-                                                  $width, $height,
-                                                  $palette_num,
-                                                  $palette_data,
-                                                  $lossless_bitmap_data);
-        return $png_data;
+        return $tag->getPNGData();
     }
+
     function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {
         $shape_adjust_mode = $this->shape_adjust_mode;
         switch ($shape_adjust_mode) {
