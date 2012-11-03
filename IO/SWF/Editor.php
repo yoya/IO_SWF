@@ -11,7 +11,7 @@ require_once dirname(__FILE__).'/Tag/Action.php';
 require_once dirname(__FILE__).'/Tag/Sprite.php';
 require_once dirname(__FILE__).'/Lossless.php';
 require_once dirname(__FILE__).'/JPEG.php';
-require_once dirname(__FILE__).'/../SWF/Bitmap.php';
+require_once dirname(__FILE__).'/Bitmap.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
