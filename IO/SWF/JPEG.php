@@ -64,8 +64,6 @@ class IO_SWF_JPEG {
             case 0xDA: // SOS
                 if ($sosScan === false) {
                     $remainData = $bitin->getDataUntil(false);
-                    
-                    $length = fset - $chunk_data_offset;
                     $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $remainData, 'length' => null);
                     break 2 ; // while break;
                 }
