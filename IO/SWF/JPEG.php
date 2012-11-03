@@ -27,15 +27,25 @@ class IO_SWF_JPEG {
         0xF8 => 'JPG8',  0xF9 => 'JPG9', 0xFA => 'JPG10', 0xFB => 'JPG11',
         0xFC => 'JPG12', 0xFD => 'JPG13'
         );
+    var $stdChunkOrder = array(
+        0xD8, // SOI
+        0xE0, // APP0
+        0xDB, // DQT
+        0xC0, // SOF0
+        0xC4, // DHT
+        0xDA, // SOS
+        0xD9, // EOI
+        );
     var $_jpegdata = null;
     var $_jpegChunk = array();
     function input($jpegdata) {
         $this->_jpegdata = $jpegdata;
     }
-    function _splitChunk() {
+    function _splitChunk($eoiFinish = true, $sosScan = true) {
         $bitin = new IO_Bit();
         $bitin->input($this->_jpegdata);
-        while ($marker1 = $bitin->getUI8()) {
+        while ($bitin->hasNextData()) {
+            $marker1 = $bitin->getUI8();
             if ($marker1 != 0xFF) {
                 fprintf(STDERR, "dumpChunk: marker1=0x%02X", $marker1);
                 return false;
@@ -47,8 +57,18 @@ class IO_SWF_JPEG {
                 continue;
             case 0xD9: // EOE (End of Image)
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
-                break 2; // while break;
+                if ($eoiFinish) {
+                    break 2; // while break;
+                }
+                continue;
             case 0xDA: // SOS
+                if ($sosScan === false) {
+                    $remainData = $bitin->getDataUntil(false);
+                    
+                    $length = fset - $chunk_data_offset;
+                    $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $remainData, 'length' => null);
+                    break 2 ; // while break;
+                }
             case 0xD0: case 0xD1: case 0xD2: case 0xD3: // RST
             case 0xD4: case 0xD5: case 0xD6: case 0xD7: // RST
                 list($chunk_data_offset, $dummy) = $bitin->getOffset();
@@ -126,9 +146,34 @@ class IO_SWF_JPEG {
         return $bitout->output();
        
     }
+    // from: SOI DQT DHT EOI SOI APP* SOF* SOS -
+    // to: SOI APP1 DQT SOF1 DHT SOS -
+    function getStdJpegData() {
+        if (count($this->_jpegChunk) == 0) {
+            $this->_splitChunk(false, false);
+        }
+        $bitout = new IO_Bit();
+        foreach ($this->stdChunkOrder as $stdMarker) {
+            foreach ($this->_jpegChunk as $chunk) {
+                $marker = $chunk['marker'];
+                if ($stdMarker == $marker) {
+                    $bitout->putUI8(0xFF);
+                    $bitout->putUI8($marker);
+                    if (! is_null($chunk['length'])) {
+                        $bitout->putUI16BE($chunk['length']);
+                    }
+                    $bitout->putData($chunk['data']);
+                    if (($marker == 0xD8) || ($marker == 0xD9)) {
+                        break; // SOI | EOI
+                    }
+                }
+            }
+        }
+        return $bitout->output();
+    }
     function dumpChunk() { // for debug
         if (count($this->_jpegChunk) == 0) {
-            $this->_splitChunk();
+            $this->_splitChunk(false);
         }
         foreach ($this->_jpegChunk as $chunk) {
             $marker = $chunk['marker'];

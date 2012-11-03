@@ -456,6 +456,31 @@ class IO_SWF_Editor extends IO_SWF {
         return $ret;
     }
 
+    function getJpegData($bitmap_id) {
+        $this->setCharacterId();
+        $tag = $this->getTagByCharacterId($bitmap_id);
+        $tag_code = $tag->code;
+        if (($tag_code != 6) && // DefineBits
+            ($tag_code != 21) && // DefineBitsJPEG2
+            ($tag_code != 35)) { // DefineBitsJPEG3
+            return false;
+        }
+        if (! $tag->parseTagContent()) {
+            return false;
+        }
+        $jpegData = $tag->tag->_JPEGData;
+
+        if ($tag_code == 6) { // DefineBits
+            $jpegTables = $this->getTagContent(8); // JPEGTables
+            $jpegData .= $jpegTables;
+        }
+        $jpeg = new IO_SWF_JPEG();
+        $jpeg->input($jpegData);
+        
+        $ret = $jpeg->getStdJpegData();
+        return $ret;
+    }
+
     function getPNGData($bitmap_id) {
         $this->setCharacterId();
         $tag = $this->getTagByCharacterId($bitmap_id);
@@ -493,7 +518,6 @@ class IO_SWF_Editor extends IO_SWF {
                                                   $lossless_bitmap_data);
         return $png_data;
     }
-
     function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {
         $shape_adjust_mode = $this->shape_adjust_mode;
         switch ($shape_adjust_mode) {
