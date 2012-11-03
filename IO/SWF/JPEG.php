@@ -55,7 +55,7 @@ class IO_SWF_JPEG {
             case 0xD8: // SOI (Start of Image)
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
                 continue;
-            case 0xD9: // EOE (End of Image)
+            case 0xD9: // EOI (End of Image)
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
                 if ($eoiFinish) {
                     break 2; // while break;
