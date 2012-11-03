@@ -49,6 +49,31 @@ foreach ($swf->_tags as $tag) {
         $data = $tag->getPNGData();
         $ext = "png";
         break;
+    case 14: // DefineSound
+        $tag->parseTagContent();
+        $cid = $tag->tag->SoundId;
+        $data = $tag->getSoundData();
+        $ext = "sound"; // sound default
+        switch ($tag->tag->SoundFormat) {
+        case 1: // ADPCM
+            $ext = "adpcm";
+            break;
+        case 2: // MP3
+            $ext = "mp3";
+            break;
+        case 11: // Speex
+            $ext = "spx";
+            break;
+        case 15: // Melody (maybe)
+            if (strncmp($data, 'melo', 4) === 0) {
+                $ext = "mld";
+            } else if (strncmp($data, 'MMMD', 4) === 0) {
+                $ext = "mmf";
+            } else {
+                $ext = "melo";
+            }
+        }
+        break;
     case 39: // Sprite
         $tag->parseTagContent();
         $cid = $tag->tag->_spriteId;

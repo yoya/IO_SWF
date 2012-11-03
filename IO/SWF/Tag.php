@@ -27,7 +27,7 @@ class IO_SWF_Tag {
         11 => array('name' => 'DefineText', 'klass' => 'Text'),
         12 => array('name' => 'DoAction', 'klass' => 'Action'),
         13 => array('name' => 'DefineFontInfo'),
-        14 => array('name' => 'DefineSound'),
+        14 => array('name' => 'DefineSound', 'klass' => 'Sound'),
         15 => array('name' => 'StartSound'),
         // 16 missing
         17 => array('name' => 'DefineButtonSound'),
@@ -400,5 +400,17 @@ class IO_SWF_Tag {
                                                   $palette_data,
                                                   $lossless_bitmap_data);
         return $png_data;
+    }
+
+    function getSoundData() {
+        $tag_code = $this->code;
+        if ($tag_code != 14) { // DefineSound
+            return false;
+        }
+        if (! $this->parseTagContent()) {
+            return false;
+        }
+        $soundData = $this->tag->SoundData;
+        return $soundData;
     }
 }

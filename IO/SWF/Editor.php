@@ -9,6 +9,7 @@ require_once dirname(__FILE__).'/../SWF.php';
 require_once dirname(__FILE__).'/Tag/Shape.php';
 require_once dirname(__FILE__).'/Tag/Action.php';
 require_once dirname(__FILE__).'/Tag/Sprite.php';
+require_once dirname(__FILE__).'/Tag/Sound.php';
 require_once dirname(__FILE__).'/Lossless.php';
 require_once dirname(__FILE__).'/JPEG.php';
 require_once dirname(__FILE__).'/Bitmap.php';
@@ -486,6 +487,16 @@ class IO_SWF_Editor extends IO_SWF {
             return false;
         }
         return $tag->getPNGData();
+    }
+
+    function getSoundData($sound_id) {
+        $this->setCharacterId();
+        $tag = $this->getTagByCharacterId($sound_id);
+        $tag_code = $tag->code;
+        if ($tag_code != 14) { // DefineSound
+            return false;
+        }
+        return $tag->getSoundData();
     }
 
     function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {
