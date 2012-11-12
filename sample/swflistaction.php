@@ -30,7 +30,8 @@ foreach ($swf->_tags as $idx => $tag) {
             exit(1);
         }
         $action_num = count($tag->tag->_actions);
-        echo "0:$currentFrame => $action_num\n";
+        $length = strlen($tag->content);
+        echo "spriteId:0(root)  frame:$currentFrame\t=> instruction:$action_num  length=$length\n";
     }
     if ($tag_code == 39) { // DefineSprite
         if ($tag->parseTagContent() === false) {
@@ -51,7 +52,8 @@ foreach ($swf->_tags as $idx => $tag) {
                     exit(1);
                 }
                 $action_num = count($tag_in_sprite->tag->_actions);
-                echo "$spriteId:$currentFrameInSprite => $action_num\n";
+                $length = strlen($tag_in_sprite->content);
+                echo "spriteId:$spriteId  frame:$currentFrameInSprite\t=> instruction:$action_num  length=$length\n";
             }
         }
     }
