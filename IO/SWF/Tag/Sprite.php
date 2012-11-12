@@ -30,7 +30,11 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         echo "\tSprite: SpriteID={$this->_spriteId} FrameCount={$this->_frameCount}\n";
         foreach ($this->_controlTags as $tag) {
             echo "  ";
-            $tag->dump($opts);
+            try {
+                $tag->dump($opts);
+            } catch (IO_Bit_Exception $e) {
+                echo "(tag parse failed)\n";
+            }
         }
     }
     

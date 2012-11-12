@@ -119,7 +119,11 @@ class IO_SWF {
         }
         echo 'Tags:'.PHP_EOL;
         foreach ($this->_tags as $tag) {
-    	    $tag->dump($opts);
+            try {
+                $tag->dump($opts);
+            } catch (IO_Bit_Exception $e) {
+                echo "(tag parse failed)\n";
+            }
             if ($this->_headers['Version'] < 6) {
                 ob_flush();
             }
