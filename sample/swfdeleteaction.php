@@ -31,7 +31,7 @@ foreach ($swf->_tags as $idx => &$tag) {
             // DoAction, DoInitAction
             if (($tag_code_in_sprite == 12) || ($tag_code_in_sprite == 59)) {
                 unset($tag->tag->_controlTags->_tags[$idx_in_sprite]);
-                $tag_in_sprite->content = null;
+                $tag_in_sprite->content = "\0";
                 $tag->content = null;
             }
         }
