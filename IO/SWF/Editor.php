@@ -404,9 +404,8 @@ class IO_SWF_Editor extends IO_SWF {
                     switch ($code_in_sprite) {
                       case 12: // DoAction
                       case 59: // DoInitAction
-                        $action_in_sprite = new IO_SWF_Tag_Action();
-                        $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
-                        if ($action_in_sprite->replaceActionStrings($trans_table)) {
+                        $tag_in_sprite->parseTagContent($opts);
+                        if ($tag_in_sprite->tag->replaceActionStrings($trans_table)) {
                             $tag_in_sprite->content = null;
                             $tag->content = null;
                         }
