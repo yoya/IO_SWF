@@ -25,11 +25,20 @@ foreach ($swf->_tags as $idx => $tag) {
         continue;
     }
     if (($tag_code == 12) || ($tag_code == 59)) { // DoAction, DoInitAction
-        if ($tag->parseTagContent() === false) {
-            echo "Unknown Action Tag\n";
-            exit(1);
+        try {
+            if ($tag->parseTagContent() === false) {
+                echo "Unknown Action Tag\n";
+                exit(1);
+            }
+            $action_num = count($tag->tag->_actions);
+        } catch (IO_Bit_Exception $e) {
+            if (isset($tag_in_sprite->tag->_actions)) {
+                $action_num = count($tag_in_sprite->tag->_actions);
+                $action_num .= "(at least)";
+            } else {
+                $action_num = "(parse error)";
+            }
         }
-        $action_num = count($tag->tag->_actions);
         $length = strlen($tag->content);
         echo "spriteId:0(root)  frame:$currentFrame\t=> instruction:$action_num  length=$length\n";
     }
@@ -47,11 +56,20 @@ foreach ($swf->_tags as $idx => $tag) {
                 continue;
             }
             if (($tag_code_in_sprite == 12) || ($tag_code_in_sprite == 59)) { // DoAction, DoInitAction
-                if ($tag_in_sprite->parseTagContent() === false) {
-                    echo "Unknown Action Tag\n";
-                    exit(1);
+                try {
+                    if ($tag_in_sprite->parseTagContent() === false) {
+                        echo "Unknown Action Tag\n";
+                        exit(1);
+                    }
+                    $action_num = count($tag_in_sprite->tag->_actions);
+                } catch (IO_Bit_Exception $e) {
+                    if (isset($tag_in_sprite->tag->_actions)) {
+                        $action_num = count($tag_in_sprite->tag->_actions);
+                        $action_num .= "(at least)";
+                    } else {
+                        $action_num = "(parse error)";
+                    }
                 }
-                $action_num = count($tag_in_sprite->tag->_actions);
                 $length = strlen($tag_in_sprite->content);
                 echo "spriteId:$spriteId  frame:$currentFrameInSprite\t=> instruction:$action_num  length=$length\n";
             }
