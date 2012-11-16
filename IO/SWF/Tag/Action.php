@@ -140,11 +140,14 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     }
 
     function replaceActionStrings($trans_table) {
+        $replaced = false;
         foreach ($this->_actions as &$action) {
-            IO_SWF_Type_Action::replaceActionString($action, $trans_table);
+            if (IO_SWF_Type_Action::replaceActionString($action, $trans_table)) {
+                $replaced = true;
+            }
         }
         unset($action);
-        return true;
+        return $replaced;
     }
 
     function insertAction($pos, $action) {

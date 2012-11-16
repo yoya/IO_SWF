@@ -434,20 +434,24 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
         return $str;
     }
     function replaceActionString(&$action, $trans_table) {
+        $replaced = false;
         switch($action['Code']) {
           case 0x83: // ActionGetURL
             ;
             if (isset($trans_table[$action['UrlString']])) {
                 $action['UrlString'] = $trans_table[$action['UrlString']];
+                $replaced = true;
             }
             if (isset($trans_table[$action['TargetString']])) {
                 $action['TargetString'] = $trans_table[$action['TargetString']];
+                $replaced = true;
             }
             break;
           case 0x88: // ActionConstantPool
             foreach ($action['ConstantPool'] as $idx_cp => $cp) {
                 if (isset($trans_table[$cp])) {
                     $action['ConstantPool'][$idx_cp] = $trans_table[$cp];
+                    $replaced = true;
                 }
             }
             break;
@@ -456,12 +460,14 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 if ($value['Type'] == 0) { // Type String
                     if (isset($trans_table[$value['String']])) {
                         $value['String'] = $trans_table[$value['String']];
+                        $replaced = true;
                     }
                 }
             }
             unset($value);
             break;
         }
-        return true;
+        
+        return $replaced;
     }
 }

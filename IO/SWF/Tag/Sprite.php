@@ -45,7 +45,7 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         foreach ($this->_controlTags as $tag) {
             $tagData = $tag->build();
             if ($tagData != false) {
-                $writer->putData($tag->build());
+                $writer->putData($tagData);
             }
         }
     	return $writer->output();

@@ -387,14 +387,15 @@ class IO_SWF_Editor extends IO_SWF {
                     foreach ($tag->tag->_actions as &$buttoncondaction) {
                         if (isset($buttoncondaction['Actions'])) {
                             foreach ($buttoncondaction['Actions'] as &$action) {
-                                IO_SWF_Type_Action::replaceActionString($action, $trans_table);
+                                if (IO_SWF_Type_Action::replaceActionString($action, $trans_table)) {
+                                    $tag->content = null;
+                                }
                             }
                             unset($action);
                         }
                     }
                     unset($buttoncondaction);
                 }
-                $tag->content = null;
                 break;
               case 39: // Sprite
                 $tag->parseTagContent($opts);
@@ -405,13 +406,14 @@ class IO_SWF_Editor extends IO_SWF {
                       case 59: // DoInitAction
                         $action_in_sprite = new IO_SWF_Tag_Action();
                         $action_in_sprite->parseContent($code_in_sprite, $tag_in_sprite->content);
-                        $action_in_sprite->replaceActionStrings($trans_table);
-                        $tag_in_sprite->content = null;
+                        if ($action_in_sprite->replaceActionStrings($trans_table)) {
+                            $tag_in_sprite->content = null;
+                            $tag->content = null;
+                        }
                         break;
                     }
                 }
                 unset($tag_in_sprite);
-                $tag->content = null;
                 break;
             }
         }
