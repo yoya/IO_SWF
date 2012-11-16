@@ -3,8 +3,6 @@
 require 'IO/SWF/Editor.php';
 // require dirname(__FILE__).'/../IO/SWF.php';
 
-$options = getopt("f:h");
-
 if ($argc != 2) {
     echo "Usage: php swflistmovieclip.php <swf_file>\n";
     exit(1);
