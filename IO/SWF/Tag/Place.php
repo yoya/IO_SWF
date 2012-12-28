@@ -71,6 +71,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
         if (is_null($this->_characterId) === false) {
             echo "\tCharacterId: ".$this->_characterId."\n";
         }
+	echo "\tMove: ".($this->_placeFlagMove?'true':'false')."\n";
         if (is_null($this->_depth) === false) {
             echo "\tDepth: ".$this->_depth."\n";
         }
