@@ -359,4 +359,77 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
 	}
 	return array($this->_shapeId, $edges_count);
     }
+
+    function countRecords() {
+        if (isset($this->_shapeRecords)) {
+            $shapeRecords = $this->_shapeRecords;
+        } elseif (isset($this->_startEdge)) {
+            $shapeRecords = $this->_startEdge;
+        } else {
+            $shapeRecords = array(); // nothing to do.
+        }
+        $straightCount = 0;
+        $curvedCount = 0;
+        $fillStyle0 = 0;
+        $fillStyle1 = 0;
+        $lineStyle = 0;
+        foreach ($shapeRecords as $shapeRecordIndex => $shapeRecord) {
+            if (isset($shapeRecord['StraightFlag'])) {
+                if ($shapeRecord['StraightFlag']) {
+                    $straightCount++;
+                } else {
+                    $curvedCount++;
+                }
+            } else { // ChangeRecord || EndRecord
+                if (($straightCount > 0) ||
+                    ($curvedCount > 0)) {
+                    $counts[] = Array(
+                        'FillStyle0' => $fillStyle0,
+                        'FillStyle1' => $fillStyle1,
+                        'LineStyle' => $lineStyle,
+                        'Straight' => $straightCount,
+                        'Curved' => $curvedCount,
+                        );
+                    $straightCount = 0;
+                    $curvedCount = 0;
+                }
+                if (isset($shapeRecord['EndOfShape']) === false) {
+                    $fillStyle0 = $shapeRecord['FillStyle0'];
+                    $fillStyle1 = $shapeRecord['FillStyle1'];
+                    $lineStyle = $shapeRecord['LineStyle'];
+                }
+            }
+        }
+        return array($this->_shapeId, $counts);
+    }
+
+    function sliceRecords($start, $end) {
+        if (isset($this->_shapeRecords)) {
+            $shapeRecords =& $this->_shapeRecords;
+        } elseif (isset($this->_startEdge)) {
+            $shapeRecords =& $this->_startEdge;
+        } else {
+            $shapeRecords = array(); // nothing to do.
+        }
+        $fillStyle0 = 0;
+        $fillStyle1 = 0;
+        $lineStyle = 0;
+        $changeStyleIndex = -1;
+        foreach ($shapeRecords as $shapeRecordIndex => &$shapeRecord) {
+            if (isset($shapeRecord['StraightFlag'])) {
+                if (($changeStyleIndex < $start) ||
+                    ($end < $changeStyleIndex)) {
+                    unset($shapeRecords[$shapeRecordIndex]);
+                }
+            } else { // ChangeRecord || EndRecord
+                if (isset($shapeRecord['EndOfShape']) === false) {
+                    $changeStyleIndex++;
+                    $fillStyle0 = $shapeRecord['FillStyle0'];
+                    $fillStyle1 = $shapeRecord['FillStyle1'];
+                    $lineStyle = $shapeRecord['LineStyle'];
+                }
+            }
+        }
+        return true;
+    }
 }

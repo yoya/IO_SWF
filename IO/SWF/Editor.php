@@ -546,6 +546,47 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $count_table;
     }
+
+    function countShapeRecords($opts = array()) {
+        $count_table = array();
+        foreach ($this->_tags as $tag) {
+            $code = $tag->code;
+            switch ($code) {
+              case 2: // DefineShape
+              case 22: // DefineShape2
+              case 32: // DefineShape3
+              case 46: // DefineMorphShape
+                $shape = new IO_SWF_Tag_Shape();
+                $shape->parseContent($code, $tag->content);
+                list($shape_id, $record_count) = $shape->countRecords();
+                $count_table[$shape_id] = $record_count;
+            }
+        }
+        return $count_table;
+    }
+
+    function sliceShapeRecords($shape_id, $start, $end) {
+        $count_table = array();
+        $ret = false;
+        foreach ($this->_tags as &$tag) {
+            $code = $tag->code;
+            switch ($code) {
+              case 2: // DefineShape
+              case 22: // DefineShape2
+              case 32: // DefineShape3
+              case 46: // DefineMorphShape
+                $tag->parseTagContent();
+                if ($tag->tag->_shapeId != $shape_id) {
+                    continue;
+                }
+                $ret = $tag->tag->sliceRecords($start, $end);
+                $tag->content = null;
+                break 2;
+            }
+        }
+        return $ret;
+    }
+
     function setShapeAdjustMode($mode) {
         $this->shape_adjust_mode = $mode;
     }
