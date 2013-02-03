@@ -161,40 +161,46 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                     $writer->putUIBits(0, 5);
                 } else {
                     // StyleChangeRecord
+                    $stateNewStyles = 0;
                     if (isset($shapeRecord['FillStyles'])) {
-                        $stateNewStyles = 1;
                         $fillStyleCount = count($shapeRecord['FillStyles']);
                         if ($fillStyleCount == 0) {
                             $numFillBits = 0;
                         } else {
                             // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
                             $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
+                            $stateNewStyles = 1;
                         }
+                    }
+                    if (isset($shapeRecord['LineStyles'])) {
                         $lineStyleCount = count($shapeRecord['LineStyles']);
                         if ($lineStyleCount == 0) {
                             $numLineBits = 0;
                         } else {
                             // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
                             $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
+                            $stateNewStyles = 1;
                         }
-                    } else {
-                        $stateNewStyles = 0;
                     }
                     $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
                     $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                     $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
-
-                    $writer->putUIBit($stateNewStyles);
-                    $writer->putUIBit($stateLineStyle);
-                    $writer->putUIBit($stateFillStyle1);
-                    $writer->putUIBit($stateFillStyle0);
-
                     if (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY)) {
                         $stateMoveTo = true;
                     } else {
                         $stateMoveTo = false;
                     }
+                    if (($stateNewStyles + $stateNewStyles +
+                         $stateFillStyle1 + $stateFillStyle0 + $stateMoveTo)
+                        == 0) {
+                        $stateMoveTo = 1;
+                    }
+                    $writer->putUIBit($stateNewStyles);
+                    $writer->putUIBit($stateLineStyle);
+                    $writer->putUIBit($stateFillStyle1);
+                    $writer->putUIBit($stateFillStyle0);
                     $writer->putUIBit($stateMoveTo);
+
                     if ($stateMoveTo) {
                         $moveX = $shapeRecord['MoveX'];
                         $moveY = $shapeRecord['MoveY'];
