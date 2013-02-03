@@ -414,16 +414,22 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         $fillStyle0 = 0;
         $fillStyle1 = 0;
         $lineStyle = 0;
-        $changeStyleIndex = -1;
+        $changeStyleIndex = 0;
+        $edges = false;
         foreach ($shapeRecords as $shapeRecordIndex => &$shapeRecord) {
             if (isset($shapeRecord['StraightFlag'])) {
                 if (($changeStyleIndex < $start) ||
                     ($end < $changeStyleIndex)) {
                     unset($shapeRecords[$shapeRecordIndex]);
                 }
+                $edges = true;
             } else { // ChangeRecord || EndRecord
                 if (isset($shapeRecord['EndOfShape']) === false) {
-                    $changeStyleIndex++;
+                    if ($edges) {
+                        $changeStyleIndex++;
+                        $edges = false;
+                    }
+
                     $fillStyle0 = $shapeRecord['FillStyle0'];
                     $fillStyle1 = $shapeRecord['FillStyle1'];
                     $lineStyle = $shapeRecord['LineStyle'];
