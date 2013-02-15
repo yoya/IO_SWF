@@ -78,6 +78,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             echo " SpriteID=".$this->_spriteId;
         }
         echo "\n";
+
         foreach ($this->_actions as $i => $action) {
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_labels[$i])) {
@@ -91,9 +92,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
                 echo "\t[$i] $action_str\n";
             }
         }
-        if (isset($opts['addlabel']) && $opts['addlabel']
-            && isset($this->_labels[$i])) {
-            echo "    (LABEL" . $this->_labels[$i] . "):\n";
+        if (count($this->_actions) > 0) {
+            if (isset($opts['addlabel']) && $opts['addlabel']
+                && isset($this->_labels[$i])) {
+                echo "    (LABEL" . $this->_labels[$i] . "):\n";
+            }
         }
     }
 
