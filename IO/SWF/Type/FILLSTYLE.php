@@ -231,7 +231,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
           case 0x41: // clipped bitmap fill
           case 0x42: // non-smoothed repeating bitmap fill
           case 0x43: // non-smoothed clipped bitmap fill
-            $text .= "\tBigmap($fillStyleType): ";
+            $text .= "\tBitmap($fillStyleType): ";
             $text .= "  BitmapId: ".$fillStyle['BitmapId']."\n";
             if ($isMorph === false) {
                 $text .= "\tBitmapMatrix:\n";
