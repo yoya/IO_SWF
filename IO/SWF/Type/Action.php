@@ -240,10 +240,10 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 break;
               case 0x9F: // ActionGotoFrame2
                 $action['(Reserved)'] = $reader->getUIBits(6);
-                $sceneBlasFlag = $reader->getUIBit();
-                $action['SceneBlasFlag'] = $sceneBlasFlag;
+                $sceneBiasFlag = $reader->getUIBit();
+                $action['SceneBiasFlag'] = $sceneBiasFlag;
                 $action['PlayFlag'] =  $reader->getUIBit();
-                if ($sceneBlasFlag == 1) {
+                if ($sceneBiasFlag == 1) {
                     $action['SceneBias'] = $reader->getUI16LE();
                 }
                 break;
@@ -369,16 +369,16 @@ class IO_SWF_Type_Action extends IO_SWF_Type {
                 break;
               case 0x9F: // ActionGotoFrame2
                 if (isset($action['SceneBias'])) {
-                    $sceneBlasFlag = 1;
+                    $sceneBiasFlag = 1;
                     $writer->putUI16LE(3);
                 } else {
-                    $sceneBlasFlag = 0;
+                    $sceneBiasFlag = 0;
                     $writer->putUI16LE(1);
                 }
                 $writer->putUIBits(0, 6); // Reserved
-                $writer->putUIBit($sceneBlasFlag);
+                $writer->putUIBit($sceneBiasFlag);
                 $writer->putUIBit($action['PlayFlag']);
-                if ($sceneBlasFlag) {
+                if ($sceneBiasFlag) {
                     $writer->putUI16LE($action['SceneBias']);
                 }
                 break;
