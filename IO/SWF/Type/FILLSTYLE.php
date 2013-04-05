@@ -179,21 +179,21 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
                 } else {
                     $color_str = IO_SWF_Type_RGBA::string($color);
                 }
-                $text .= "\tsolid fill: $color_str\n";
+                $text .= "solid fill: $color_str\n";
             } else{
                 $startColor = $fillStyle['StartColor'];
                 $endColor = $fillStyle['EndColor'];
                 $startColor_str = IO_SWF_Type_RGBA::string($startColor);
                 $endColor_str = IO_SWF_Type_RGBA::string($endColor);
-                $text .= "\tsolid fill: $startColor_str => $endColor_str\n";
+                $text .= "solid fill: $startColor_str => $endColor_str\n";
             }
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
             if ($fillStyleType == 0x10) {
-                $text .= "\tlinear gradient fill\n";
+                $text .= "linear gradient fill\n";
             } else {
-                $text .= "\tradial gradient fill\n";
+                $text .= "radial gradient fill\n";
             }
             $opts = array('indent' => 2);
             if ($isMorph === false) {
@@ -231,7 +231,7 @@ class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
           case 0x41: // clipped bitmap fill
           case 0x42: // non-smoothed repeating bitmap fill
           case 0x43: // non-smoothed clipped bitmap fill
-            $text .= "\tBitmap($fillStyleType): ";
+            $text .= "Bitmap($fillStyleType): ";
             $text .= "  BitmapId: ".$fillStyle['BitmapId']."\n";
             if ($isMorph === false) {
                 $text .= "\tBitmapMatrix:\n";

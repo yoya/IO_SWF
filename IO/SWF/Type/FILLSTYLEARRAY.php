@@ -44,8 +44,13 @@ class IO_SWF_Type_FILLSTYLEARRAY extends IO_SWF_Type {
     }
     static function string($fillStyles, $opts = array()) {
         $text = '';
-        foreach ($fillStyles as $fillStyle) {
-            $text .= IO_SWF_Type_FILLSTYLE::string($fillStyle, $opts);
+        if (count($fillStyles) > 0) {
+            foreach ($fillStyles as $idx => $fillStyle) {
+                $text .= "\t[" . ($idx + 1) . "] ";
+                $text .= IO_SWF_Type_FILLSTYLE::string($fillStyle, $opts);
+            }
+        } else {
+            $text .= "\t(none)\n";
         }
         return $text;
     }

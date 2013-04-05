@@ -95,24 +95,24 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
         $text = '';
 
         if ($isMorph === false) {
-            $text .= "\tWidth:{$lineStyle['Width']}\n";
+            $text .= "Width:{$lineStyle['Width']}  ";
             if ($tagCode == 83) { // DefineShape4
-                $text .= "\tStartCapStyle:{$lineStyle['StartCapStyle']} JoinStyle:{$lineStyle['JoinStyle']}\n";
-                $text .= "\tHasFillFlag:{$lineStyle['HasFillFlag']} NoHScaleFlag:{$lineStyle['NoHScaleFlag']} NoVScaleFlag:{$lineStyle['NoVScaleFlag']} PixelHintingFlag:{$lineStyle['PixelHintingFlag']}\n";
+                $text .= "StartCapStyle:{$lineStyle['StartCapStyle']} JoinStyle:{$lineStyle['JoinStyle']}  ";
+                $text .= "HasFillFlag:{$lineStyle['HasFillFlag']} NoHScaleFlag:{$lineStyle['NoHScaleFlag']} NoVScaleFlag:{$lineStyle['NoVScaleFlag']} PixelHintingFlag:{$lineStyle['PixelHintingFlag']}  ";
             }
             if ($tagCode < 32 ) { // DefineShape1,2
                 $color_str = IO_SWF_Type_RGB::string($lineStyle['Color']);
-                $text .= "Color: $color_str\n";
+                $text .= "Color: $color_str  ";
             } else if ($tagCode == 32 ) { // DefineShape3
                 $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
-                $text .= "Color: $color_str\n";
+                $text .= "Color: $color_str  ";
             } else { // DefineShape4
                 if ($lineStyle['HasFillFlag'] == 0) {
                     $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
-                    $text .= "\tColor: $color_str\n";
+                    $text .= "Color: $color_str  ";
                 } else {
                     $filltype_str = IO_SWF_Type_FILLSTYLE::string($lineStyle['FillType']);
-                    $text .= "\tFillType: ".$filltype_str;
+                    $text .= "FillType: ".$filltype_str;
                 }
             }
         } else {
@@ -120,8 +120,8 @@ class IO_SWF_Type_LINESTYLE extends IO_SWF_Type {
             $endWidth = $lineStyle['EndWidth'];
             $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
             $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
-            $text .= "\tWidth: $startWidth => $endWidth Color: $startColorStr => $endColorStr\n";
+            $text .= "Width: $startWidth => $endWidth Color: $startColorStr => $endColorStr  ";
         }
-        return $text;
+        return $text.PHP_EOL;
     }
 }

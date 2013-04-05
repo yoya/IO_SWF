@@ -323,13 +323,16 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                    $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
                    $text .= "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
                    $text .= "  LineStyle: ".$shapeRecord['LineStyle'];
-                   if (isset($shapeRecord['FillStyles'])) {
-                       $text .= "    FillStyles:";
-                       $text .= IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
-                   }
-                   if (isset($shapeRecord['LineStyles'])) {
-                       $text .= "    LineStyles:";
-                       $text .= IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
+                   if (isset($shapeRecord['FillStyles']) || isset($shapeRecord['LineStyles'])) { // NewStyle
+                       $text .= "\n";
+                       if (isset($shapeRecord['FillStyles'])) {
+                           $text .= "    FillStyles:\n";
+                           $text .= IO_SWF_Type_FILLSTYLEARRAY::string($shapeRecord['FillStyles'], $opts);
+                       }
+                       if (isset($shapeRecord['LineStyles'])) {
+                           $text .= "    LineStyles:\n";
+                           $text .= IO_SWF_Type_LINESTYLEARRAY::string($shapeRecord['LineStyles'], $opts);
+                       }
                    }
                }
             } else {
@@ -346,7 +349,9 @@ class IO_SWF_Type_SHAPE extends IO_SWF_Type {
                     $text .=  "CurvedEdge: MoveTo: Control($controlX, $controlY) Anchor($anchorX, $anchorY)";
                 }
             }
-            $text .= PHP_EOL;
+            if (substr($text, -1) != PHP_EOL) {
+                $text .= PHP_EOL;
+            }
         }
         return $text;
     }
