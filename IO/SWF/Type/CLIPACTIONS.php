@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/CLIPEVENTFLAGS.php';
 require_once dirname(__FILE__).'/CLIPACTIONRECORD.php';
 
-class IO_SWF_Type_CLIPACTIONS extends IO_SWF_Type {
+class IO_SWF_Type_CLIPACTIONS implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$clipactions = array();
         $clipactions['Reserved'] = $reader->getUI16LE(); // must be 0

@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_RECT extends IO_SWF_Type {
+class IO_SWF_Type_RECT implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $frameSize = array();
         $reader->byteAlign();

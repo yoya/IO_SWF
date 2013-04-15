@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/RGBA.php';
 require_once dirname(__FILE__).'/Float.php';
 
-class IO_SWF_Type_FILTER extends IO_SWF_Type {
+class IO_SWF_Type_FILTER implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$filter = array();
     	$filterID = $reader->getUI8();

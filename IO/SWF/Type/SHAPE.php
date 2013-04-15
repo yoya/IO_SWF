@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/../Type/FILLSTYLEARRAY.php';
 require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 
-class IO_SWF_Type_SHAPE extends IO_SWF_Type {
+class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
         $shapeRecords = array();

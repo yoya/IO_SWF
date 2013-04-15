@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_LANGCODE extends IO_SWF_Type {
+class IO_SWF_Type_LANGCODE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$langcode = array();
     	$langcode['LanguageCode'] = $reader->getUI8();

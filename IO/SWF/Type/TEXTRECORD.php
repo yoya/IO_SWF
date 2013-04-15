@@ -11,7 +11,7 @@ require_once dirname(__FILE__).'/RGBA.php';
 require_once dirname(__FILE__).'/GLYPHENTRY.php';
 
 
-class IO_SWF_Type_TEXTRECORD extends IO_SWF_Type {
+class IO_SWF_Type_TEXTRECORD implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$textrecord = array();
         $reader->byteAlign();

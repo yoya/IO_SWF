@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_KERNINGRECORD extends IO_SWF_Type {
+class IO_SWF_Type_KERNINGRECORD implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$kerningrecord = array();
         if ($opts['FontFlagsWideCodes']) {

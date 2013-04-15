@@ -8,7 +8,7 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/FILLSTYLE.php';
 
-class IO_SWF_Type_FILLSTYLEARRAY extends IO_SWF_Type {
+class IO_SWF_Type_FILLSTYLEARRAY implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
         $fillStyles = array();

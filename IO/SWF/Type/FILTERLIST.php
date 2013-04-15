@@ -8,7 +8,7 @@ require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/FILTER.php';
 
-class IO_SWF_Type_FILTERLIST extends IO_SWF_Type {
+class IO_SWF_Type_FILTERLIST implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$filterlist = array();
     	$NumberOfFilters = $reader->getUI8();

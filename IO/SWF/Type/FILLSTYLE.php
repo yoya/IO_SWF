@@ -11,7 +11,7 @@ require_once dirname(__FILE__).'/../Type/MATRIX.php';
 require_once dirname(__FILE__).'/../Type/RGB.php';
 require_once dirname(__FILE__).'/../Type/RGBA.php';
 
-class IO_SWF_Type_FILLSTYLE extends IO_SWF_Type {
+class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
         $isMorph = ($tagCode == 46) || ($tagCode == 84);

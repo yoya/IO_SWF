@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_Float extends IO_SWF_Type {
+class IO_SWF_Type_Float implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $data = $reader->getData(4);
 	$unpacked_data = unpack('f', $data);

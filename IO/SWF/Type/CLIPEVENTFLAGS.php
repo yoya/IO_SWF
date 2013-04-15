@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_CLIPEVENTFLAGS extends IO_SWF_Type {
+class IO_SWF_Type_CLIPEVENTFLAGS implements IO_SWF_Type {
     static $clipevent_list =  array(
             'KeyUp', 'KeyDown', 'MouseUp', 'MouseDown', 'MouseMove',
             'Unload', 'EnterFrame', 'Load', 'DragOver',

@@ -7,7 +7,7 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/../Type.php';
 
-class IO_SWF_Type_CXFORM extends IO_SWF_Type {
+class IO_SWF_Type_CXFORM implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$cxform = array();
     	$reader->byteAlign();

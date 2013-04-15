@@ -10,7 +10,7 @@ require_once dirname(__FILE__).'/String.php';
 require_once dirname(__FILE__).'/Float.php';
 require_once dirname(__FILE__).'/Double.php';
                               
-class IO_SWF_Type_Action extends IO_SWF_Type {
+class IO_SWF_Type_Action implements IO_SWF_Type {
     static $action_code_table = array(
         //
         // ActionCode only

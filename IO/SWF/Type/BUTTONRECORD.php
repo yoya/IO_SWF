@@ -10,7 +10,7 @@ require_once dirname(__FILE__).'/CXFORM.php';
 require_once dirname(__FILE__).'/CXFORMWITHALPHA.php';
 require_once dirname(__FILE__).'/FILTERLIST.php';
 
-class IO_SWF_Type_BUTTONRECORD extends IO_SWF_Type {
+class IO_SWF_Type_BUTTONRECORD implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$buttonrecord = array();
         $reader->byteAlign();
