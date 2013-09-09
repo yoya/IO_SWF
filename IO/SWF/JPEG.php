@@ -33,6 +33,7 @@ class IO_SWF_JPEG {
         0xDB, // DQT
         0xC0, // SOF0
         0xC4, // DHT
+        0xDD, // DRI
         0xDA, // SOS
         0xD9, // EOI
         );
