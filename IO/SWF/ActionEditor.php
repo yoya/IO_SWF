@@ -79,17 +79,39 @@ class IO_SWF_ActionEditor extends IO_SWF {
 
     function insertAction($sprite_id, $frame, $pos, $action) {
         if ($sprite_id == 0) {
-            $tags = $this->_tags;
+            $tags =& $this->_tags;
         } else {
             $sprite = $this->findSprite($sprite_id);
             if (!$sprite) {
                 return null;
             }
-            $tags = $sprite->tag->_controlTags;
+            $tags =& $sprite->tag->_controlTags;
         }
         $action_tag = $this->findActionTagInTags($frame, $tags);
         if (!$action_tag) {
-            return null;
+            if ($pos > 1) { // 1 origin
+                return null;
+            }
+            $currentFrame = 0;
+            $found = false;
+            foreach ($tags as $tagidx => $tag) {
+                if ($tag->code == 1) {
+                    $currentFrame ++;
+                }
+                if ($currentFrame >= $frame) {
+                    $found = true;
+                    break;
+                }
+            }
+            if ($found === false) {
+                return null;
+            }
+            $action_tag = new IO_SWF_Tag($tags[0]->swfInfo);
+            $action_tag->code = 12; // DoAction
+            $action_tag->content = '';
+            $action_tag->parseTagContent();
+            $action_tag->content = null;
+            array_splice($tags, $tagidx, 0, array($action_tag));
         }
 
         $action_tag->tag->insertAction($pos, $action);
