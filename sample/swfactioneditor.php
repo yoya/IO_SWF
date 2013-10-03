@@ -1,6 +1,6 @@
 <?php
 
-require 'IO/SWF.php';
+require 'IO/SWF/ActionEditor.php';
 // require dirname(__FILE__).'/../IO/SWF/ActionEditor.php';
 
 if ($argc != 2) {
