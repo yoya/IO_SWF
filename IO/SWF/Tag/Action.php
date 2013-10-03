@@ -32,8 +32,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             $this->_spriteId = $reader->getUI16LE();
         }
         $i = 0;
-        while ($reader->getUI8() != 0) {
-            $reader->incrementOffset(-1, 0); // 1 byte back
+        while ($reader->hasNextData(1)) {
             list($byteOffset, $dummy) = $reader->getOffset();
             $action = IO_SWF_Type_Action::parse($reader);
             list($nextByteOffset, $dummy) = $reader->getOffset();
