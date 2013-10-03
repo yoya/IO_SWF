@@ -122,7 +122,7 @@ class IO_SWF {
             try {
                 $tag->dump($opts);
             } catch (IO_Bit_Exception $e) {
-                echo "(tag parse failed)\n";
+                echo "(tag dump failed) $e\n";
             }
             if ($this->_headers['Version'] < 6) {
                 ob_flush();
