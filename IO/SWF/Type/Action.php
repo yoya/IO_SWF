@@ -15,6 +15,8 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         //
         // ActionCode only
         //
+        0x00 => 'End',
+        //
         0x04 => 'NextFrame',
         0x05 => 'PreviousFrame',
         0x06 => 'Play',
