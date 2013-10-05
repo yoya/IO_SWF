@@ -104,6 +104,7 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         if ($tagCode == 59) { // DoInitAction
             $writer->putUI16LE($this->_spriteId);
         }
+        $action = null;
         for ($i = 0; $i < count($this->_actions); $i++) {
             $action = $this->_actions[$i];
             if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {  // Jump
@@ -137,7 +138,9 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             }
             IO_SWF_Type_Action::build($writer, $action);
         }
-        $writer->putUI8(0); // ActionEndFlag
+        if ((is_null($action) === false) && ($action['Code'] !== 0)) {
+            $writer->putUI8(0); // ActionEndFlag
+        }
     	return $writer->output();
     }
 
