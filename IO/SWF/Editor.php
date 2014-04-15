@@ -1008,7 +1008,7 @@ class IO_SWF_Editor extends IO_SWF {
                     if ($tag->parseTagContent() === false) {
                         return false;                        
                     }
-                    $tag->tag->initialText = $initialText;
+                    $tag->tag->InitialText = $initialText;
                     $tag->content = null;
                     return true;
                 } else {
@@ -1034,8 +1034,8 @@ class IO_SWF_Editor extends IO_SWF {
                     if ($tag->parseTagContent() === false) {
                         return false;
                     }
-                    if (isset($tag->tag->initialText)) {
-                        return $tag->tag->initialText;
+                    if (isset($tag->tag->InitialText)) {
+                        return $tag->tag->InitialText;
                     } else {
                         return null;
                     }
@@ -1044,8 +1044,8 @@ class IO_SWF_Editor extends IO_SWF {
                         return false;
                     }
                     if ($tag->tag->VariableName === $id) {
-                        if (isset($tag->tag->initialText)) {
-                            return $tag->tag->initialText;
+                        if (isset($tag->tag->InitialText)) {
+                            return $tag->tag->InitialText;
                         } else {
                             return null;
                         }
