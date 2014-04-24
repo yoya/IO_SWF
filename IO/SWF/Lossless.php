@@ -79,7 +79,8 @@ class IO_SWF_Lossless {
                     for ($x = 0 ; $x < $width ; $x++) {
                         $i = imagecolorat($im, $x, $y);
                         $rgb = imagecolorsforindex($im, $i);
-                        $pixeldata .= 0; // Always 0
+//                        $pixeldata .= chr(0); // Always 0
+                        $pixeldata .= chr(255);
                         $pixeldata .= chr($rgb['red']);
                         $pixeldata .= chr($rgb['green']);
                         $pixeldata .= chr($rgb['blue']);
