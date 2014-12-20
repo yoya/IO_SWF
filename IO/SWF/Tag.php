@@ -13,84 +13,84 @@ class IO_SWF_Tag {
     var $byte_offset, $byte_size;
     static $tagMap = array(
         // code => array(name , klass)
-        0 => array('name' => 'End'),
-        1 => array('name' => 'ShowFrame'),
-        2 => array('name' => 'DefineShape',  'klass' => 'Shape'),
+        0 => array('name' => 'End', 'version' => 1),
+        1 => array('name' => 'ShowFrame', 'version' => 1),
+        2 => array('name' => 'DefineShape',  'klass' => 'Shape' , 'version' => 1 ),
 //             3 => array('name' => 'FreeCharacter'), // ???
-        4 => array('name' => 'PlaceObject', 'klass' => 'Place'),
-        5 => array('name' => 'RemoveObject', 'klass' => 'Remove'),
-        6 => array('name' => 'DefineBits', 'klass' => 'Jpeg'),
-        7 => array('name' => 'DefineButton', 'klass' => 'Button'),
-        8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg'),
-        9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor'),
-        10 => array('name' => 'DefineFont'),
-        11 => array('name' => 'DefineText', 'klass' => 'Text'),
-        12 => array('name' => 'DoAction', 'klass' => 'Action'),
-        13 => array('name' => 'DefineFontInfo'),
-        14 => array('name' => 'DefineSound', 'klass' => 'Sound'),
-        15 => array('name' => 'StartSound'),
+        4 => array('name' => 'PlaceObject', 'klass' => 'Place', 'version' => 1),
+        5 => array('name' => 'RemoveObject', 'klass' => 'Remove' , 'version' => 1),
+        6 => array('name' => 'DefineBits', 'klass' => 'Jpeg' , 'version' => 1),
+        7 => array('name' => 'DefineButton', 'klass' => 'Button' , 'version' => 1),
+        8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg' , 'version' => 1),
+        9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor' , 'version' => 1),
+        10 => array('name' => 'DefineFont' , 'version' => 1),
+        11 => array('name' => 'DefineText', 'klass' => 'Text' , 'version' => 1),
+        12 => array('name' => 'DoAction', 'klass' => 'Action' , 'version' => 9),
+        13 => array('name' => 'DefineFontInfo' , 'version' => 1),
+        14 => array('name' => 'DefineSound', 'klass' => 'Sound' , 'version' => 1),
+        15 => array('name' => 'StartSound' , 'version' => 1),
         // 16 missing
-        17 => array('name' => 'DefineButtonSound'),
-        18 => array('name' => 'SoundStreamHead'),
-        19 => array('name' => 'SoundStreamBlock'),
-        20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless'),
-        21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg'),
-        22 => array('name' => 'DefineShape2', 'klass' => 'Shape'),
-        24 => array('name' => 'Protect'),
+        17 => array('name' => 'DefineButtonSound' , 'version' => 2),
+        18 => array('name' => 'SoundStreamHead' , 'version' => 1),
+        19 => array('name' => 'SoundStreamBlock' , 'version' => 1),
+        20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless' , 'version' => 2),
+        21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg' , 'version' => 2),
+        22 => array('name' => 'DefineShape2', 'klass' => 'Shape' , 'version' => 2),
+        24 => array('name' => 'Protect' , 'version' => 2),
         // 25 missing
-        26 => array('name' => 'PlaceObject2', 'klass' => 'Place'),
+        26 => array('name' => 'PlaceObject2', 'klass' => 'Place' , 'version' => 3),
         // 27 missing
-        28 => array('name' => 'RemoveObject2', 'klass' => 'Remove'),
+        28 => array('name' => 'RemoveObject2', 'klass' => 'Remove' , 'version' => 3),
         // 29,30,31 missing
-        32 => array('name' => 'DefineShape3', 'klass' => 'Shape'),
-        33 => array('name' => 'DefineText2', 'klass' => 'Text'),
-        34 => array('name' => 'DefineButton2', 'klass' => 'Button'),
-        35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg'),
-        36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless'),
-        37 => array('name' => 'DefineEditText', 'klass' => 'EditText'),
+        32 => array('name' => 'DefineShape3', 'klass' => 'Shape' , 'version' => 3),
+        33 => array('name' => 'DefineText2', 'klass' => 'Text' , 'version' => 3),
+        34 => array('name' => 'DefineButton2', 'klass' => 'Button' , 'version' => 3),
+        35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg' , 'version' => 3),
+        36 => array('name' => 'DefineBitsLossless2', 'klass' => 'Lossless' , 'version' => 3),
+        37 => array('name' => 'DefineEditText', 'klass' => 'EditText' , 'version' => 4),
         // 38 missing
-        39 => array('name' => 'DefineSprite', 'klass' => 'Sprite'),
+        39 => array('name' => 'DefineSprite', 'klass' => 'Sprite' , 'version' => 3),
         // 40,41,42 missing
-        43 => array('name' => 'FrameLabel', 'klass' => 'FrameLabel'),
+        43 => array('name' => 'FrameLabel', 'klass' => 'FrameLabel' , 'version' => 3),
         // 44 missing
-        45 => array('name' => 'SoundStreamHead2'),
-        46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape'),
-        48 => array('name' => 'DefineFont2', 'klass' => 'Font'),
-        56 => array('name' => 'Export'),
-        57 => array('name' => ''),
-        58 => array('name' => ''),
-        59 => array('name' => 'DoInitAction', 'klass' => 'Action'),
+        45 => array('name' => 'SoundStreamHead2' , 'version' => 3),
+        46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape' , 'version' => 3),
+        48 => array('name' => 'DefineFont2', 'klass' => 'Font' , 'version' => 3),
+        56 => array('name' => 'ExportAssets' , 'version' => 5),
+        57 => array('name' => '' , 'version' => null),
+        58 => array('name' => '' , 'version' => null),
+        59 => array('name' => 'DoInitAction', 'klass' => 'Action' , 'version' => 9),
         //
-        60 => array('name' => 'DefineVideoStream'),
-        61 => array('name' => 'videoFrame'),
-        62 => array('name' => 'DefineFontInfo2'),
+        60 => array('name' => 'DefineVideoStream' , 'version' => 6),
+        61 => array('name' => 'videoFrame' , 'version' => 6),
+        62 => array('name' => 'DefineFontInfo2' , 'version' => 6),
         // 63 missing
-        64 => array('name' => 'EnableDebugger2'),
-        65 => array('name' => 'ScriptLimits'),
-        66 => array('name' => 'SetTabIndex'),
-        // 67,68 missing 
-        69 => array('name' => 'FileAttributes'),
-        70 => array('name' => 'PlaceObject3'),
-        71 => array('name' => 'ImportAssets2'),
+        64 => array('name' => 'EnableDebugger2' , 'version' => 6),
+        65 => array('name' => 'ScriptLimits' , 'version' => 7),
+        66 => array('name' => 'SetTabIndex' , 'version' => 7),
+        // 67,68 missing
+        69 => array('name' => 'FileAttributes' , 'version' => 8),
+        70 => array('name' => 'PlaceObject3' , 'version' => 8),
+        71 => array('name' => 'ImportAssets2' , 'version' => 8),
         // 72 missing
-        73 => array('name' => 'DefineFontAlignZones'),
-        74 => array('name' => 'CSMTextSettings'),
-        75 => array('name' => 'DefineFont3'),
-        76 => array('name' => 'SymbolClass'),
-        77 => array('name' => 'MetaData'),
-        78 => array('name' => 'DefineScalingGrid'),
+        73 => array('name' => 'DefineFontAlignZones' , 'version' => 8),
+        74 => array('name' => 'CSMTextSettings' , 'version' => 8),
+        75 => array('name' => 'DefineFont3' , 'version' => 8),
+        76 => array('name' => 'SymbolClass' , 'version' => 9),
+        77 => array('name' => 'MetaData' , 'version' => 1),
+        78 => array('name' => 'DefineScalingGrid' , 'version' => 8),
         // 79,80,81 missing
-        82 => array('name' => 'DoABC'),
-        83 => array('name' => 'DefineShape4', 'klass' => 'Shape'),
-        84 => array('name' => 'DefineMorphShape2'),
+        82 => array('name' => 'DoABC' , 'version' => 9),
+        83 => array('name' => 'DefineShape4', 'klass' => 'Shape' , 'version' => 8),
+        84 => array('name' => 'DefineMorphShape2' , 'version' => 8),
         // 85 missing
-        86 => array('name' => 'DefineSceneAndFrameLabelData'),
-        87 => array('name' => 'DefineBinaryData'),
-        88 => array('name' => 'DefineFontName'),
-        89 => array('name' => 'StartSound2'),
-        90 => array('name' => 'DefineBitsJPEG4'),
-        91 => array('name' => 'DefineFont4'),
-        777 => array('name' => 'Reflex'), // swftools ?
+        86 => array('name' => 'DefineSceneAndFrameLabelData' , 'version' => null),
+        87 => array('name' => 'DefineBinaryData' , 'version' => 9),
+        88 => array('name' => 'DefineFontName' , 'version' => 9),
+        89 => array('name' => 'StartSound2' , 'version' => 9),
+        90 => array('name' => 'DefineBitsJPEG4' , 'version' => 10),
+        91 => array('name' => 'DefineFont4' , 'version' => 10),
+        777 => array('name' => 'Reflex' , 'version' => null), // swftools ?
         );
     function __construct($swfInfo) {
         $this->swfInfo = $swfInfo;
@@ -343,7 +343,7 @@ class IO_SWF_Tag {
         }
         return true;
     }
-    
+
     function getJpegData($jpegTables) {
         $tag_code = $this->code;
         if (($tag_code != 6) && // DefineBits
@@ -361,7 +361,7 @@ class IO_SWF_Tag {
         }
         $jpeg = new IO_SWF_JPEG();
         $jpeg->input($jpegData);
-        
+
         $ret = $jpeg->getStdJpegData();
         return $ret;
     }
@@ -380,7 +380,7 @@ class IO_SWF_Tag {
         $width =  $this->tag->_BitmapWidth;
         $height = $this->tag->_BitmapHeight;
         $lossless_bitmap_data = gzuncompress($this->tag->_ZlibBitmapData);
-        
+
         if ($format == 3) {
             $palette_num = $this->tag->_BitmapColorTableSize;
             if ($tag_code == 20) { // DefineBisLossless
