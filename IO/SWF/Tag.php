@@ -25,7 +25,7 @@ class IO_SWF_Tag {
         9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor' , 'version' => 1),
         10 => array('name' => 'DefineFont' , 'version' => 1),
         11 => array('name' => 'DefineText', 'klass' => 'Text' , 'version' => 1),
-        12 => array('name' => 'DoAction', 'klass' => 'Action' , 'version' => 9),
+        12 => array('name' => 'DoAction', 'klass' => 'Action' , 'version' => 3),
         13 => array('name' => 'DefineFontInfo' , 'version' => 1),
         14 => array('name' => 'DefineSound', 'klass' => 'Sound' , 'version' => 1),
         15 => array('name' => 'StartSound' , 'version' => 1),
@@ -59,7 +59,7 @@ class IO_SWF_Tag {
         56 => array('name' => 'ExportAssets' , 'version' => 5),
         57 => array('name' => '' , 'version' => null),
         58 => array('name' => '' , 'version' => null),
-        59 => array('name' => 'DoInitAction', 'klass' => 'Action' , 'version' => 9),
+        59 => array('name' => 'DoInitAction', 'klass' => 'Action' , 'version' => 6),
         //
         60 => array('name' => 'DefineVideoStream' , 'version' => 6),
         61 => array('name' => 'videoFrame' , 'version' => 6),
