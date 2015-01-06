@@ -6,7 +6,7 @@ require 'IO/SWF.php';
 $options = getopt("f:cd");
 
 function usage() {
-    echo "Usage: php swfcompress.php -[de] <swf_file>\n";
+    echo "Usage: php swfcompress.php -[cd] <swf_file>\n";
     echo "ex) php swfcompress.php -c test.swf # compress\n";
     echo "ex) php swfcompress.php -d test.swf # decompress\n";
 }
