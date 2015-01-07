@@ -1,6 +1,7 @@
 <?php
 
 require 'IO/SWF/Editor.php';
+// require 'IO/SWF/Type/Action.php';
 
 $tagMap = IO_SWF_Tag::$tagMap;
 
@@ -43,11 +44,26 @@ foreach ($swf->_tags as $tag) {
     $code = $tag->code;
     $tag_name = $tag->getTagInfo($code, "name");
     $tag_ver = $tag->getTagInfo($code, "version");
-	if (is_null($tag_ver)) {
+        if (is_null($tag_ver)) {
         continue;
     }
     if ($check_version < $tag_ver) {
-	echo "$tag_name:$tag_ver\n";
+        echo "$tag_name:$tag_ver\n";
+    }
+    if (($code === 12) || ($code === 59)) { // DoAction or DoInitAction
+        if ($tag->parseTagContent()) {        
+            $actions = $tag->tag->_actions;
+            foreach ($actions as $action) {
+                $actionCode = $action['Code'];
+                $actionVersion = IO_SWF_Type_Action::getCodeVersion($actionCode);
+                if ($check_version < $actionVersion) {
+                    $actionName = IO_SWF_Type_Action::getCodeName($actionCode);
+                    echo "    $actionName:$actionVersion\n";
+                }
+            }
+        } else {
+            echo "Illegal Action Contents\n";
+        }
     }
 }
 

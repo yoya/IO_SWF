@@ -15,123 +15,131 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         //
         // ActionCode only
         //
-        0x00 => 'End',
+        0x00 => Array('name' => 'End', 'version' => 4),
         //
-        0x04 => 'NextFrame',
-        0x05 => 'PreviousFrame',
-        0x06 => 'Play',
-        0x07 => 'Stop',
-        0x08 => 'ToggleQuality',
-        0x09 => 'StopSounds',
+        0x04 => Array('name' => 'NextFrame', 'version' => 4),
+        0x05 => Array('name' => 'PreviousFrame', 'version' => 4),
+        0x06 => Array('name' => 'Play', 'version' => 4),
+        0x07 => Array('name' => 'Stop', 'version' => 4),
+        0x08 => Array('name' => 'ToggleQuality', 'version' => 4),
+        0x09 => Array('name' => 'StopSounds', 'version' => 4),
         //
-        0x0A => 'Add',
-        0x0B => 'Subtract',
-        0x0C => 'Multiply',
-        0x0D => 'Divide',
-        0x0E => 'Equals',
-        0x0F => 'Less',
-        0x10 => 'And',
-        0x11 => 'Or',
-        0x12 => 'Not',
-        0x13 => 'StringEquals',
-        0x14 => 'StringLength',
-        0x15 => 'StringExtract',
+        0x0A => Array('name' => 'Add', 'version' => 4),
+        0x0B => Array('name' => 'Subtract', 'version' => 4),
+        0x0C => Array('name' => 'Multiply', 'version' => 4),
+        0x0D => Array('name' => 'Divide', 'version' => 4),
+        0x0E => Array('name' => 'Equals', 'version' => 4),
+        0x0F => Array('name' => 'Less', 'version' => 4),
+        0x10 => Array('name' => 'And', 'version' => 4),
+        0x11 => Array('name' => 'Or', 'version' => 4),
+        0x12 => Array('name' => 'Not', 'version' => 4),
+        0x13 => Array('name' => 'StringEquals', 'version' => 4),
+        0x14 => Array('name' => 'StringLength', 'version' => 4),
+        0x15 => Array('name' => 'StringExtract', 'version' => 4),
         //
-        0x17 => 'Pop',
-        0x18 => 'ToInteger',
+        0x17 => Array('name' => 'Pop', 'version' => 4),
+        0x18 => Array('name' => 'ToInteger', 'version' => 4),
         //
-        0x1C => 'GetVariable',
-        0x1D => 'SetVariable',
+        0x1C => Array('name' => 'GetVariable', 'version' => 4),
+        0x1D => Array('name' => 'SetVariable', 'version' => 4),
         //
-        0x20 => 'SetTarget2',
-        0x21 => 'StringAdd',
-        0x22 => 'GetProperty',
-        0x23 => 'SetProperty',
-        0x24 => 'CloneSprite',
-        0x25 => 'RemoveSprite',
-        0x26 => 'Trace',
+        0x20 => Array('name' => 'SetTarget2', 'version' => 4),
+        0x21 => Array('name' => 'StringAdd', 'version' => 4),
+        0x22 => Array('name' => 'GetProperty', 'version' => 4),
+        0x23 => Array('name' => 'SetProperty', 'version' => 4),
+        0x24 => Array('name' => 'CloneSprite', 'version' => 4),
+        0x25 => Array('name' => 'RemoveSprite', 'version' => 4),
+        0x26 => Array('name' => 'Trace', 'version' => 4),
         //
-        0x2D => 'FSCommand2',// Flash Lite
+        0x2D => Array('name' => 'FSCommand2', 'version' => 4),// Flash Lite
         //
-        0x27 => 'StartDrag',
-        0x28 => 'EndDrag',
-        0x29 => 'StringLess',
+        0x27 => Array('name' => 'StartDrag', 'version' => 4),
+        0x28 => Array('name' => 'EndDrag', 'version' => 4),
+        0x29 => Array('name' => 'StringLess', 'version' => 4),
         //
-        0x30 => 'RandomNumber',
-        0x31 => 'MBStringLength',
-        0x32 => 'CharToAscii',
-        0x33 => 'AsciiToChar',
-        0x34 => 'GetTime',
-        0x35 => 'MBStringExtract',
-        0x36 => 'MBCharToAscii',
-        0x37 => 'MBAsciiToChar',
+        0x30 => Array('name' => 'RandomNumber', 'version' => 4),
+        0x31 => Array('name' => 'MBStringLength', 'version' => 4),
+        0x32 => Array('name' => 'CharToAscii', 'version' => 4),
+        0x33 => Array('name' => 'AsciiToChar', 'version' => 4),
+        0x34 => Array('name' => 'GetTime', 'version' => 4),
+        0x35 => Array('name' => 'MBStringExtract', 'version' => 4),
+        0x36 => Array('name' => 'MBCharToAscii', 'version' => 4),
+        0x37 => Array('name' => 'MBAsciiToChar', 'version' => 4),
         //
-        0x3A => 'Delete', // SWF 5
-        0x3B => 'Delete2', // SWF 5
-        0x3C => 'DefineLocal', // SWF 5
-        0x3D => 'CallFunction', // SWF 5
-        0x3E => 'Return', // SWF 5
-        0x3F => 'Modulo', // SWF 5
-        0x40 => 'NewObject', // SWF 5
-        0x41 => 'DefineLocal2', // SWF 5
-        0x42 => 'InitArray', // SWF 5
-        0x43 => 'InitObject', // SWF 5
-        0x44 => 'TypeOf', // SWF 5
-        0x45 => 'TargetPath', // SWF 5
-        0x46 => 'Enumerate', // SWF 5
-        0x47 => 'Add2', // SWF 5
-        0x48 => 'Less2', // SWF 5
-        0x49 => 'Equals2', // SWF 5
-        0x4A => 'ToNumber', // SWF 5
-        0x4B => 'ToString', // SWF 5
-        0x4C => 'PushDuplicate', // SWF 5
-        0x4D => 'StackSwap', // SWF 5
-        0x4E => 'GetMember', // SWF 5
-        0x4F => 'SetMember', // SWF 5
-        0x50 => 'Increment', // SWF 5
-        0x51 => 'Decrement', // SWF 5
-        0x52 => 'CallMethod', // SWF 5
-        0x53 => 'NewMethod', // SWF 5
-        0x54 => 'InstanceOf', // SWF 6
-        0x55 => 'Enumerate2', // SWF 6
+        0x3A => Array('name' => 'Delete', 'version' => 5),
+        0x3B => Array('name' => 'Delete2', 'version' => 5),
+        0x3C => Array('name' => 'DefineLocal', 'version' => 5),
+        0x3D => Array('name' => 'CallFunction', 'version' => 5),
+        0x3E => Array('name' => 'Return', 'version' => 5),
+        0x3F => Array('name' => 'Modulo', 'version' => 5),
+        0x40 => Array('name' => 'NewObject', 'version' => 5),
+        0x41 => Array('name' => 'DefineLocal2', 'version' => 5),
+        0x42 => Array('name' => 'InitArray', 'version' => 5),
+        0x43 => Array('name' => 'InitObject', 'version' => 5),
+        0x44 => Array('name' => 'TypeOf', 'version' => 5),
+        0x45 => Array('name' => 'TargetPath', 'version' => 5),
+        0x46 => Array('name' => 'Enumerate', 'version' => 5),
+        0x47 => Array('name' => 'Add2', 'version' => 5),
+        0x48 => Array('name' => 'Less2', 'version' => 5),
+        0x49 => Array('name' => 'Equals2', 'version' => 5),
+        0x4A => Array('name' => 'ToNumber', 'version' => 5),
+        0x4B => Array('name' => 'ToString', 'version' => 5),
+        0x4C => Array('name' => 'PushDuplicate', 'version' => 5), // SWF 5
+        0x4D => Array('name' => 'StackSwap', 'version' => 5),
+        0x4E => Array('name' => 'GetMember', 'version' => 5),
+        0x4F => Array('name' => 'SetMember', 'version' => 5),
+        0x50 => Array('name' => 'Increment', 'version' => 5),
+        0x51 => Array('name' => 'Decrement', 'version' => 5),
+        0x52 => Array('name' => 'CallMethod', 'version' => 5),
+        0x53 => Array('name' => 'NewMethod', 'version' => 5),
+        0x54 => Array('name' => 'InstanceOf', 'version' => 6),
+        0x55 => Array('name' => 'Enumerate2', 'version' => 6),
 	//
-        0x60 => 'BitAnd', // SWF 5
-        0x61 => 'BitOr', // SWF 5
-        0x62 => 'BitXOr', // SWF 5
-        0x63 => 'BitShift', // SWF 5
-        0x64 => 'BitURShift', // SWF 5
+        0x60 => Array('name' => 'BitAnd', 'version' => 5),
+        0x61 => Array('name' => 'BitOr', 'version' => 5),
+        0x62 => Array('name' => 'BitXOr', 'version' => 5),
+        0x63 => Array('name' => 'BitShift', 'version' => 5),
+        0x64 => Array('name' => 'BitURShift', 'version' => 5),
 	//
-        0x66 => 'StrictEquals', // SWF 6
-        0x67 => 'Greater', // SWF 6
-        0x68 => 'StringGreater', // SWF 6
+        0x66 => Array('name' => 'StrictEquals', 'version' => 6),
+        0x67 => Array('name' => 'Greater', 'version' => 6),
+        0x68 => Array('name' => 'StringGreater', 'version' => 6),
         //
         // has Data Payload
         //
-        0x81 => 'GotoFrame',
-        0x83 => 'GetURL',
-        0x87 => 'StoreRegister', // SWF 5
-        0x88 => 'ConstantPool', // SWF 5
-        0x8A => 'WaitForFrame',
-        0x8B => 'SetTarget',
-        0x8C => 'GoToLabel',
-        0x8D => 'WaitForFrame2',
+        0x81 => Array('name' => 'GotoFrame', 'version' => 4),
+        0x83 => Array('name' => 'GetURL', 'version' => 4),
+        0x87 => Array('name' => 'StoreRegister', 'version' => 5),
+        0x88 => Array('name' => 'ConstantPool', 'version' => 5),
+        0x8A => Array('name' => 'WaitForFrame', 'version' => 5),
+        0x8B => Array('name' => 'SetTarget', 'version' => 4),
+        0x8C => Array('name' => 'GoToLabel', 'version' => 4),
+        0x8D => Array('name' => 'WaitForFrame2', 'version' => 4),
+        0x8E => Array('name' => 'DefineFunction2', 'version' => 6),
         //
-        0x94 => 'With', // SWF 5
-        0x96 => 'Push',
+        0x94 => Array('name' => 'With', 'version' => 5), // SWF 5
+        0x96 => Array('name' => 'Push', 'version' => 4),
         //
-        0x99 => 'Jump',
-        0x9A => 'GetURL2',
-        0x9B => 'DefineFunction', // SWF 5
+        0x99 => Array('name' => 'Jump', 'version' => 4),
+        0x9A => Array('name' => 'GetURL2', 'version' => 4),
+        0x9B => Array('name' => 'DefineFunction', 'version' => 5),
         //
-        0x9D => 'If',
-        0x9E => 'Call', // why it >=0x80 ?
-        0x9F => 'GotoFrame2',
+        0x9D => Array('name' => 'If', 'version' => 4),
+        0x9E => Array('name' => 'Call', 'version' => 4), // why it >=0x80 ?
+        0x9F => Array('name' => 'GotoFrame2', 'version' => 4),
         );
     static function getCodeName($code) {
         if (isset(self::$action_code_table[$code])) {
-            return self::$action_code_table[$code];
+            return self::$action_code_table[$code]['name'];
         } else {
             return "Unknown";
+        }
+    }
+    static function getCodeVersion($code) {
+        if (isset(self::$action_code_table[$code])) {
+            return self::$action_code_table[$code]['version'];
+        } else {
+            return false;
         }
     }
     static function parse(&$reader, $opts = array()) {
