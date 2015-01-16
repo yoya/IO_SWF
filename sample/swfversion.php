@@ -48,7 +48,7 @@ foreach ($swf->_tags as $tag) {
         continue;
     }
     if ($check_version < $tag_ver) {
-        echo "$tag_name:$tag_ver\n";
+        echo "$tag_name($code):$tag_ver\n";
     }
     if (($code === 12) || ($code === 59)) { // DoAction or DoInitAction
         if ($tag->parseTagContent()) {        
@@ -58,7 +58,8 @@ foreach ($swf->_tags as $tag) {
                 $actionVersion = IO_SWF_Type_Action::getCodeVersion($actionCode);
                 if ($check_version < $actionVersion) {
                     $actionName = IO_SWF_Type_Action::getCodeName($actionCode);
-                    echo "    $actionName:$actionVersion\n";
+		    $hexCode = strtoupper(dechex($actionCode));
+                    echo "    $actionName(0x$actionCode):$actionVersion\n";
                 }
             }
         } else {
