@@ -59,7 +59,7 @@ foreach ($swf->_tags as $tag) {
                 if ($check_version < $actionVersion) {
                     $actionName = IO_SWF_Type_Action::getCodeName($actionCode);
 		    $hexCode = strtoupper(dechex($actionCode));
-                    echo "    $actionName(0x$actionCode):$actionVersion\n";
+                    echo "    $actionName(0x$hexCode):$actionVersion\n";
                 }
             }
         } else {
