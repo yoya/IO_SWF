@@ -16,6 +16,7 @@ class IO_SWF_Tag_Sound extends IO_SWF_Tag_Base {
         $this->SoundFormat  = $reader->getUIBits(4);
         $this->SoundRate = $reader->getUIBits(2);
         $this->SoundSize  = $reader->getUIBit();
+        $this->SoundType  = $reader->getUIBit();
         // ---
         $this->SoundSampleCount  = $reader->getUI32LE();
         $this->SoundData  = $reader->getDataUntil(false);
@@ -32,7 +33,8 @@ class IO_SWF_Tag_Sound extends IO_SWF_Tag_Base {
                                        15 => 'Melo', // Maybe
        );
    static $SoundRateNoteList = array('5.5kHz', '11kHz', '22kHz', '44kHz');
-   static $SoundSizeNoteList = array('sndMono', 'sndStereo');
+   static $SoundSizeNoteList = array('snd8Bit', 'snd16Bit');
+   static $SoundTypeNoteList = array('sndMono', 'sndStereo');
     function dumpContent($tagCode, $opts = array()) {
 
         echo "\tSoundId:{$this->SoundId}\n";
@@ -40,9 +42,11 @@ class IO_SWF_Tag_Sound extends IO_SWF_Tag_Base {
         echo "\tSoundFormat:{$this->SoundFormat}($SoundFormatNote)\n";
         if ($this->SoundFormat < 15) {
             $SoundRateNote = self::$SoundRateNoteList[$this->SoundRate];
-            echo "\tSoundRate:{$this->SoundRate}($SoundRateNote)\n";
             $SoundSizeNote =  self::$SoundSizeNoteList[$this->SoundSize];
-            echo "\tSoundSize:{$this->SoundSize}($SoundSizeNote)\n";
+            $SoundTypeNote =  self::$SoundTypeNoteList[$this->SoundType];
+            echo "\tSoundRate:{$this->SoundRate}($SoundRateNote)";
+            echo "  SoundSize:{$this->SoundSize}($SoundSizeNote)";
+            echo "  SoundType:{$this->SoundType}($SoundTypeNote)\n";
             echo "\tSoundSampleCount:{$this->SoundSampleCount}\n";
         }
     }
