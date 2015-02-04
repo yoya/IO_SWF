@@ -5,9 +5,9 @@ require 'IO/SWF.php';
 
 $options = getopt("f:hl");
 
-if (is_readable($options['f']) === false) {
-    echo "Usage: php swfdump.php -f <swf_file> [-h]\n";
-    echo "ex) php swfdump.php -f test.swf -h \n";
+if ((isset($options['f']) === false) || (is_readable($options['f']) === false)) {
+    echo "Usage: php swfdump.php -f <swf_file> [-h] [-l]\n";
+    echo "ex) php swfdump.php -f test.swf -h -l\n";
     exit(1);
 }
 
