@@ -7,8 +7,8 @@ $options = getopt("f:cd");
 
 function usage() {
     echo "Usage: php swfcompress.php -[cd] <swf_file>\n";
-    echo "ex) php swfcompress.php -c test.swf # compress\n";
-    echo "ex) php swfcompress.php -d test.swf # decompress\n";
+    echo "ex) php swfcompress.php -c test.swf # compress (*WS=>CWS)\n";
+    echo "ex) php swfcompress.php -d test.swf # decompress (*WS=>FWS)\n";
 }
 
 if (is_readable($options['f']) === false) {
