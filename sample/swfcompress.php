@@ -11,7 +11,7 @@ function usage() {
     echo "ex) php swfcompress.php -d -f test.swf # decompress (*WS=>FWS)\n";
 }
 
-if (is_readable($options['f']) === false) {
+if ((isset($options['f']) === false) || (is_readable($options['f']) === false)) {
     usage();
     exit(1);
 }
