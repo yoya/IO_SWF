@@ -443,7 +443,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         }
         return $str;
     }
-    function replaceActionString(&$action, $trans_table) {
+    static function replaceActionString(&$action, $trans_table) {
         $replaced = false;
         switch($action['Code']) {
           case 0x83: // ActionGetURL
