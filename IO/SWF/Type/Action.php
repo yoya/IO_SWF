@@ -115,7 +115,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         0x8B => Array('name' => 'SetTarget', 'version' => 4),
         0x8C => Array('name' => 'GoToLabel', 'version' => 4),
         0x8D => Array('name' => 'WaitForFrame2', 'version' => 4),
-        0x8E => Array('name' => 'DefineFunction2', 'version' => 6),
+        0x8E => Array('name' => 'DefineFunction2', 'version' => 7),
         //
         0x94 => Array('name' => 'With', 'version' => 5), // SWF 5
         0x96 => Array('name' => 'Push', 'version' => 4),
