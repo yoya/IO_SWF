@@ -115,7 +115,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         0x8B => Array('name' => 'SetTarget', 'version' => 4),
         0x8C => Array('name' => 'GoToLabel', 'version' => 4),
         0x8D => Array('name' => 'WaitForFrame2', 'version' => 4),
-        0x8E => Array('name' => 'DefineFunction2', 'version' => 7),
+        0x8E => Array('name' => 'DefineFunction2', 'version' => 6),
         //
         0x94 => Array('name' => 'With', 'version' => 5), // SWF 5
         0x96 => Array('name' => 'Push', 'version' => 4),
@@ -183,6 +183,33 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
               case 0x8D: // ActionWaitForFrame2
                 $action['Frame'] = $reader->getUI16LE();
                 $action['SkipCount'] = $reader->getUI8();
+                break;
+              case 0x8E: // ActionDefineFunction2
+                $action['FunctionName'] = $reader->getDataUntil("\0");
+		$action['NumParams'] = $numParams = $reader->getUI16LE();
+                $action['RegisterCount'] = $reader->getUI8();
+		//
+		$action['PreloadParentFlag'] = $reader->getUIBit();
+		$action['PreloadBootFlag'] = $reader->getUIBit();
+		$action['SuppressSuperFlag'] = $reader->getUIBit();
+		$action['PreloadSuperFlag'] = $reader->getUIBit();
+		$action['SuppressArgumentsFlag'] = $reader->getUIBit();
+		$action['PreloadArgumentsFlag'] = $reader->getUIBit();
+		$action['SuppressThisFlag'] = $reader->getUIBit();
+		$action['PreloadThisFlag'] = $reader->getUIBit();
+		//
+		$action['(Reserve)'] = $reader->getUIBits(7);
+		$action['PreloadGlobalFlag'] = $reader->getUIBit();
+		//
+		$parameters = array();
+		for ($i = 0 ; $i < $numParams ; $i++) {
+		    $registerParam = array();
+		    $registerParam['Register'] = $reader->getUI8();
+		    $registerParam['ParamName'] = $reader->getDataUntil("\0");
+		    $parameters []= $registerParam;
+		}
+		$action['Parameters'] = $parameters;
+		$action['codeSize'] = $reader->getUI16LE();
                 break;
               case 0x96: // ActionPush
                 $data = $reader->getData($length);
@@ -304,6 +331,38 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
               case 0x8D: // ActionWaitForFrame2
                 $writer->putUI16LE($action['Frame']);
                 $writer->putUI8($action['SkipCount']);
+                break;
+              case 0x8E: // ActionDefineFunction2
+	        $writer->putData($action['FunctionName']."\0");
+//		$numParams = $action['NumParams'];
+		$numParams = count($parameters);
+		$writer->putUI16LE($numParams);
+
+                $writer->putUI8($action['RegisterCount']);
+		//
+		$writer->putUIBit($action['PreloadParentFlag']);
+		$writer->putUIBit($action['PreloadBootFlag']);
+		$writer->putUIBit($action['SuppressSuperFlag']);
+		$writer->putUIBit($action['PreloadSuperFlag'] );
+		$writer->putUIBit($action['SuppressArgumentsFlag']);
+		$writer->putUIBit($action['PreloadArgumentsFlag']);
+		$writer->putUIBit($action['SuppressThisFlag']);
+		$writer->putUIBit($action['PreloadThisFlag']);
+		//
+		if (isset($action['(Reserve)'])) {
+		    $writer->putUIBits($action['(Reserve)'], 7);
+		} else {
+		    $writer->putUIBits(0, 7);
+		}
+		$writer->putUIBit($action['PreloadGlobalFlag']);
+		//
+		$parameters = $action['Parameters'];
+		foreach  ($parameters as $registerParam) {
+		    $writer->putUI8($registerParam['Register']);
+		    $writer->putData($registerParam['ParamName']."\0");
+		}
+		$writer->putUI16LE($action['codeSize']);
+                break;
                 break;
               case 0x96: // ActionPush
                 $values_writer = new IO_Bit();
@@ -431,7 +490,15 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                         if (is_array($value)) {
                             $new_value = array();
                             foreach ($value as $k => $v) {
-                                $new_value[] = "$k:$v";
+                                if (is_array($v)) {
+				    $new_value2 = array();
+				    foreach ($v as $k2 => $v2) {
+	 			       $new_value2[] = "$k2:$v2";
+				    }
+				    $new_value[] = "[".implode(',', $new_value2)."]";
+				} else {
+				    $new_value[] = "$k:$v";
+				}
                             }
                             $value = implode(' ', $new_value);
                         }
