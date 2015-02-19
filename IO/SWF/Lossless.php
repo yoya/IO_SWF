@@ -141,6 +141,8 @@ class IO_SWF_Lossless {
                     $gd_palette []= imagecolorallocate($im, $red, $green, $blue);
                 }
             } else { // DefineBitsLossless2
+                imagesavealpha($im, true);
+                imagealphablending($im, false);
                 for ($i = 0, $j = 0; $i <  $palette_num; $i++) {
                     $red   = ord($palette_data[$j++]);
                     $green = ord($palette_data[$j++]);
@@ -178,6 +180,8 @@ class IO_SWF_Lossless {
                     }
                 }
             } else { // DefineBitsLossless2
+                imagesavealpha($im, true);
+                imagealphablending($im, false);
                 $i = 0;
                 for ($y = 0 ; $y < $height ; $y++) {
                     for ($x = 0 ; $x < $width ; $x++) {
@@ -191,9 +195,6 @@ class IO_SWF_Lossless {
                     }
                 }
             }
-        }
-        if ($tagCode == 36) { // DefineBitsLossless2
-            imagesavealpha($im, true);
         }
         $filename = tempnam("/tmp", "swfcl2p");
         if (imagepng($im, $filename) === false) {
