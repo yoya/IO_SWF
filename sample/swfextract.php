@@ -37,6 +37,7 @@ foreach ($swf->_tags as $tag) {
     $tagName = $tagMap[$code]['name'];
     $cid = false;
     $ext = false;
+    $data2 = false;
     switch ($code) {
     case 8:// JPEGTables;
         $jpegTables = $tag->content;
@@ -48,6 +49,11 @@ foreach ($swf->_tags as $tag) {
         $cid = $tag->tag->_CharacterID;
         $data = $tag->getJpegData($jpegTables);
         $ext = "jpg";
+        if ($code >= 35) { // DefineBitsJPEG3
+            $zlibalpha = $tag->tag->_ZlibBitmapAlphaData;
+            $data2 = gzuncompress($zlibalpha);
+            $ext2 = "alpha";
+        }
         break;
     case 20: // DefineLossless
     case 36: // DefineLossless2
@@ -96,6 +102,11 @@ foreach ($swf->_tags as $tag) {
         $outfile = "$outfile_prefix$cid.$ext";
         echo $outfile.PHP_EOL;
         file_put_contents($outfile, $data);
+        if ($data2 !== false) {
+            $outfile2 = "$outfile_prefix$cid.$ext2";
+            echo $outfile2.PHP_EOL;
+            file_put_contents($outfile2, $data2);
+        }
     }
 }
 
