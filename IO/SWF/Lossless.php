@@ -125,7 +125,7 @@ class IO_SWF_Lossless {
     /* Lossless 形式のデータ PNG データに変換する (一時ファイルを作ります)
      * return (string) $pngdata;
      */
-    function Lossless2PNG($tagCode, $format, $width, $height,
+    static function Lossless2PNG($tagCode, $format, $width, $height,
                           $palette_num, $palette_data,
                           $lossless_bitmap_data) {
         if ($format == 3) {
