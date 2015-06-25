@@ -170,6 +170,34 @@ class IO_SWF_JPEG {
         }
         return $bitout->output();
     }
+
+    static function bitmapAlpha2PNG($bitmapdata, $bitmapalpha) {
+        $im = imagecreatefromstring($bitmapdata);
+        $width = imagesx($im);
+        $height = imagesy($im);
+        imagesavealpha($im, true);
+        imagealphablending($im, false);
+        $i = 0;
+        for ($y = 0 ; $y < $height ; $y++) {
+            for($x = 0 ; $x < $width ; $x++) {
+                $c = imagecolorat($im, $x, $y);
+                $rgba = imagecolorsforindex($im, $c);
+                $red   = $rgba['red'];
+                $green = $rgba['green'];
+                $blue  = $rgba['blue'];
+                $alpha = 127 - ord($bitmapalpha[$i])/2;
+                $i++;
+                $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
+                imagesetpixel($im, $x, $y, $color);
+            }
+        }
+        ob_start(); // ---- stdout to memory
+        imagepng($im);
+        $pngdata = ob_get_contents();
+        ob_end_clean(); // ----
+        return $pngdata;
+    }
+
     function dumpChunk() { // for debug
         if (count($this->_jpegChunk) == 0) {
             $this->_splitChunk(false);
