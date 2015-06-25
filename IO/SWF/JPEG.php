@@ -195,6 +195,7 @@ class IO_SWF_JPEG {
         imagepng($im);
         $pngdata = ob_get_contents();
         ob_end_clean(); // ----
+        imagedestroy($im);
         return $pngdata;
     }
 
