@@ -38,6 +38,7 @@ foreach ($swf->_tags as $tag) {
     $cid = false;
     $ext = false;
     $data2 = false;
+    $data3 = false;
     switch ($code) {
     case 8:// JPEGTables;
         $jpegTables = $tag->content;
@@ -53,6 +54,8 @@ foreach ($swf->_tags as $tag) {
             $zlibalpha = $tag->tag->_ZlibBitmapAlphaData;
             $data2 = gzuncompress($zlibalpha);
             $ext2 = "alpha";
+            $data3 = IO_SWF_JPEG::bitmapAlpha2PNG($data, $data2);
+            $ext3 = "png";
         }
         break;
     case 20: // DefineLossless
@@ -106,6 +109,11 @@ foreach ($swf->_tags as $tag) {
             $outfile2 = "$outfile_prefix$cid.$ext2";
             echo $outfile2.PHP_EOL;
             file_put_contents($outfile2, $data2);
+        }
+        if ($data3 !== false) {
+            $outfile3 = "$outfile_prefix$cid.$ext3";
+            echo $outfile3.PHP_EOL;
+            file_put_contents($outfile3, $data3);
         }
     }
 }
