@@ -479,6 +479,20 @@ class IO_SWF_Editor extends IO_SWF {
         return $ret;
     }
 
+    function getJpegAlpha($bitmap_id) {
+        $this->setCharacterId();
+        $tag = $this->getTagByCharacterId($bitmap_id);
+        $tag_code = $tag->code;
+        if ($tag_code != 35) { // DefineBitsJPEG3
+            return false;
+        }
+        if (! $tag->parseTagContent()) {
+            return false;
+        }
+        $jpegAlpha = gzuncompress($tag->tag->_ZlibBitmapAlphaData);
+        return $jpegAlpha;
+	}
+
     function getPNGData($bitmap_id) {
         $this->setCharacterId();
         $tag = $this->getTagByCharacterId($bitmap_id);
