@@ -148,8 +148,13 @@ class IO_SWF_Lossless {
                     $green = ord($palette_data[$j++]);
                     $blue  = ord($palette_data[$j++]);
                     $alpha = ord($palette_data[$j++]);
-                    $alpha = 127 - $alpha / 2;
-                    $gd_palette []= imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
+                    if ($alpha > 0) {
+                        $red   = min($red   * 255 / $alpha, 255);
+                        $green = min($green * 255 / $alpha, 255);
+                        $blue  = min($blue  * 255 / $alpha, 255);
+                    }
+                    $alpha_gd = 127 - $alpha / 2;
+                    $gd_palette []= imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                 }
             }
             if ($width % 4) {
@@ -186,11 +191,16 @@ class IO_SWF_Lossless {
                 for ($y = 0 ; $y < $height ; $y++) {
                     for ($x = 0 ; $x < $width ; $x++) {
                         $alpha = ord($lossless_bitmap_data[$i++]);
-                        $alpha = 127 - $alpha / 2;
                         $red   = ord($lossless_bitmap_data[$i++]);
                         $green = ord($lossless_bitmap_data[$i++]);
                         $blue  = ord($lossless_bitmap_data[$i++]);
-                        $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
+                        if ($alpha > 0) {
+                            $red   = min($red   * 255 / $alpha, 255);
+                            $green = min($green * 255 / $alpha, 255);
+                            $blue  = min($blue  * 255 / $alpha, 255);
+                        }
+                        $alpha_gd = 127 - $alpha / 2;
+                        $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                         imagesetpixel($im, $x, $y, $color);
                     }
                 }
