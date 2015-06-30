@@ -185,9 +185,15 @@ class IO_SWF_JPEG {
                 $red   = $rgba['red'];
                 $green = $rgba['green'];
                 $blue  = $rgba['blue'];
-                $alpha = 127 - ord($bitmapalpha[$i])/2;
+                $alpha = ord($bitmapalpha[$i]);
                 $i++;
-                $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
+                if ($alpha > 0) {
+                    $red   = min($red   * 255 / $alpha, 255);
+                    $green = min($green * 255 / $alpha, 255);
+                    $blue  = min($blue  * 255 / $alpha, 255);
+                }
+                $alpha_gd = 127 - $alpha/2;
+                $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                 imagesetpixel($im, $x, $y, $color);
             }
         }
