@@ -178,6 +178,7 @@ class IO_SWF_JPEG {
         imagesavealpha($im, true);
         imagealphablending($im, false);
         $i = 0;
+        $bitmapalpha_len = strlen($bitmapalpha);
         for ($y = 0 ; $y < $height ; $y++) {
             for($x = 0 ; $x < $width ; $x++) {
                 $c = imagecolorat($im, $x, $y);
@@ -185,8 +186,11 @@ class IO_SWF_JPEG {
                 $red   = $rgba['red'];
                 $green = $rgba['green'];
                 $blue  = $rgba['blue'];
-                $alpha = ord($bitmapalpha[$i]);
-                $i++;
+                if ($i < $bitmapalpha_len) {
+                    $alpha = ord($bitmapalpha[$i++]);
+                } else {
+                    $alpha = 255;
+                }
                 if ($alpha > 0) {
                     $red   = min($red   * 255 / $alpha, 255);
                     $green = min($green * 255 / $alpha, 255);
