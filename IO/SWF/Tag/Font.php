@@ -84,7 +84,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
             $this->FontAscent = $reader->getSI16LE();
             $this->FontDescent = $reader->getSI16LE();
             $this->FontLeading = $reader->getSI16LE();
-            $this->FontAdvanceTable[] = array();
+            $this->FontAdvanceTable = array();
             for ($i = 0 ; $i < $numGlyphs ; $i++) {
                 $this->FontAdvanceTable[] = $reader->getSI16LE();
             }
