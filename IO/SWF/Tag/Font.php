@@ -143,7 +143,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         if ($this->FontKerningTable) {
             echo "    FontKerningTable:".PHP_EOL;
             foreach ($this->FontKerningTable as $fontKerning) {
-                echo "\t".IO_SWF_Type_KERNINGRECORD::string($fontkerning).PHP_EOL;
+                echo "\t".IO_SWF_Type_KERNINGRECORD::string($fontKerning).PHP_EOL;
             }
         } else {
             echo "\t(FontKerningTable is null)".PHP_EOL;
