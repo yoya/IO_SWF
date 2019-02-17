@@ -17,3 +17,25 @@ SWF バイナリを解釈/編集する為のライブラリです。  IO_Bit が
 # License
 
 MIT License
+
+# Install
+
+```
+% composer require yoya/io_swf
+```
+
+# Usage
+
+- sfdump.php (binary structure dump)
+
+```
+% php vendor/yoya/io_swf/sample/swfdump.php -f input.swf
+Signature: FWS
+Version: 26
+FileLength: 886751
+FrameSize: Xmin: 0 Xmax: 512 Ymin: 0 Ymax: 288
+FrameRate: 60
+FrameCount: 1
+Tags:
+(omit)
+```
