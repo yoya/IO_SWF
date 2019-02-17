@@ -55,13 +55,13 @@ class IO_SWF_JPEG {
             switch ($marker2) {
             case 0xD8: // SOI (Start of Image)
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
-                continue;
+                break;
             case 0xD9: // EOI (End of Image)
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => null, 'length' => null);
                 if ($eoiFinish) {
                     break 2; // while break;
                 }
-                continue;
+                break;
             case 0xDA: // SOS
                 if ($sosScan === false) {
                     $remainData = $bitin->getDataUntil(false);
@@ -92,7 +92,7 @@ class IO_SWF_JPEG {
             default:
                 $length = $bitin->getUI16BE();
                 $this->_jpegChunk[] = array('marker' => $marker2, 'data' => $bitin->getData($length - 2), 'length' => $length);
-                continue;
+                break;
             }
         }
     }
