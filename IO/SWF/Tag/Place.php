@@ -51,13 +51,13 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                 $this->_colorTransform = IO_SWF_Type_CXFORMWITHALPHA::parse($reader);
             }
             if ($this->_placeFlagHasRatio) {
-                $this->_ratio =  $reader->getUI16LE();
+                $this->_ratio = $reader->getUI16LE();
             }
             if ($this->_placeFlagHasName) {
                 $this->_name = IO_SWF_Type_String::parse($reader);
             }
             if ($this->_placeFlagHasClipDepth) {
-                $this->_clipDepth =  $reader->getUI16LE();
+                $this->_clipDepth = $reader->getUI16LE();
             }
             if ($this->_placeFlagHasClipActions) {
                 $this->_clipActions = IO_SWF_Type_CLIPACTIONS::parse($reader, $opts);
@@ -90,10 +90,10 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             echo "\tRatio: ".$this->_ratio."\n";
         }
         if (is_null($this->_name) === false) {
-            echo "\tName:".$this->_name."\n";
+            echo "\tName: ".$this->_name."\n";
         }
         if (is_null($this->_clipDepth) === false) {
-            echo "\tClipDepth:".$this->_clipDepth."\n";
+            echo "\tClipDepth: ".$this->_clipDepth."\n";
         }
         if (is_null($this->_clipActions) === false) {
             echo "\tClipActions:\n";
