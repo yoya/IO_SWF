@@ -591,7 +591,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 46: // DefineMorphShape
                 $tag->parseTagContent();
                 if ($tag->tag->_shapeId != $shape_id) {
-                    continue;
+                    break;
                 }
                 $ret = $tag->tag->sliceRecords($start, $end);
                 $tag->content = null;
@@ -713,7 +713,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 9: // SetBackgroundColor
               case 69: // FileAttributes
                 unset($mc_swf->_tags[$tag_idx]); // delete
-                continue;
+                continue 2;
             }
             if (isset($tag->characterId)) {
 //                echo "code={$tag->code}\n";
