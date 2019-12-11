@@ -70,7 +70,7 @@ class IO_SWF_Tag {
         66 => array('name' => 'SetTabIndex', 'version' => 7),
         // 67,68 missing
         69 => array('name' => 'FileAttributes', 'klass' => 'FileAttributes', 'version' => 8),
-        70 => array('name' => 'PlaceObject3', 'version' => 8),
+        70 => array('name' => 'PlaceObject3', 'klass' => 'Place', 'version' => 8),
         71 => array('name' => 'ImportAssets2', 'version' => 8),
         // 72 missing
         73 => array('name' => 'DefineFontAlignZones', 'version' => 8),
