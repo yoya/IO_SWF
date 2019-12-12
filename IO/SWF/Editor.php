@@ -1070,7 +1070,7 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
-    function degrade($swfVersion) {
+    function degrade($swfVersion, $limitSwfVersion) {
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
         $tagsEachKrass = []; // desc sort by tagNo (version as a result)
@@ -1091,7 +1091,7 @@ class IO_SWF_Editor extends IO_SWF {
             }
             $klass = $tag->getTagInfo($tagCode, "klass");
             $tagVersion = $tag->getTagInfo($tagCode, "version");
-            if ($tagVersion <= $swfVersion) {
+            if ($tagVersion <= $limitSwfVersion) {
                 continue;
             }
             if ($tag->parseTagContent() === false) {
@@ -1100,7 +1100,7 @@ class IO_SWF_Editor extends IO_SWF {
             $tag->content = null;
             foreach ($tagsEachKrass[$klass] as $tagNoVer) {
                 list($no, $ver) = $tagNoVer;
-                if ($ver <= $swfVersion) {
+                if ($ver <= $limitSwfVersion) {
                     $tag->code = $no;
                     break;
                 }
