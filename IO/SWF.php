@@ -1,7 +1,7 @@
 <?php
 
 /*
- * 2010/8/11- (c) yoya@awm.jp - v3.2.0
+ * 2010/8/11- (c) yoya@awm.jp - v3.2.1
  */
 
 require_once 'IO/Bit.php';
