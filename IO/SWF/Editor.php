@@ -1070,4 +1070,43 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
+    function degrade($swfVersion) {
+        $this->_headers['Version'] = $swfVersion;
+        $tagInfoList = $this->_tags[0]->getTagInfoList();
+        $tagsEachKrass = []; // desc sort by tagNo (version as a result)
+        foreach ($tagInfoList as $tagNo => $tagInfo) {
+            if (isset($tagInfo["klass"])) {
+                $klass = $tagInfo["klass"];
+                $version = $tagInfo["version"];
+                if (isset($tagsEachKrass[$klass]) === false) {
+                    $tagsEachKrass[$klass] = [];
+                }
+                array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
+            }
+        }
+        foreach ($this->_tags as &$tag) {
+            $tagCode = $tag->code;
+            if ($tag->getTagInfo($tagCode, "klass") === false) {
+                continue;
+            }
+            $klass = $tag->getTagInfo($tagCode, "klass");
+            $tagVersion = $tag->getTagInfo($tagCode, "version");
+            if ($tagVersion <= $swfVersion) {
+                continue;
+            }
+            if ($tag->parseTagContent() === false) {
+                throw new IO_SWF_Exception("failed to parseTagContent");
+            }
+            $tag->content = null;
+            foreach ($tagsEachKrass[$klass] as $tagNoVer) {
+                list($no, $ver) = $tagNoVer;
+                if ($ver <= $swfVersion) {
+                    $tag->code = $no;
+                    break;
+                }
+            }
+            $tagName = $tag->getTagInfo($tagCode, "name");
+            // echo "$tagCode, $tagName, $tagVersion => $no\n";
+        }
+    }
 }

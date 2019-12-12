@@ -95,6 +95,9 @@ class IO_SWF_Tag {
     function __construct($swfInfo) {
         $this->swfInfo = $swfInfo;
     }
+    function getTagInfoList() {
+        return self::$tagMap;
+    }
     function getTagInfo($tagCode, $label) {
         if (isset(self::$tagMap[$tagCode][$label])) {
            return self::$tagMap[$tagCode][$label];
