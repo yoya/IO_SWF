@@ -84,7 +84,7 @@ class IO_SWF_Tag {
         83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'version' => 8),
         84 => array('name' => 'DefineMorphShape2', 'version' => 8),
         // 85 missing
-        86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => null),
+        86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => 9),
         87 => array('name' => 'DefineBinaryData', 'version' => 9),
         88 => array('name' => 'DefineFontName', 'version' => null), // SWF9
         89 => array('name' => 'StartSound2', 'version' => 9),
