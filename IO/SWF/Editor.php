@@ -1086,7 +1086,13 @@ class IO_SWF_Editor extends IO_SWF {
         }
         foreach ($this->_tags as &$tag) {
             $tagCode = $tag->code;
+            $tagVersion = $tag->getTagInfo($tagCode, "version");
+            $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
+                if ($tagVersion > $limitSwfVersion) {
+                    fprintf(STDERR, "WARNING:");
+                }
+                fprintf(STDERR, "%s(%d) tagVersion:%d limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
                 continue;
             }
             $klass = $tag->getTagInfo($tagCode, "klass");
@@ -1102,11 +1108,10 @@ class IO_SWF_Editor extends IO_SWF {
                 list($no, $ver) = $tagNoVer;
                 if ($ver <= $limitSwfVersion) {
                     $tag->code = $no;
-                    break;
+                    continue 2;
                 }
             }
-            $tagName = $tag->getTagInfo($tagCode, "name");
-            // echo "$tagCode, $tagName, $tagVersion => $no\n";
+            fprintf(STDERR, "WARNING %s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
         }
     }
 }
