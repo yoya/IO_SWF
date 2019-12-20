@@ -64,7 +64,7 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
                 $matrix = identMatrix();
             }
             echo "$name\n";
-            $multipliedMatrix = multiplyMatrix([$matrix, $parentMatrix]);
+            $multipliedMatrix = multiplyMatrix($matrix, $parentMatrix);
             dumpMatrix([$matrix, $parentMatrix, $multipliedMatrix], 1).PHP_EOL;
             $target_tag = $swf->getTagByCharacterId($cid);
             swftreematrix($swf, [$target_tag], $multipliedMatrix, $indent+1);
@@ -114,35 +114,28 @@ function identMatrix() {
     return $matrix;
 }
 
-function multiplyMatrix($matrixArray) {
-    foreach ($matrixArray as $i => $matrix) {
-        if ($i === 0) {
-            $prevMatrix = $matrix;
-            continue;
-        }
-        $matrix = [
-            'ScaleX' =>
-            $prevMatrix['ScaleX'] * $matrix['ScaleX'] / 0x10000 +
-            $prevMatrix['RotateSkew0'] * $matrix['RotateSkew1'] / 0x10000,
-            'RotateSkew0' =>
-            $prevMatrix['ScaleX'] * $matrix['RotateSkew0'] / 0x10000+
-            $prevMatrix['RotateSkew0'] * $matrix['ScaleY'] / 0x10000,
-            'TranslateX' =>
-            $prevMatrix['ScaleX'] * $matrix['TranslateX']  / 0x10000 / 20 +
-            $prevMatrix['RotateSkew0'] * $matrix['TranslateY'] / 0x10000 / 20 +
-            $prevMatrix['TranslateX'],
-            'RotateSkew1' =>
-            $prevMatrix['RotateSkew1'] * $matrix['ScaleX'] / 0x10000+
-            $prevMatrix['ScaleY'] * $matrix['RotateSkew1'] / 0x10000,
-            'ScaleY' =>
-            $prevMatrix['RotateSkew1'] * $matrix['RotateSkew0'] / 0x10000+
-            $prevMatrix['ScaleY'] * $matrix['ScaleY'] / 0x10000,
-            'TranslateY' =>
-            $prevMatrix['RotateSkew1'] * $matrix['TranslateX'] / 0x10000 / 20 +
-            $prevMatrix['ScaleY'] * $matrix['TranslateY']  / 0x10000 / 20 + 
-            $prevMatrix['TranslateY'],
-        ];
-        $prevMatrix = $matrix;
-    }
+function multiplyMatrix($mat1, $mat2) {
+    $matrix = [
+        'ScaleX' => (
+            $mat1['ScaleX'] * $mat2['ScaleX'] / 0x10000 +
+            $mat1['RotateSkew0'] * $mat2['RotateSkew1'] / 0x10000 ),
+        'RotateSkew0' => (
+            $mat1['ScaleX'] * $mat2['RotateSkew0'] / 0x10000 +
+            $mat1['RotateSkew0'] * $mat2['ScaleY'] / 0x10000 ),
+        'TranslateX' => (
+            $mat1['ScaleX'] * $mat2['TranslateX']  / 0x10000 / 20 +
+            $mat1['RotateSkew0'] * $mat2['TranslateY'] / 0x10000 / 20 +
+            $mat1['TranslateX'] ),
+        'RotateSkew1' => (
+            $mat1['RotateSkew1'] * $mat2['ScaleX'] / 0x10000 +
+            $mat1['ScaleY'] * $mat2['RotateSkew1'] / 0x10000 ),
+        'ScaleY' => (
+            $mat1['RotateSkew1'] * $mat2['RotateSkew0'] / 0x10000+
+            $mat1['ScaleY'] * $mat2['ScaleY'] / 0x10000 ),
+        'TranslateY' => (
+            $mat1['RotateSkew1'] * $mat2['TranslateX'] / 0x10000 / 20 +
+            $mat1['ScaleY'] * $mat2['TranslateY']  / 0x10000 / 20 +
+            $mat1['TranslateY'] ),
+    ];
     return $matrix;
 }
