@@ -61,7 +61,7 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
             if (isset($tag->tag->_matrix)) {
                 $matrix = $tag->tag->_matrix;
             } else {
-                $matrix = ident_matrix();
+                $matrix = identMatrix();
             }
             echo "$name\n";
             $multipliedMatrix = multiplyMatrix([$matrix, $parentMatrix]);
