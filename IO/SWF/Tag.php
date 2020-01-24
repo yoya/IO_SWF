@@ -76,7 +76,7 @@ class IO_SWF_Tag {
         73 => array('name' => 'DefineFontAlignZones', 'version' => 8),
         74 => array('name' => 'CSMTextSettings', 'version' => 8),
         75 => array('name' => 'DefineFont3', 'klass' => 'Font', 'version' => 8),
-        76 => array('name' => 'SymbolClass', 'version' => 9),
+        76 => array('name' => 'SymbolClass', 'klass' => 'SymbolClass', 'version' => 9),
         77 => array('name' => 'MetaData', 'version' => 1),
         78 => array('name' => 'DefineScalingGrid', 'version' => 8),
         // 79,80,81 missing
