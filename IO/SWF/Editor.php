@@ -1071,6 +1071,9 @@ class IO_SWF_Editor extends IO_SWF {
         return false;
     }
     function degrade($swfVersion, $limitSwfVersion) {
+        if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
+            throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
+        }
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
         $tagsEachKrass = []; // desc sort by tagNo (version as a result)
