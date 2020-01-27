@@ -1095,6 +1095,20 @@ class IO_SWF_Editor extends IO_SWF {
             if ($tagCode <= 1) {  // End(0), ShowFrame(1)
                 continue;
             }
+            if ($tagCode === 69) {  // FileAttribute
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                if ($swfVersion < 10) {
+                    $tag->tag->UseDirectBlit = 0;
+                    $tag->tag->UseGPU        = 0;
+                    $tag->tag->HasMetadata   = 0;
+                }
+                if ($swfVersion < 9) {
+                    $tag->tag->ActionScript3 = 0;
+                }
+                $tag->content = null;
+            }
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
