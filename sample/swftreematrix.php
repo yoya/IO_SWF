@@ -1,6 +1,6 @@
 <?php
 /* 
- * 2019/8/12/19- (c) yoya@awm.jp
+ * 2019/12/19- (c) yoya@awm.jp
  */
 
 require 'IO/SWF/Editor.php';
