@@ -1087,7 +1087,10 @@ class IO_SWF_Editor extends IO_SWF {
                 array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
             }
         }
-        foreach ($this->_tags as &$tag) {
+        $this->degradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion);
+    }
+    function degradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion) {
+        foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
@@ -1100,6 +1103,15 @@ class IO_SWF_Editor extends IO_SWF {
             }
             $klass = $tag->getTagInfo($tagCode, "klass");
             $tagVersion = $tag->getTagInfo($tagCode, "version");
+            if ($tagCode === 39) {  // DefineSprite
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                $this->degradeTags($tag->tag->_controlTags, $tagsEachKrass,
+                                   $swfVersion, $limitSwfVersion);
+                $tag->content = null;
+                continue;
+            }
             if ($tagVersion <= $limitSwfVersion) {
                 continue;
             }
