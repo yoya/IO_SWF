@@ -80,7 +80,7 @@ class IO_SWF_Tag {
         77 => array('name' => 'MetaData', 'version' => 1),
         78 => array('name' => 'DefineScalingGrid', 'version' => 8),
         // 79,80,81 missing
-        82 => array('name' => 'DoABC', 'version' => 9),
+        82 => array('name' => 'DoABC', 'klass' => 'ABC', 'version' => 9),
         83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'version' => 8),
         84 => array('name' => 'DefineMorphShape2', 'version' => 8),
         // 85 missing
