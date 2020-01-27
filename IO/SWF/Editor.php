@@ -1092,6 +1092,9 @@ class IO_SWF_Editor extends IO_SWF {
     function degradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
+            if ($tagCode <= 1) {  // End(0), ShowFrame(1)
+                continue;
+            }
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
