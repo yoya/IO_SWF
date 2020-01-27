@@ -7,7 +7,6 @@
 require_once 'IO/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/../Type/Action.php';
-require_once dirname(__FILE__).'/../Tag/Button.php';
 
 class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     var $_actions = array();
