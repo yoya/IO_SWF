@@ -2,20 +2,24 @@
 
 require 'IO/SWF/Editor.php';
 
+$options = getopt("f:v:l:");
+
 function usage() {
-    echo "Usage: php swfdegrade.php <swf_file> <swf_version> <limit_swf_version>\n";
-    echo "ex) php swfdegrade.php test.swf 4 4\n";
+    echo "Usage: php swfdegrade.php -f <swf_file> -v <swf_version> -l <limit_swf_version>\n";
+    echo "ex) php swfdegrade.php -f test.swf -v 4 -l 4\n";
 }
 
-if ($argc < 4) {
-    echo "ERROR: require 3 arguments\n";
+if ((! is_readable($options['f'])) ||
+    (! is_numeric($options['v'])) ||
+    (! is_numeric($options['l']))) {
+    echo "ERROR: require f v l options\n";
     usage();
     exit (1);
 }
 
-$filename = $argv[1];
-$swfVersion = $argv[2];
-$limitSwfVersion = $argv[3];
+$filename = $options['f'];
+$swfVersion = $options['v'];
+$limitSwfVersion = $options['l'];
 
 if (is_readable($filename) === false) {
     echo "ERROR: can't open file:$filename\n";
