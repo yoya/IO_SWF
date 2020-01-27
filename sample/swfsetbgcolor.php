@@ -1,6 +1,10 @@
 <?php
 
-require 'IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 if ($argc != 5) {
     echo "Usage: php swfsetbgcolor.php <swf_file> <red> <green> <blue>\n";

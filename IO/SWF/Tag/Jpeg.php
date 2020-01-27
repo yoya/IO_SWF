@@ -1,6 +1,10 @@
 <?php
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_SWF_Tag_Jpeg extends IO_SWF_Tag_Base {

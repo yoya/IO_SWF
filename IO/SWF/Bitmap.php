@@ -4,7 +4,11 @@
  * Bitmap Utility Routine
  */
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_Bitmap {

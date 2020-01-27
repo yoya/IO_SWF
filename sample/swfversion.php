@@ -1,7 +1,10 @@
 <?php
 
-require 'IO/SWF/Editor.php';
-// require 'IO/SWF/Type/Action.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 $tagMap = IO_SWF_Tag::$tagMap;
 

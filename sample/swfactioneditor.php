@@ -1,7 +1,10 @@
 <?php
 
-require 'IO/SWF/ActionEditor.php';
-// require dirname(__FILE__).'/../IO/SWF/ActionEditor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/ActionEditor.php';
+}
 
 if ($argc != 2) {
     echo "Usage: php swfactioneditor.php <swf_file>\n";

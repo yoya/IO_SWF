@@ -3,7 +3,11 @@
  * 2019/12/19- (c) yoya@awm.jp
  */
 
-require 'IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 if ($argc != 2) {
     echo "Usage: php swfwireframe.php <swf_file>\n";

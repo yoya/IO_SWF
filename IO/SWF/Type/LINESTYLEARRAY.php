@@ -4,10 +4,13 @@
  * 2011/4/15- (c) yoya@awm.jp
  */
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/LINESTYLE.php';
-
 
 class IO_SWF_Type_LINESTYLEARRAY implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {

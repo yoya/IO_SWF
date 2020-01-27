@@ -1,7 +1,10 @@
 <?php
 
-require 'IO/SWF/Editor.php';
-// require dirname(__FILE__).'/../IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 if ( ($argc < 4) || (($argc % 2) == 0) ||
       (($argv[1] !== '-') && (is_readable($argv[1]) === false)) ) {

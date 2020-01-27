@@ -1,6 +1,10 @@
 <?php
 
-require_once 'IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/SWF/Editor.php';
+}
 
 if (($argc != 3)) {
     echo "Usage: php swfgetmovieclip.php <swf_file> <target_path>\n";

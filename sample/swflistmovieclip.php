@@ -1,7 +1,10 @@
 <?php
 
-require 'IO/SWF/Editor.php';
-// require dirname(__FILE__).'/../IO/SWF.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 if ($argc != 2) {
     echo "Usage: php swflistmovieclip.php <swf_file>\n";

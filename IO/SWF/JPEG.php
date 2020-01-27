@@ -1,6 +1,10 @@
 <?php
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 
 class IO_SWF_JPEG {
     var $marker_name_table = array(

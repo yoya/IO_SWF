@@ -1,6 +1,10 @@
 <?php
 
-require 'IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 if (($argc != 2) && ($argc != 3)) {
     echo "Usage: php swfframerate.php <swf_file> [<frame_rate>]\n";

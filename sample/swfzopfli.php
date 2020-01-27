@@ -1,7 +1,11 @@
 <?php
 // require => https://github.com/kjdev/php-ext-zopfli
 
-require 'IO/SWF/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF/Editor.php';
+}
 
 function zopfli_recompress($d) {
     $u = zopfli_uncompress($d);

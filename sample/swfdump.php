@@ -1,7 +1,10 @@
 <?php
 
-require 'IO/SWF.php';
-// require dirname(__FILE__).'/../IO/SWF.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/SWF.php';
+}
 
 $options = getopt("f:hl");
 

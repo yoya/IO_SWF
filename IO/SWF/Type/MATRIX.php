@@ -4,7 +4,11 @@
  * 2011/4/15- (c) yoya@awm.jp
  */
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 require_once dirname(__FILE__).'/../Type.php';
 
 class IO_SWF_Type_MATRIX implements IO_SWF_Type {

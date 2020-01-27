@@ -1,6 +1,10 @@
 <?php
 
-require_once 'IO/SWF/JPEG.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/SWF/JPEG.php';
+}
 
 function usage() {
     echo "Usage: php jpeg_dump.php <dump|jpegtables|imagedata>".PHP_EOL;

@@ -4,7 +4,11 @@
  * 2010/8/11- (c) yoya@awm.jp - v3.3.0
  */
 
-require_once 'IO/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/Bit.php';
+}
 require_once dirname(__FILE__).'/SWF/Type/RECT.php';
 require_once dirname(__FILE__).'/SWF/Type/MATRIX.php';
 require_once dirname(__FILE__).'/SWF/Tag.php';
