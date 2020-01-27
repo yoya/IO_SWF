@@ -1070,7 +1070,7 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
-    function degrade($swfVersion, $limitSwfVersion) {
+    function degrade($swfVersion, $limitSwfVersion, $eliminate) {
         if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
             throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
         }
@@ -1087,16 +1087,19 @@ class IO_SWF_Editor extends IO_SWF {
                 array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
             }
         }
-        $this->degradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion);
+        $this->degradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
     }
-    function degradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion) {
+    function degradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
                 if ($tagVersion > $limitSwfVersion) {
-                    fprintf(STDERR, "WARNING:");
+                    if ($eliminate) {
+                        unset($tags[$idx]);
+                        fprintf(STDERR, "Eliminate: ");
+                    }
                 }
                 fprintf(STDERR, "%s(%d) tagVersion:%d limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
                 continue;
@@ -1108,7 +1111,7 @@ class IO_SWF_Editor extends IO_SWF {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
                 $this->degradeTags($tag->tag->_controlTags, $tagsEachKrass,
-                                   $swfVersion, $limitSwfVersion);
+                                   $swfVersion, $limitSwfVersion, $eliminate);
                 $tag->content = null;
                 continue;
             }
@@ -1126,7 +1129,11 @@ class IO_SWF_Editor extends IO_SWF {
                     continue 2;
                 }
             }
-            fprintf(STDERR, "WARNING %s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
+            if ($eliminate) {
+                unset($tags[$idx]);
+                fprintf(STDERR, "Eliminate: ");
+            }
+            fprintf(STDERR, "%s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
         }
     }
 }

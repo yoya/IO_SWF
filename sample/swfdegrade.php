@@ -2,10 +2,10 @@
 
 require 'IO/SWF/Editor.php';
 
-$options = getopt("f:v:l:");
+$options = getopt("f:v:l:E");
 
 function usage() {
-    echo "Usage: php swfdegrade.php -f <swf_file> -v <swf_version> -l <limit_swf_version>\n";
+    echo "Usage: php swfdegrade.php -f <swf_file> -v <swf_version> -l <limit_swf_version> [-E]\n";
     echo "ex) php swfdegrade.php -f test.swf -v 4 -l 4\n";
 }
 
@@ -20,6 +20,7 @@ if ((! is_readable($options['f'])) ||
 $filename = $options['f'];
 $swfVersion = $options['v'];
 $limitSwfVersion = $options['l'];
+$eliminate = ! isset($options['E']);
 
 if (is_readable($filename) === false) {
     echo "ERROR: can't open file:$filename\n";
@@ -37,14 +38,13 @@ if (is_numeric($limitSwfVersion) === false) {
     exit (1);
 }
 
-
 $swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF_Editor();
 
 $swf->parse($swfdata);
 
-$swf->degrade($swfVersion, $limitSwfVersion);
+$swf->degrade($swfVersion, $limitSwfVersion, $eliminate);
 
 echo $swf->build();
 
