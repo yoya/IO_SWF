@@ -25,7 +25,7 @@ class IO_SWF_Tag_FileAttributes extends IO_SWF_Tag_Base {
     }
 
     function dumpContent($tagCode, $opts = array()) {
-        echo "\tReserved:{$this->Reserved} UseDirectBlit:{$this->UseDirectBlit} UseGPU:{$this->UseGPU} HasMetadata{$this->HasMetadata}\n";
+        echo "\tReserved:{$this->Reserved} UseDirectBlit:{$this->UseDirectBlit} UseGPU:{$this->UseGPU} HasMetadata:{$this->HasMetadata}\n";
         echo "\tActionScript3:{$this->ActionScript3} Reserved2:{$this->Reserved2} UseNetwork:{$this->UseNetwork} Reserved3:{$this->Reserved3}\n";
     }
 
