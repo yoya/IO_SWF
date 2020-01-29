@@ -1,3 +1,5 @@
+<?php
+
 /*
   IO_SWF_ABC_Bit class
   (c) 2020/01/29 yoya@awm.jp
@@ -10,7 +12,7 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/Bit.php';
 }
 
-class IO_AV1_Bit extends IO_Bit {
+class IO_SWF_ABC_Bit extends IO_Bit {
     function get_u8() {
         return $this->getUI8();
     }
@@ -28,9 +30,9 @@ class IO_AV1_Bit extends IO_Bit {
         }
     }
     function get_u32() {
-        var $v = 0, $s = 0, $i = 0;
+        $v = 0; $s = 0; $i = 0;
         for ($i = 0; $i < 5; $i++) {
-            var $b = $this->getUI8();
+            $b = $this->getUI8();
             $v |= ($b & 0x7F) << $s;
             if ($b & 0x80) {
                 break;
@@ -48,6 +50,6 @@ class IO_AV1_Bit extends IO_Bit {
     }
     function get_d64() {
         $d = $this->getData(8);
-        return unpack("E", $d)[0] // double (big-endian)
+        return unpack("E", $d)[0];  // double (big-endian)
     }
 }
