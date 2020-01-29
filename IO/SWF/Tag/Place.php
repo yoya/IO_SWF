@@ -64,11 +64,11 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             }
             // 
             $this->_depth = $reader->getUI16LE();
-            if (($tagCode >= 70) {
-                    if (($this->_placeFlagHasClassName) ||
-                        ($this->_placeFlagHasImage && $this->_placeFlagHasCharacter)) {
-                        $this->_className = IO_SWF_Type_String::parse($reader);
-                    }
+            if ($tagCode >= 70) {
+                if (($this->_placeFlagHasClassName) ||
+                    ($this->_placeFlagHasImage && $this->_placeFlagHasCharacter)) {
+                    $this->_className = IO_SWF_Type_String::parse($reader);
+                }
             }
             if ($this->_placeFlagHasCharacter) {
                 $this->_characterId = $reader->getUI16LE();
