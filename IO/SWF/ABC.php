@@ -10,6 +10,16 @@ require_once dirname(__FILE__).'/ABC/Bit.php';
 require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_ABC {
+    const CONSTANT_QName       = 0x07;
+    const CONSTANT_QNameA      = 0x0D;
+    const CONSTANT_RTQName     = 0x0F;
+    const CONSTANT_RTQNameA    = 0x10;
+    const CONSTANT_RTQNameL    = 0x11;
+    const CONSTANT_RTQNameLA   = 0x12;
+    const CONSTANT_Multiname   = 0x09;
+    const CONSTANT_MultinameA  = 0x0E;
+    const CONSTANT_MultinameL  = 0x1B;
+    const CONSTANT_MultinameLA = 0x1C;
     var $_minor_version = null;
     var $_major_version = null;
     var $_constant_pool;
@@ -59,7 +69,12 @@ class IO_SWF_ABC {
             $ns_setArray []= $this->parse_ns_set_info($bit);
         }
         $info['ns_set'] = $ns_setArray;
-        
+        $multiname_count = $bit->get_u30();
+        $multinameArray = [];
+        for ($i = 0; $i < $multiname_count; $i++) {
+            $multinameArray []= $this->parse_multiname_info($bit);
+        }
+        $info['multiname'] = $multinameArray;
         return $info;
     }
     function parse_string_info($bit) {
