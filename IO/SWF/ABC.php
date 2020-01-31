@@ -128,7 +128,69 @@ class IO_SWF_ABC {
         return $info;
     }
     function dump($opts = array()) {
-        
+        echo "    minor_version: ".$this->_minor_version;
+        echo "  major_version: ".$this->_major_version;
+        echo "\n";
+        $this->dump_cpool_info($this->_constant_pool);
+    }
+    function dump_cpool_info($info) {
+        foreach (['integer', 'uinteger', 'double', 'string'] as $key) {
+            $count = count($info[$key]);
+            echo "    $key(count:$count)\n";
+            foreach ($info[$key] as $i => $v) {
+                echo "        [$i]:$v\n";
+            }
+        }
+        $namespace_count = count($info['namespace']);
+        echo "    namespace(count:$namespace_count)\n";
+        foreach ($info['namespace'] as $i => $v) {
+            echo "        [$i]: kind: {$v['kind']}  name:{$v['name']}\n";
+        }
+        $ns_set_count = count($info['ns_set']);
+        echo "    ns_set(count:$ns_set_count)\n";
+        foreach ($info['ns_set'] as $i => $v) {
+            echo "        [$i]: ";
+            foreach ($v as $v2) {
+                echo " $v2";
+            }
+            echo "\n";
+        }
+        $multiname_count = count($info['multiname']);
+        echo "    multiname(count:$multiname_count)\n";
+        foreach ($info['multiname'] as $i => $v) {
+            $kind = $v['kind'];
+            echo "        [$i]: kind: $kind  ";
+            switch($kind) {
+            case self::CONSTANT_QName:        // 0x07
+            case self::CONSTANT_QNameA:       // 0x0D
+                // multiname_kind_QName format
+                echo "ns: ".$v["ns"];
+                echo "  name: ".$v["name"];
+                break;
+            case self::CONSTANT_RTQName:      // 0x0F
+            case self::CONSTANT_RTQNameA:     // 0x10
+                // multiname_kiind_RTQName format
+                echo "name: ".$v["name"];
+                break;
+            case self::CONSTANT_RTQNameL:     // 0x11
+            case self::CONSTANT_RTQNameLA:    // 0x12
+                // multiname_kind_RTQNameL format
+                // This kind has no associated data.
+                break;
+            case self::CONSTANT_Multiname:    // 0x09
+            case self::CONSTANT_MultinameA:   // 0x0E
+                // multiname_kind_Multiname format
+                echo "name: ".$v["name"];
+                echo "  ns_set: ".$v["ns_set"];
+                break;
+            case self::CONSTANT_MultinameL:   // 0x1B
+            case self::CONSTANT_MultinameLA:  // 0x1C
+                // multiname_kind_MultinameL format
+                echo "ns_set: ".$v["ns_set"];
+                break;
+            }
+        }
+        echo "\n";
     }
     function build() {
         
