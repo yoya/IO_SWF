@@ -10,16 +10,71 @@ require_once dirname(__FILE__).'/ABC/Bit.php';
 require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_ABC {
-    const CONSTANT_QName       = 0x07;
-    const CONSTANT_QNameA      = 0x0D;
-    const CONSTANT_RTQName     = 0x0F;
-    const CONSTANT_RTQNameA    = 0x10;
+    const CONSTANT_Utf8        = 0x01;
+    const CONSTANT_Float       = 0x02;
+    const CONSTANT_Int         = 0x03;
+    const CONSTANT_UInt        = 0x04;
+    const CONSTANT_PrivateNs   = 0x05;  // non-shared namespace
+    const CONSTANT_Double      = 0x06;
+    const CONSTANT_QName       = 0x07;  // o.ns::name, ct ns, ct name
+    const CONSTANT_Namespace   = 0x08;
+    const CONSTANT_Multiname   = 0x09;  // o.name, ct nsset, ct name
+    const CONSTANT_False       = 0x0A;
+    const CONSTANT_True        = 0x0B;
+    const CONSTANT_Null        = 0x0C;
+    const CONSTANT_QNameA      = 0x0D;  // o.@ns::name, ct ns, ct attr-name
+    const CONSTANT_MultinameA  = 0x0E;  // o.@name, ct attr-name
+    const CONSTANT_RTQName     = 0x0F;  // o.ns::name, rt ns, ct name
+    const CONSTANT_RTQNameA    = 0x10;  // o.@ns::name, rt ns, ct attr-name
     const CONSTANT_RTQNameL    = 0x11;
     const CONSTANT_RTQNameLA   = 0x12;
-    const CONSTANT_Multiname   = 0x09;
-    const CONSTANT_MultinameA  = 0x0E;
-    const CONSTANT_MultinameL  = 0x1B;
-    const CONSTANT_MultinameLA = 0x1C;
+    const CONSTANT_NamespaceSet       = 0x15;
+    const CONSTANT_PackageNamespace   = 0x16;
+    const CONSTANT_PackageInternalNs  = 0x17;
+    const CONSTANT_ProtectedNamespace = 0x18;
+    const CONSTANT_ExplicitNamespace  = 0x19;
+    const CONSTANT_StaticProtectedNs  = 0x1A;
+    const CONSTANT_MultinameL         = 0x1B;
+    const CONSTANT_MultinameLA        = 0x1C;
+    const CONSTANT_TypeName           = 0x1D;
+    const CONSTANT_Float4             = 0x1E;
+
+    function getCONSTANT_name($n)  {
+        static $CONSTANT_nameTable = [
+            0x01 => "Utf8",
+            0x02 => "Float",
+            0x03 => "Int",
+            0x04 => "UInt",
+            0x05 => "PrivateNs",
+            0x06 => "Double",
+            0x07 => "QName",
+            0x08 => "Namespace",
+            0x09 => "Multiname",
+            0x0A => "False",
+            0x0B => "True",
+            0x0C => "Null",
+            0x0D => "QNameA",
+            0x0E => "MultinameA",
+            0x0F => "RTQName",
+            0x10 => "RTQNameA",
+            0x11 => "RTQNameL",
+            0x12 => "RTQNameLA",
+            0x15 => "NamespaceSet",
+            0x16 => "PackageNamespace",
+            0x17 => "PackageInternalNs",
+            0x18 => "ProtectedNamespace",
+            0x19 => "ExplicitNamespace",
+            0x1A => "StaticProtectedNs",
+            0x1B => "MultinameL",
+            0x1C => "MultinameLA",
+            0x1D => "TypeName",
+            0x1E => "Float4",
+        ];
+        if (isset($CONSTANT_nameTable[$n])) {
+            return $CONSTANT_nameTable[$n];
+        }
+        return "Unknown";
+    }
     var $_minor_version = null;
     var $_major_version = null;
     var $_constant_pool;
