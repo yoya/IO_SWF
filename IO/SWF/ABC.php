@@ -93,6 +93,40 @@ class IO_SWF_ABC {
         }
         return $nsArray;
     }
+    function parse_multiname_info($bit) {
+        $kind = $bit->get_u8();
+        $info = ["kind" => $kind];
+        switch ($kind) {
+        case self::CONSTANT_QName:        // 0x07
+        case self::CONSTANT_QNameA:       // 0x0D
+            // multiname_kind_QName format
+            $info["ns"]   = $bit->get_u30();
+            $info["name"] = $bit->get_u30();
+            break;
+        case self::CONSTANT_RTQName:      // 0x0F
+        case self::CONSTANT_RTQNameA:     // 0x10
+            // multiname_kiind_RTQName format
+            $info["name"] = $bit->get_u30();
+            break;
+        case self::CONSTANT_RTQNameL:     // 0x11
+        case self::CONSTANT_RTQNameLA:    // 0x12
+            // multiname_kind_RTQNameL format
+            // This kind has no associated data.
+            break;
+        case self::CONSTANT_Multiname:    // 0x09
+        case self::CONSTANT_MultinameA:   // 0x0E
+            // multiname_kind_Multiname format
+            $info["name"]   = $bit->get_u30();
+            $info["ns_set"] = $bit->get_u30();
+            break;
+        case self::CONSTANT_MultinameL:   // 0x1B
+        case self::CONSTANT_MultinameLA:  // 0x1C
+            // multiname_kind_MultinameL format
+            $info["ns_set"] = $bit->get_u30();
+            break;
+        }
+        return $info;
+    }
     function dump($opts = array()) {
         
     }
