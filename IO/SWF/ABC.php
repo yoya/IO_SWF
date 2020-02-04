@@ -91,43 +91,71 @@ class IO_SWF_ABC {
         $int_count = $bit->get_u30();
         $integerArray = [];
         for ($i = 0; $i < $int_count; $i++) {
-            $integerArray []=  $bit->get_s32();
+            if ($i === 0) {
+                $integerArray []= 0;
+            } else {
+                $integerArray []=  $bit->get_s32();
+            }
         }
         $info['integer'] = $integerArray;
         $uint_count = $bit->get_u30();
         $uintegerArray = [];
         for ($i = 0; $i < $uint_count; $i++) {
-            $uintegerArray []= $bit->get_u32();
+            if ($i === 0) {
+                $uintegerArray []= 0;
+            } else {
+                $uintegerArray []= $bit->get_u32();
+            }
         }
         $info['uinteger'] = $uintegerArray;
-        $double_count = $bit->get_u30();
+        $double_count = $bit->get_u32();
         $doubleArray = [];
         for ($i = 0; $i < $double_count; $i++) {
-            $doubleArray []= $bit->get_d64();
+            if ($i === 0) {
+                $doubleArray []= NAN;
+            } else {
+                $doubleArray []= $bit->get_d64();
+            }
         }
         $info['double'] = $doubleArray;
         $string_count = $bit->get_u30();
         $stringArray = [];
         for ($i = 0; $i < $string_count; $i++) {
-            $stringArray []= $this->parse_string_info($bit);
+            if ($i === 0) {
+                $stringArray []= "*";  // any name "*" in ActionScript
+            } else {
+                $stringArray []= $this->parse_string_info($bit);
+            }
         }
         $info['string'] = $stringArray;
         $namespace_count = $bit->get_u30();
         $namespaceArray = [];
         for ($i = 0; $i < $namespace_count; $i++) {
-            $namespaceArray []= $this->parse_namespace_info($bit);
+            if ($i === 0) {
+                $namespaceArray []= []; // any namespacey
+            } else {
+                $namespaceArray []= $this->parse_namespace_info($bit);
+            }
         }
         $info['namespace'] = $namespaceArray;
         $ns_set_count = $bit->get_u30();
         $ns_setArray = [];
         for ($i = 0; $i < $ns_set_count; $i++) {
-            $ns_setArray []= $this->parse_ns_set_info($bit);
+            if ($i === 0) {
+                $ns_setArray []= [];
+            } else {
+                $ns_setArray []= $this->parse_ns_set_info($bit);
+            }
         }
         $info['ns_set'] = $ns_setArray;
         $multiname_count = $bit->get_u30();
         $multinameArray = [];
         for ($i = 0; $i < $multiname_count; $i++) {
-            $multinameArray []= $this->parse_multiname_info($bit);
+            if ($i === 0) {
+                $multinameArray []= [];
+            } else {
+                $multinameArray []= $this->parse_multiname_info($bit);
+            }
         }
         $info['multiname'] = $multinameArray;
         return $info;
@@ -199,7 +227,13 @@ class IO_SWF_ABC {
         $namespace_count = count($info['namespace']);
         echo "    namespace(count:$namespace_count)\n";
         foreach ($info['namespace'] as $i => $v) {
-            echo "        [$i]: kind: {$v['kind']}  name:{$v['name']}\n";
+            if (count($v) === 0) {
+                echo "        [$i]: (any namespace)\n";
+            } else {
+                $kind = $v['kind'];
+                $kindName = self::getCONSTANT_name($kind);
+                echo "        [$i]: kind: $kind($kindName)  name:{$v['name']}\n";
+            }
         }
         $ns_set_count = count($info['ns_set']);
         echo "    ns_set(count:$ns_set_count)\n";
@@ -213,8 +247,12 @@ class IO_SWF_ABC {
         $multiname_count = count($info['multiname']);
         echo "    multiname(count:$multiname_count)\n";
         foreach ($info['multiname'] as $i => $v) {
-            $kind = $v['kind'];
-            echo "        [$i]: kind: $kind  ";
+            if (count($v) === 0) {
+                echo "        [$i]: (empty)";
+            } else {
+                $kind = $v['kind'];
+                echo "        [$i]: kind: $kind  ";
+            }
             switch($kind) {
             case self::CONSTANT_QName:        // 0x07
             case self::CONSTANT_QNameA:       // 0x0D
@@ -244,8 +282,8 @@ class IO_SWF_ABC {
                 echo "ns_set: ".$v["ns_set"];
                 break;
             }
+            echo "\n";
         }
-        echo "\n";
     }
     function build() {
         
