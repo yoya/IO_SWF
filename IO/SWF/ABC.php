@@ -86,6 +86,23 @@ class IO_SWF_ABC {
         $this->_minor_version = $bit->get_u16();
         $this->_major_version = $bit->get_u16();
         $this->_constant_pool = $this->parse_cpool_info($bit);
+        $method_count = $bit->get_u30();
+        $method = [];
+        for ($i = 0; $i < $method_count; $i++) {
+            $method []= $this->parse_method_info($bit);
+        }
+        $this->method = $method;
+        /*
+        u30 metadata_count
+        metadata_info metadata[metadata_count]
+        u30 class_count
+        instance_info instance[class_count]
+        class_info class[class_count]
+        u30 script_count
+        script_info script[script_count]
+        u30 method_body_count
+        method_body_info method_body[method_body_count]
+        */
     }
     function parse_cpool_info($bit) {
         $info = [];
@@ -211,11 +228,57 @@ class IO_SWF_ABC {
         }
         return $info;
     }
+    function parse_method_info($bit) {
+        $info = [];
+        $param_count = $bit->get_u30();
+        $info["param_count"] = $param_count;
+        $info["return_type"] = $bit->get_u30();
+        $param_type = [];
+        for ($i = 0; $i < $param_count; $i++) {
+            $param_type []= $bit->get_u30();
+        }
+        $info["param_type"] = $param_type;
+        $info["name"] = $bit->get_u30();
+        $info["flags"] = $bit->get_u8();
+        $info["options"] = $this->parse_option_info($bit);
+        $info["param_names"] = $this->parse_param_info($bit, $param_count);
+        return $info;
+    }
+    function parse_option_info($bit) {
+        $info = [];
+        $option_count = $bit->get_u30();
+        $info["option_count"] = $option_count;
+        $option = [];
+        for ($i = 0; $i < $option_count; $i++) {
+            $option []= $this->parse_option_detail($bit);
+        }
+        $info["option"] = $option;
+        return $info;
+    }
+    function parse_option_detail($bit) {
+        $info = [];
+        $info["val"]  = $bit->get_u30();
+        $info["kind"] = $bit->get_u8();
+        return $info;
+    }
+    function parse_param_info($bit, $param_count) {
+        $info = [];
+        for ($i = 0; $i < $param_count; $i++) {
+            $info []= $bit->get_u30();
+        }
+        return $info;
+    }
     function dump($opts = array()) {
         echo "    minor_version: ".$this->_minor_version;
         echo "  major_version: ".$this->_major_version;
         echo "\n";
         $this->dump_cpool_info($this->_constant_pool);
+        $method_count = count($this->method);
+        echo "    method_count:$method_count\n";
+        foreach ($this->method as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_method_info($info);
+        }
     }
     function dump_cpool_info($info) {
         foreach (['integer', 'uinteger', 'double', 'string'] as $key) {
@@ -274,17 +337,49 @@ class IO_SWF_ABC {
             case self::CONSTANT_Multiname:    // 0x09
             case self::CONSTANT_MultinameA:   // 0x0E
                 // multiname_kind_Multiname format
-                echo "name: ".$v["name"];
-                echo "  ns_set: ".$v["ns_set"];
+                echo "    name: ".$v["name"]."\n";;
+                echo "    ns_set: ".$v["ns_set"];
                 break;
             case self::CONSTANT_MultinameL:   // 0x1B
             case self::CONSTANT_MultinameLA:  // 0x1C
                 // multiname_kind_MultinameL format
-                echo "ns_set: ".$v["ns_set"];
+                echo "    ns_set: ".$v["ns_set"];
                 break;
             }
             echo "\n";
         }
+    }
+    function dump_method_info($info) {
+        echo "  param_count: ".$info["param_count"];
+        echo "  return_type: ".$info["return_type"];
+        echo "  param_type:";
+        foreach ($info["param_type"] as $param_type) {
+            echo " ".$param_type;
+        }
+        echo "\n";
+        echo "        name: ".$info["name"];
+        echo "  flags: ".$info["flags"]."\n";
+        $this->dump_option_info($info["options"]);
+        $this->dump_param_info($info["param_names"]);
+    }
+    function dump_option_info($info) {
+        $option_count = $info["option_count"];
+        echo "        option_info:(count:$option_count)";
+        foreach ($info["option"] as $option) {
+            $this->dump_option_detail($option);
+        }
+    }
+    function dump_option_detail($info) {
+        echo "        val: ".$info["val"]. "  kind: ".$info["kind"];
+        echo "\n";
+    }
+    function dump_param_info($info) {
+        $count_param = count($info);
+        echo "    param_info(count=$count_param):";
+        foreach ($info as $param) {
+            echo " ".$param;
+        }
+        echo "\n";
     }
     function build() {
         
