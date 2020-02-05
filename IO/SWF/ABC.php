@@ -299,7 +299,7 @@ class IO_SWF_ABC {
                 $name = $v['name'];
                 $nameName = $info["string"][$name];
                 echo "    [$i]: kind: $kind ($kindName)\n";
-                echo "    name:$name ({$nameName})\n";
+                echo "        name:$name ({$nameName})\n";
             }
         }
         $ns_set_count = count($info['ns_set']);
@@ -325,13 +325,22 @@ class IO_SWF_ABC {
             case self::CONSTANT_QName:        // 0x07
             case self::CONSTANT_QNameA:       // 0x0D
                 // multiname_kind_QName format
-                echo "    ns: ".$v["ns"]."\n";
-                echo "    name: ".$v["name"];
+                $ns   = $v["ns"];
+                $ns_kind = $info['namespace'][$ns]["kind"];
+                $ns_name = $info['namespace'][$ns]["name"];
+                $ns_kindName = self::getCONSTANT_name($ns_kind);
+                $ns_nameName = $info["string"][$ns_name];
+                $name = $v["name"];
+                $nameName = $info["string"][$name];
+                echo "        ns: $ns ($ns_kind:$ns_kindName $ns_name:$ns_nameName)\n";
+                echo "        name: $name ($nameName)";
                 break;
             case self::CONSTANT_RTQName:      // 0x0F
             case self::CONSTANT_RTQNameA:     // 0x10
                 // multiname_kind_RTQName format
-                echo "    name: ".$v["name"];
+                $name = $v["name"];
+                $nameName = $info["string"][$name];
+                echo "         name: $name ($nameName)";
                 break;
             case self::CONSTANT_RTQNameL:     // 0x11
             case self::CONSTANT_RTQNameLA:    // 0x12
@@ -341,13 +350,17 @@ class IO_SWF_ABC {
             case self::CONSTANT_Multiname:    // 0x09
             case self::CONSTANT_MultinameA:   // 0x0E
                 // multiname_kind_Multiname format
-                echo "    name: ".$v["name"]."\n";;
-                echo "    ns_set: ".$v["ns_set"];
+                $name   = $v["name"];
+                $nameName = $info["string"][$name];
+                $ns_set = $v["ns_set"];
+                echo "         name: $name ($nameName)\n";;
+                echo "         ns_set: $ns_set";
                 break;
             case self::CONSTANT_MultinameL:   // 0x1B
             case self::CONSTANT_MultinameLA:  // 0x1C
                 // multiname_kind_MultinameL format
-                echo "    ns_set: ".$v["ns_set"];
+                $ns_set = $v["ns_set"];
+                echo "         ns_set: $ns_set";
                 break;
             }
             echo "\n";
@@ -361,14 +374,14 @@ class IO_SWF_ABC {
             echo " ".$param_type;
         }
         echo "\n";
-        echo "        name: ".$info["name"];
+        echo "         name: ".$info["name"];
         echo "  flags: ".$info["flags"]."\n";
         $this->dump_option_info($info["options"]);
         $this->dump_param_info($info["param_names"]);
     }
     function dump_option_info($info) {
         $option_count = $info["option_count"];
-        echo "        option_info:(count:$option_count)";
+        echo "         option_info:(count:$option_count)";
         foreach ($info["option"] as $option) {
             $this->dump_option_detail($option);
         }
