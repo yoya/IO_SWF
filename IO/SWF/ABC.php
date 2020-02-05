@@ -59,7 +59,7 @@ class IO_SWF_ABC {
             0x0F => "RTQName",       // o.ns::name, rt ns, ct name
             0x10 => "RTQNameA",      // o.@ns::name, rt ns, ct attr-name
             0x11 => "RTQNameL",      // o.ns::[name], rt ns, rt name
-            0x12 => "RTQNameLA",,    // o.@ns::[name], rt ns, rt attr-name
+            0x12 => "RTQNameLA",     // o.@ns::[name], rt ns, rt attr-name
             0x15 => "NamespaceSet",
             0x16 => "PackageNamespace",
             0x17 => "PackageInternalNs",
