@@ -19,7 +19,7 @@ $tagNo_list = array();
 
 $tagMap = IO_SWF_Tag::$tagMap;
 
-foreach (split(',', $keyword) as $key) {
+foreach (explode(',', $keyword) as $key) {
     if (is_numeric($keyword)) {
         $tagNo_list[(int) $key] = true;
     } else {
