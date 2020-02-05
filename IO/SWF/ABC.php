@@ -285,24 +285,27 @@ class IO_SWF_ABC {
             $count = count($info[$key]);
             echo "    $key(count:$count)\n";
             foreach ($info[$key] as $i => $v) {
-                echo "        [$i]:$v\n";
+                echo "    [$i]:$v\n";
             }
         }
         $namespace_count = count($info['namespace']);
         echo "    namespace(count:$namespace_count)\n";
         foreach ($info['namespace'] as $i => $v) {
             if (count($v) === 0) {
-                echo "        [$i]: (any namespace)\n";
+                echo "    [$i]: (any namespace)\n";
             } else {
                 $kind = $v['kind'];
                 $kindName = self::getCONSTANT_name($kind);
-                echo "        [$i]: kind: $kind($kindName)  name:{$v['name']}\n";
+                $name = $v['name'];
+                $nameName = $info["string"][$name];
+                echo "    [$i]: kind: $kind ($kindName)\n";
+                echo "    name:$name ({$nameName})\n";
             }
         }
         $ns_set_count = count($info['ns_set']);
         echo "    ns_set(count:$ns_set_count)\n";
         foreach ($info['ns_set'] as $i => $v) {
-            echo "        [$i]: ";
+            echo "    [$i]: ";
             foreach ($v as $v2) {
                 echo " $v2";
             }
@@ -312,22 +315,23 @@ class IO_SWF_ABC {
         echo "    multiname(count:$multiname_count)\n";
         foreach ($info['multiname'] as $i => $v) {
             if (count($v) === 0) {
-                echo "        [$i]: (empty)";
+                echo "    [$i]: (empty)";
             } else {
                 $kind = $v['kind'];
-                echo "        [$i]: kind: $kind  ";
+                $kindName = self::getCONSTANT_name($kind);
+                echo "    [$i]: kind: $kind ($kindName)\n";
             }
             switch($kind) {
             case self::CONSTANT_QName:        // 0x07
             case self::CONSTANT_QNameA:       // 0x0D
                 // multiname_kind_QName format
-                echo "ns: ".$v["ns"];
-                echo "  name: ".$v["name"];
+                echo "    ns: ".$v["ns"]."\n";
+                echo "    name: ".$v["name"];
                 break;
             case self::CONSTANT_RTQName:      // 0x0F
             case self::CONSTANT_RTQNameA:     // 0x10
-                // multiname_kiind_RTQName format
-                echo "name: ".$v["name"];
+                // multiname_kind_RTQName format
+                echo "    name: ".$v["name"];
                 break;
             case self::CONSTANT_RTQNameL:     // 0x11
             case self::CONSTANT_RTQNameLA:    // 0x12
