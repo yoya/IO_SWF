@@ -96,7 +96,7 @@ foreach ($swf->_tags as $tag) {
         break;
     case 39: // Sprite
         if ($mc_extract === false) {
-            continue; // skip
+            continue 2; // skip
         }
         $tag->parseTagContent();
         $cid = $tag->tag->_spriteId;
