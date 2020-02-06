@@ -239,9 +239,14 @@ class IO_SWF_ABC {
         }
         $info["param_type"] = $param_type;
         $info["name"] = $bit->get_u30();
-        $info["flags"] = $bit->get_u8();
-        $info["options"] = $this->parse_option_info($bit);
-        $info["param_names"] = $this->parse_param_info($bit, $param_count);
+        $flags = $bit->get_u8();
+        $info["flags"] = $flags;
+        if ($flags & 0x08) {  // HAS_OPTIONAL
+            $info["options"] = $this->parse_option_info($bit);
+        }
+        if ($flags & 0x80) {  // HAS_PARAM_NAMES
+            $info["param_names"] = $this->parse_param_info($bit, $param_count);
+        }
         return $info;
     }
     function parse_option_info($bit) {
@@ -374,10 +379,15 @@ class IO_SWF_ABC {
             echo " ".$param_type;
         }
         echo "\n";
-        echo "         name: ".$info["name"];
-        echo "  flags: ".$info["flags"]."\n";
-        $this->dump_option_info($info["options"]);
-        $this->dump_param_info($info["param_names"]);
+        $name = $info["name"];
+        $flags = $info["flags"];
+        echo "         name: $name  flags: $flags\n";
+        if ($flags & 0x08) {  // HAS_OPTIONAL
+            $this->dump_option_info($info["options"]);
+        }
+        if ($flags & 0x80) {  // HAS_PARAM_NAMES
+            $this->dump_param_info($info["param_names"]);
+        }
     }
     function dump_option_info($info) {
         $option_count = $info["option_count"];
