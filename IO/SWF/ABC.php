@@ -92,9 +92,13 @@ class IO_SWF_ABC {
             $method []= $this->parse_method_info($bit);
         }
         $this->method = $method;
+        $metadata_count = $bit->get_u30();
+        $metadata = [];
+        for ($i = 0; $i < $metadata_count; $i++) {
+            $metadata []= $this->parse_metadata_info($bit);
+        }
+        $this->metadata = $metadata;
         /*
-        u30 metadata_count
-        metadata_info metadata[metadata_count]
         u30 class_count
         instance_info instance[class_count]
         class_info class[class_count]
@@ -273,6 +277,24 @@ class IO_SWF_ABC {
         }
         return $info;
     }
+    function parse_metadata_info($bit) {
+        $info = [];
+        $info["name"] = $bit->get_u30();
+        $item_count = $bit->get_u30();
+        $info["item_count"] = $item_count;
+        $items = [];
+        for ($i = 0; $i < $item_count; $i++) {
+            $items []= $this->parse_item_info($bit);
+        }
+        $info["items"] = $items;
+        return $info;
+    }
+    function parse_item_info($bit) {
+        $info = [];
+        $info["key"] = $bit->get_u30();
+        $info["value"] = $bit->get_u30();
+        return $info;
+    }
     function dump($opts = array()) {
         echo "    minor_version: ".$this->_minor_version;
         echo "  major_version: ".$this->_major_version;
@@ -283,6 +305,11 @@ class IO_SWF_ABC {
         foreach ($this->method as $idx => $info) {
             echo "    [$idx]";
             $this->dump_method_info($info);
+        }
+        $metadata_count = count($this->metadata);
+        foreach ($this->metadata as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_metadata_info($info);
         }
     }
     function dump_cpool_info($info) {
@@ -376,7 +403,7 @@ class IO_SWF_ABC {
         echo "  return_type: ".$info["return_type"];
         echo "  param_type:";
         foreach ($info["param_type"] as $param_type) {
-            echo " ".$param_type;
+            echo " $param_type";
         }
         echo "\n";
         $name = $info["name"];
@@ -407,6 +434,20 @@ class IO_SWF_ABC {
             echo " ".$param;
         }
         echo "\n";
+    }
+    function dump_metadata_info($info) {
+        $name = $info["name"];
+        $item_count = $info["item_count"];
+        echo "    name: $name  item_count:$item_count\n";
+        echo "    items:";
+        foreach ($info["items"] as $idx => $item) {
+            echo "[$idx] ";
+            $this->dump_item_info($item);
+        }
+        echo "\n";
+    }
+    function dump_item_info($info) {
+        echo "key: ".$info["key"]." value: ".$info["value"];
     }
     function build() {
         
