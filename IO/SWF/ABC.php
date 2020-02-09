@@ -116,13 +116,26 @@ class IO_SWF_ABC {
             $metadata []= $this->parse_metadata_info($bit);
         }
         $this->metadata = $metadata;
+        $class_count = $bit->get_u30();
+        $instance = [];
+        for ($i = 0; $i < $class_count; $i++) {
+            $instance []= $this->parse_instance_info($bit);
+        }
+        $this->instance = $instance;
+        $klass = [];
+        for ($i = 0; $i < $class_count; $i++) {
+            $klass []= $this->parse_class_info($bit);
+        }
+        $this->klass = $klass;
+        $script_count = $bit->get_u30();
+        $script = [];
+        for ($i = 0; $i < $script_count; $i++) {
+            $script []= $this->parse_script_info($bit);
+        }
+        $this->script = $script;
+        $method_body_count = $bit->get_u30();
+        // print_r(["method_body_count" => $method_body_count]);
         /*
-        u30 class_count
-        instance_info instance[class_count]
-        class_info class[class_count]
-        u30 script_count
-        script_info script[script_count]
-        u30 method_body_count
         method_body_info method_body[method_body_count]
         */
     }
@@ -297,8 +310,8 @@ class IO_SWF_ABC {
     }
     function parse_metadata_info($bit) {
         $info = [];
-        $info["name"] = $bit->get_u30();
-        $item_count = $bit->get_u30();
+        $info["name"]       = $bit->get_u30();
+        $item_count         = $bit->get_u30();
         $info["item_count"] = $item_count;
         $items = [];
         for ($i = 0; $i < $item_count; $i++) {
@@ -309,9 +322,92 @@ class IO_SWF_ABC {
     }
     function parse_item_info($bit) {
         $info = [];
-        $info["key"] = $bit->get_u30();
+        $info["key"]   = $bit->get_u30();
         $info["value"] = $bit->get_u30();
         return $info;
+    }
+    function parse_instance_info($bit) {
+        $info = [];
+        $info["name"]        = $bit->get_u30();
+        echo "instance.name:".$this->getCONSTANT_name($info["name"])."\n";
+        $info["super_name"]  = $bit->get_u30();
+        $flags               = $bit->get_u8();
+        $info["flags"]       = $flags;
+        if ($flags % 0x08) {
+            $info["protectedNs"] = $bit->get_u30();
+        }
+        $intrf_count         = $bit->get_u30();
+        $info["intrf_count"] = $intrf_count;
+        $interface = [];
+        for ($i = 0; $i < $intrf_count ; $i++) {
+            $interface []= $bit->get_u30();
+        }
+        $info["interface"]   = $interface;
+        $info["iinit"]       = $bit->get_u30();
+        $trait_count         = $bit->get_u30();
+        $trait = [];
+        for ($i = 0; $i < $trait_count; $i++) {
+            $trait []= $this->parse_traits_info($bit);
+        }
+        $info["trait"]       = $trait;
+        return $info;
+    }
+    function parse_traits_info($bit) {
+        $info = [];
+        $info["name"] = $bit->get_u30();
+        echo "trait.name:".$this->getMultiname_name($info["name"])."\n";
+        $kind         = $bit->get_u8();
+        $info["kind"] = $kind;
+        switch ($kind & 0x0F) {
+        case 0:  // Trait_Slot
+        case 6:  // Trait_Const
+            $info["slot_id"]   = $bit->get_u30();
+            $info["type_name"] = $bit->get_u30();
+            $info["vindex"]    = $bit->get_u30();
+            $info["vkind"]     = $bit->get_u8();
+            break;
+        case 1:  // Trait_Method
+        case 2:  // Trait_Getter
+        case 3:  // Trait_Setter
+            $info["disp_id"] = $bit->get_u30();
+            $info["method"]  = $bit->get_u30();
+            break;
+        case 4:  // Trait_Class
+            $info["slot_id"] = $bit->get_u30();
+            $info["classi"]  = $bit->get_u30();
+            break;
+        case 5:  // Trait_Function
+            $info["slot_id"]  = $bit->get_u30();
+            $info["function"] = $bit->get_u30();
+            break;
+        }
+        //        if ($kind & 0x40) {  // ATTR_Metadata
+        if (false) {  // ATTR_Metadata
+            $metadata_count = $bit->get_u30();
+            $metadata = [];
+            for ($i = 0; $i < $metadata_count; $i++) {
+                $metadata [] = $bit->get_u30();
+            }
+            $info["metadata"] = $metadata;
+        } else {
+            $info["metadata"] = null;
+        }
+        return $info;
+    }                                               
+    function parse_class_info($bit) {
+        $info = [];
+        $info["cinit"]       = $bit->get_u30();
+        $trait_count         = $bit->get_u30();
+        $info["trait_count"] = $trait_count;
+        $traits = [];
+        for ($i = 0; $i < $trait_count; $i++) {
+            $traits []= $this->parse_traits_info($bit);
+        }
+        $info["traits"] = $traits;
+        return $info;
+    }
+    function parse_script_info($bit) {
+        ;
     }
     function dump($opts = array()) {
         echo "    minor_version: ".$this->_minor_version;
@@ -319,16 +415,38 @@ class IO_SWF_ABC {
         echo "\n";
         $this->dump_cpool_info($this->_constant_pool);
         $method_count = count($this->method);
-        echo "    method_count:$method_count\n";
+        echo "    method(count=$method_count):\n";
         foreach ($this->method as $idx => $info) {
             echo "    [$idx]";
             $this->dump_method_info($info);
         }
         $metadata_count = count($this->metadata);
+        echo "    metadata(count=$metadata_count):\n";
         foreach ($this->metadata as $idx => $info) {
             echo "    [$idx]";
             $this->dump_metadata_info($info);
         }
+        $class_count = count($this->instance);
+        echo "    instance(count=$class_count):\n";
+        foreach ($this->instance as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_instance_info($info);
+        }
+        echo "    class(count=$class_count):\n";
+        foreach ($this->klass as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_class_info($info);
+        }
+        $script_count = count($this->script);
+        echo "    script(count=$script_count):\n";
+        foreach ($this->script as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_script_info($info);
+        }
+        /*
+        u30 method_body_count
+        method_body_info method_body[method_body_count]
+        */
     }
     function dump_cpool_info($info) {
         foreach (['integer', 'uinteger', 'double', 'string'] as $key) {
@@ -466,6 +584,87 @@ class IO_SWF_ABC {
     }
     function dump_item_info($info) {
         echo "key: ".$info["key"]." value: ".$info["value"];
+    }
+    function dump_instance_info($info) {
+        $name        = $info["name"];
+        $super_name  = $info["super_name"];
+        $flags       = $info["flags"];
+        echo "        name: $name  super_name:$super_name";
+        printf("  flags: 0x%02x", $flags);
+        if ($flags % 0x08) {
+            $protectedNs = $info["protectedNs"];
+            echo "  protectedNs: $protectedNs";
+        }
+        echo "\n";
+        $intrf_count = $info["intrf_count"];
+        echo "        interface(count=$intrf_count):";
+        foreach ($info["interface"] as $idx => $intrf) {
+            echo " [$idx]$intrf";
+        }
+        echo "\n";
+        echo "        iinit:".$info["iinit"]."\n";
+        $trait_count = count($info["trait"]);
+        echo "        trait(count=$trait_count):\n";
+        foreach ($info["trait"] as $trait) {
+            $this->dump_traits_info($trait);
+        }
+    }
+    function dump_traits_info($info) {
+    $name = $info["name"]; 
+    $kind = $info["kind"];
+    $nameName = $this->getMultiname_name($name);
+    echo "        name:$name($nameName)  ";
+    printf("kind:%02x", $kind);
+    echo "\n";
+        /*
+        $info["name"] = $bit->get_u30();
+        $kind         = $bit->get_u8();
+        $info["kind"] = $kind;
+        switch ($kind & 0x0F) {
+        case 0:  // Trait_Slot
+        case 6:  // Trait_Const
+            $info["slot_id"]   = $bit->get_u30();
+            $info["type_name"] = $bit->get_u30();
+            $info["vindex"]    = $bit->get_u30();
+            $info["vkind"]     = $bit->get_u8();
+            break;
+        case 1:  // Trait_Method
+        case 2:  // Trait_Getter
+        case 3:  // Trait_Setter
+            $info["disp_id"] = $bit->get_u30();
+            $info["method"]  = $bit->get_u30();
+            break;
+        case 4:  // Trait_Class
+            $info["slot_id"] = $bit->get_u30();
+            $info["classi"]  = $bit->get_u30();
+            break;
+        case 5:  // Trait_Function
+            $info["slot_id"]  = $bit->get_u30();
+            $info["function"] = $bit->get_u30();
+            break;
+        }
+        if (kind & 0x40) {  // ATTR_Metadata
+            $metadata_count = $bit->get_u30();
+            $metadata = [];
+            for ($i = 0; $i < $metadata_count; $i++) {
+                $metadata [] = $bit->get_u30();
+            }
+            $info["metadata"] = $metadata;
+        } else {
+            $info["metadata"] = null;
+        }
+        */
+    }
+    function dump_class_info($info) {
+        $cinit = $info["cinit"];
+        $trait_count = count($info["traits"]);
+        echo "        cinit: $cinit  trait_count: $trait_count\n";
+        foreach ($info["traits"] as $idx => $trait) {
+            $this->dump_traits_info($trait);
+        }
+    }
+    function dump_script_info($info) {
+        echo "\n";
     }
     function build() {
         
