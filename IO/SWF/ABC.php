@@ -76,6 +76,24 @@ class IO_SWF_ABC {
         }
         return "Unknown";
     }
+    function getString_name($n)  {
+        return $this->_constant_pool["string"][$n];
+    }
+    function getMultiname_name($n)  {
+        if ($n === 0) {
+            return "*";
+        }
+        $multiname_name = "";
+        $info = $this->_constant_pool["multiname"][$n];
+        $kind = $info["kind"];
+        $multiname_name .= "kind:$kind";
+        if (isset($info["name"])) {
+            $name = $info["name"];
+            $nameName = $this->getString_name($n);
+            $multiname_name .= ",name=$name($nameName)";
+        }
+        return $multiname_name;
+    }
     var $_minor_version = null;
     var $_major_version = null;
     var $_constant_pool;
