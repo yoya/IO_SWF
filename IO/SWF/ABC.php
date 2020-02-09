@@ -84,6 +84,9 @@ class IO_SWF_ABC {
             return "*";
         }
         $multiname_name = "";
+        if (! isset($this->_constant_pool["multiname"][$n])) {
+            return "no multiname";
+        }
         $info = $this->_constant_pool["multiname"][$n];
         $kind = $info["kind"];
         $multiname_name .= "kind:$kind";
