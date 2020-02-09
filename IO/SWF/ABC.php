@@ -358,7 +358,6 @@ class IO_SWF_ABC {
     function parse_traits_info($bit) {
         $info = [];
         $info["name"] = $bit->get_u30();
-        echo "trait.name:".$this->getMultiname_name($info["name"])."\n";
         $kind         = $bit->get_u8();
         $info["kind"] = $kind;
         switch ($kind & 0x0F) {
