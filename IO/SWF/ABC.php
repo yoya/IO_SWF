@@ -137,10 +137,11 @@ class IO_SWF_ABC {
         }
         $this->script = $script;
         $method_body_count = $bit->get_u30();
-        // print_r(["method_body_count" => $method_body_count]);
-        /*
-        method_body_info method_body[method_body_count]
-        */
+        $method_body = [];
+        for ($i = 0; $i < $method_body_count; $i++) {
+            $method_body []= $this->parse_method_body_info($bit);
+        }
+        $this->method_body = $method_body;
     }
     function parse_cpool_info($bit) {
         $info = [];
@@ -421,6 +422,38 @@ class IO_SWF_ABC {
         $info["trait"] = $trait;
         return $info;
     }
+    function parse_method_body_info($bit) {
+        $info = [];
+        $info["method"]           = $bit->get_u30();
+        $info["max_stack"]        = $bit->get_u30();
+        $info["local_count"]      = $bit->get_u30();
+        $info["init_scope_depth"] = $bit->get_u30();
+        $info["max_scope_depth"]  = $bit->get_u30();
+        $code_length              = $bit->get_u30();
+        $info["code"]             = $bit->getData($code_length);
+        $exception_count          = $bit->get_u30();
+        $exception = [];
+        for ($i = 0; $i < $exception_count; $i++) {
+            $exception []= $this->parse_exception_info($bit);
+        }
+        $info["exception"] = $exception;
+        $trait_count              =  $bit->get_u30();
+        $trait = [];
+        for ($i = 0; $i < $trait_count; $i++) {
+            $trait []= $this->parse_traits_info($bit);
+        }
+        $info["trait"] = $trait;
+        return $info;
+    }
+    function parse_exception_info($bit) {
+        $info = [];
+        $info["from"] = $bit->get_u30();
+        $info["to"] = $bit->get_u30();
+        $info["target"] = $bit->get_u30();
+        $info["exc_type"] = $bit->get_u30();
+        $info["var_name"] = $bit->get_u30();
+        return $info;
+    }
     function dump($opts = array()) {
         echo "    minor_version: ".$this->_minor_version;
         echo "  major_version: ".$this->_major_version;
@@ -455,10 +488,12 @@ class IO_SWF_ABC {
             echo "    [$idx]";
             $this->dump_script_info($info);
         }
-        /*
-        u30 method_body_count
-        method_body_info method_body[method_body_count]
-        */
+        $method_body_count = count($this->method_body);
+        echo "    method_body(count=$method_body_count):\n";
+        foreach ($this->method_body as $idx => $info) {
+            echo "    [$idx]";
+            $this->dump_method_body_info($info);
+        }
     }
     function dump_cpool_info($info) {
         foreach (['integer', 'uinteger', 'double', 'string'] as $key) {
@@ -676,6 +711,26 @@ class IO_SWF_ABC {
         foreach ($info["trait"] as $trait) {
             $this->dump_traits_info($trait);
         }
+    }
+    function dump_method_body_info($info) {
+        echo "    method:".$info["method"]." max_stack:".$info["max_stack"]." local_count:".$info["local_count"]." init_scope_depth:".$info["init_scope_depth"]." max_scope_depth:".$info["max_scope_depth"]."\n";
+        $code_length = strlen($info["code"]);
+        echo "    code_length:$code_length\n";
+        // $info["code"];
+        $exception_count = count($info["exception"]);
+        echo "    exception_count:$exception_count";
+        foreach ($info["exception"] as $exception) {
+            $this->dump_exception_info($exception);
+        }
+        echo "\n";
+        $trait_count = count($info["trait"]);
+        echo "    trait(count=$trait_count):\n";
+        foreach ($info["trait"] as $trait) {
+            $this->dump_traits_info($trait);
+        }
+    }
+    function dump_exception_info($info) {
+        echo "  from:".$info["from"]." info:".$info["to"]." target:".$info["target"]." exc_type:".$info["exc_type"]." var_name:".$info["var_name"];
     }
     function build() {
         
