@@ -332,11 +332,10 @@ class IO_SWF_ABC {
     function parse_instance_info($bit) {
         $info = [];
         $info["name"]        = $bit->get_u30();
-        echo "instance.name:".$this->getCONSTANT_name($info["name"])."\n";
         $info["super_name"]  = $bit->get_u30();
         $flags               = $bit->get_u8();
         $info["flags"]       = $flags;
-        if ($flags % 0x08) {
+        if ($flags & 0x08) {
             $info["protectedNs"] = $bit->get_u30();
         }
         $intrf_count         = $bit->get_u30();
@@ -366,7 +365,11 @@ class IO_SWF_ABC {
             $info["slot_id"]   = $bit->get_u30();
             $info["type_name"] = $bit->get_u30();
             $info["vindex"]    = $bit->get_u30();
-            $info["vkind"]     = $bit->get_u8();
+            if ($info["vindex"] > 0) {
+                $info["vkind"] = $bit->get_u8();
+            } else {
+                $info["vkind"] = null;
+            }
             break;
         case 1:  // Trait_Method
         case 2:  // Trait_Getter
@@ -383,8 +386,7 @@ class IO_SWF_ABC {
             $info["function"] = $bit->get_u30();
             break;
         }
-        //        if ($kind & 0x40) {  // ATTR_Metadata
-        if (false) {  // ATTR_Metadata
+        if ($kind & 0x40) {  // ATTR_Metadata
             $metadata_count = $bit->get_u30();
             $metadata = [];
             for ($i = 0; $i < $metadata_count; $i++) {
@@ -590,8 +592,10 @@ class IO_SWF_ABC {
     function dump_instance_info($info) {
         $name        = $info["name"];
         $super_name  = $info["super_name"];
+        $nameName = $this->getMultiname_name($name);
+        $super_nameName = $this->getMultiname_name($super_name);
         $flags       = $info["flags"];
-        echo "        name: $name  super_name:$super_name";
+        echo "  name: $name($nameName)  super_name:$super_name($super_nameName)\n";
         printf("  flags: 0x%02x", $flags);
         if ($flags % 0x08) {
             $protectedNs = $info["protectedNs"];
@@ -601,7 +605,8 @@ class IO_SWF_ABC {
         $intrf_count = $info["intrf_count"];
         echo "        interface(count=$intrf_count):";
         foreach ($info["interface"] as $idx => $intrf) {
-            echo " [$idx]$intrf";
+            $intrfName = $this->getMultiname_name($intrf);
+            echo " [$idx]$intrf($intrfName)";
         }
         echo "\n";
         echo "        iinit:".$info["iinit"]."\n";
