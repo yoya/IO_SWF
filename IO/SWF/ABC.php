@@ -411,7 +411,15 @@ class IO_SWF_ABC {
         return $info;
     }
     function parse_script_info($bit) {
-        ;
+        $info = [];
+        $info["init"] = $bit->get_u30();
+        $trait_count  = $bit->get_u30();
+        $trait = [];
+        for ($i = 0; $i < $trait_count; $i++) {
+            $trait []= $this->parse_traits_info($bit);
+        }
+        $info["trait"] = $trait;
+        return $info;
     }
     function dump($opts = array()) {
         echo "    minor_version: ".$this->_minor_version;
@@ -609,9 +617,9 @@ class IO_SWF_ABC {
             echo " [$idx]$intrf($intrfName)";
         }
         echo "\n";
-        echo "        iinit:".$info["iinit"]."\n";
+        $iinit = $info["iinit"];
         $trait_count = count($info["trait"]);
-        echo "        trait(count=$trait_count):\n";
+        echo "        iinit:$iinit trait(count=$trait_count):\n";
         foreach ($info["trait"] as $trait) {
             $this->dump_traits_info($trait);
         }
@@ -662,7 +670,12 @@ class IO_SWF_ABC {
         }
     }
     function dump_script_info($info) {
-        echo "\n";
+        $init = $info["init"];
+        $trait_count = count($info["trait"]);
+        echo " init:$init trait(count=$trait_count):\n";
+        foreach ($info["trait"] as $trait) {
+            $this->dump_traits_info($trait);
+        }
     }
     function build() {
         
