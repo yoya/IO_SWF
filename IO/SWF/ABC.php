@@ -617,50 +617,41 @@ class IO_SWF_ABC {
         }
     }
     function dump_traits_info($info) {
-    $name = $info["name"]; 
-    $kind = $info["kind"];
-    $nameName = $this->getMultiname_name($name);
-    echo "        name:$name($nameName)  ";
-    printf("kind:%02x", $kind);
-    echo "\n";
-        /*
-        $info["name"] = $bit->get_u30();
-        $kind         = $bit->get_u8();
-        $info["kind"] = $kind;
+        $name = $info["name"];
+        $kind = $info["kind"];
+        $nameName = $this->getMultiname_name($name);
+        echo "        name:$name($nameName) ";
+        printf("kind:0x%02x\n", $kind);
+        echo "        ";
         switch ($kind & 0x0F) {
         case 0:  // Trait_Slot
         case 6:  // Trait_Const
-            $info["slot_id"]   = $bit->get_u30();
-            $info["type_name"] = $bit->get_u30();
-            $info["vindex"]    = $bit->get_u30();
-            $info["vkind"]     = $bit->get_u8();
+            echo "slot_id:".$info["slot_id"]." type_name:".$info["type_name"]." vindex:".$info["vindex"];
+            if ($info["vindex"] > 0) {
+                echo " ".$info["vkind"];
+            }
+            echo "\n";
             break;
         case 1:  // Trait_Method
         case 2:  // Trait_Getter
         case 3:  // Trait_Setter
-            $info["disp_id"] = $bit->get_u30();
-            $info["method"]  = $bit->get_u30();
+            echo "disp_id:".$info["disp_id"]." method:".$info["method"]."\n";
             break;
         case 4:  // Trait_Class
-            $info["slot_id"] = $bit->get_u30();
-            $info["classi"]  = $bit->get_u30();
+            echo "slot_id:".$info["slot_id"]." classi:".$info["classi"]."\n";
             break;
         case 5:  // Trait_Function
-            $info["slot_id"]  = $bit->get_u30();
-            $info["function"] = $bit->get_u30();
+            echo "slot_id:".$info["slot_id"]." function:".$info["function"]."\n";
             break;
         }
-        if (kind & 0x40) {  // ATTR_Metadata
-            $metadata_count = $bit->get_u30();
-            $metadata = [];
-            for ($i = 0; $i < $metadata_count; $i++) {
-                $metadata [] = $bit->get_u30();
+        if ($kind & 0x40) {  // ATTR_Metadata
+            $metadata_count = count($info["metadata"]);
+            echo "        metadata(count=$metadata_count):";
+            foreach ($info["metadata"] as $data) {
+                echo " $data";
             }
-            $info["metadata"] = $metadata;
-        } else {
-            $info["metadata"] = null;
+            echo "\n";
         }
-        */
     }
     function dump_class_info($info) {
         $cinit = $info["cinit"];
