@@ -7,6 +7,7 @@
  */
 
 require_once dirname(__FILE__).'/ABC/Bit.php';
+require_once dirname(__FILE__).'/ABC/Code.php';
 require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_ABC {
@@ -430,7 +431,10 @@ class IO_SWF_ABC {
         $info["init_scope_depth"] = $bit->get_u30();
         $info["max_scope_depth"]  = $bit->get_u30();
         $code_length              = $bit->get_u30();
-        $info["code"]             = $bit->getData($code_length);
+        $code_data                = $bit->getData($code_length);
+        $code = new IO_SWF_ABC_Code();
+        $code->parse($code_data);
+        $info["code"]             = $code;
         $exception_count          = $bit->get_u30();
         $exception = [];
         for ($i = 0; $i < $exception_count; $i++) {
@@ -714,9 +718,7 @@ class IO_SWF_ABC {
     }
     function dump_method_body_info($info) {
         echo "    method:".$info["method"]." max_stack:".$info["max_stack"]." local_count:".$info["local_count"]." init_scope_depth:".$info["init_scope_depth"]." max_scope_depth:".$info["max_scope_depth"]."\n";
-        $code_length = strlen($info["code"]);
-        echo "    code_length:$code_length\n";
-        // $info["code"];
+        $info["code"]->dump();
         $exception_count = count($info["exception"]);
         echo "    exception_count:$exception_count";
         foreach ($info["exception"] as $exception) {
