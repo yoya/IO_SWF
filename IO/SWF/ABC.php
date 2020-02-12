@@ -90,10 +90,16 @@ class IO_SWF_ABC {
         }
         $info = $this->_constant_pool["multiname"][$n];
         $kind = $info["kind"];
-        $multiname_name .= "kind:$kind";
+        $kind_name = $this->getCONSTANT_name($kind);
+        $multiname_name .= "kind:$kind($kind_name)";
+        if (isset($info["ns"])) {
+            $ns = $info["ns"];
+            $nsName = $this->getString_name($ns);
+            $multiname_name .= ",ns=$ns($nsName)";
+        }
         if (isset($info["name"])) {
             $name = $info["name"];
-            $nameName = $this->getString_name($n);
+            $nameName = $this->getString_name($name);
             $multiname_name .= ",name=$name($nameName)";
         }
         return $multiname_name;
@@ -433,6 +439,7 @@ class IO_SWF_ABC {
         $code_length              = $bit->get_u30();
         $code_data                = $bit->getData($code_length);
         $code = new IO_SWF_ABC_Code();
+        $code->setABC($this);
         $code->parse($code_data);
         $info["code"]             = $code;
         $exception_count          = $bit->get_u30();
