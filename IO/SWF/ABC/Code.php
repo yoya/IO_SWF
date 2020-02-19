@@ -16,9 +16,9 @@ class IO_SWF_ABC_Code {
         0x41 => ["call"          , ["u30"]      ],  // 65
         0x47 => ["returnvoid"    , []           ],  // 71
         0x49 => ["construct"     , ["u30"]      ],  // 73
-        0x4f => ["callproperty"  , ["u30","u30"]],  // 79
+        0x4f => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 79
         0x58 => ["newclass"      , ["u30"]      ],  // 88
-        0x5d => ["findpropstrict", ["u30"]      ],  // 93
+        0x5d => ["findpropstrict", ["u30"]      , ["multiname"]],  // 93
         0x60 => ["getlex"        , ["u30"]      , ["multiname"]],  // 96
         0x65 => ["getscopeobject", ["u30"]      ],  // 101 (u30?)
         0x66 => ["getproperty"   , ["u30"]      ],  // 102
