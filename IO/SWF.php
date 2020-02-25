@@ -122,6 +122,7 @@ class IO_SWF {
             ob_start('mb_convert_encoding_from_sjis');
         }
         echo 'Tags:'.PHP_EOL;
+        $opts['FrameNum'] = 0;
         foreach ($this->_tags as $tag) {
             try {
                 $tag->dump($opts);

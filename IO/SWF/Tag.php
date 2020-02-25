@@ -124,14 +124,19 @@ class IO_SWF_Tag {
 */
         $this->byte_size = $byte_offset - $this->byte_offset;
     }
-    function dump($opts = array()) {
+    function dump(&$opts = array()) {
         $code = $this->code;
         $name = $this->getTagInfo($code, 'name');
         if ($name === false) {
            $name = 'unknown';
         }
         $length = strlen($this->content);
-        echo "Code: $code($name)  Length: $length".PHP_EOL;
+        echo "Code: $code($name)  Length: $length";
+        if ($code === 1) {  // ShowFrame
+            $frameNum = $opts["FrameNum"]++;
+            echo " (FrameNum=$frameNum)";
+        }
+        echo PHP_EOL;
         $opts['Version'] = $this->swfInfo['Version'];
         $opts['tagCode'] = $code;
         if ($this->parseTagContent($opts)) {

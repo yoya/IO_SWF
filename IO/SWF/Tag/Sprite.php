@@ -32,6 +32,7 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
     
     function dumpContent($tagCode, $opts = array()) {
         echo "\tSprite: SpriteID={$this->_spriteId} FrameCount={$this->_frameCount}\n";
+        $opts['FrameNum'] = 0;
         foreach ($this->_controlTags as $tag) {
             echo "  ";
             try {
