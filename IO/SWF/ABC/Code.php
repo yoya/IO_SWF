@@ -91,7 +91,7 @@ class IO_SWF_ABC_Code {
     function dump() {
         $codeLength = strlen($this->codeData);
         $codeCount = count($this->codeArray);
-        echo "    code(bytesize=$codeLength, nInst=$codeCount):\n";
+        echo "        code(bytesize=$codeLength, nInst=$codeCount):\n";
         foreach ($this->codeArray as $idx => $codeSlice) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($codeSlice);

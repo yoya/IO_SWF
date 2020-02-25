@@ -507,18 +507,19 @@ class IO_SWF_ABC {
         }
     }
     function dump_cpool_info($info) {
+        echo "    cpool_info:\n";
         foreach (['integer', 'uinteger', 'double', 'string'] as $key) {
             $count = count($info[$key]);
-            echo "    $key(count:$count)\n";
+            echo "        $key(count:$count)\n";
             foreach ($info[$key] as $i => $v) {
-                echo "    [$i]:$v\n";
+                echo "    [$i] $v\n";
             }
         }
         $namespace_count = count($info['namespace']);
-        echo "    namespace(count:$namespace_count)\n";
+        echo "        namespace(count:$namespace_count)\n";
         foreach ($info['namespace'] as $i => $v) {
             if (count($v) === 0) {
-                echo "    [$i]: (any namespace)\n";
+                echo "    [$i] (any namespace)\n";
             } else {
                 $kind = $v['kind'];
                 $kindName = self::getCONSTANT_name($kind);
@@ -529,23 +530,23 @@ class IO_SWF_ABC {
             }
         }
         $ns_set_count = count($info['ns_set']);
-        echo "    ns_set(count:$ns_set_count)\n";
+        echo "        ns_set(count:$ns_set_count)\n";
         foreach ($info['ns_set'] as $i => $v) {
-            echo "    [$i]: ";
+            echo "    [$i] ";
             foreach ($v as $v2) {
                 echo " $v2";
             }
             echo "\n";
         }
         $multiname_count = count($info['multiname']);
-        echo "    multiname(count:$multiname_count)\n";
+        echo "        multiname(count:$multiname_count)\n";
         foreach ($info['multiname'] as $i => $v) {
             if (count($v) === 0) {
-                echo "    [$i]: (empty)";
+                echo "    [$i] (empty)";
             } else {
                 $kind = $v['kind'];
                 $kindName = self::getCONSTANT_name($kind);
-                echo "    [$i]: kind: $kind ($kindName)\n";
+                echo "    [$i] kind: $kind ($kindName)\n";
             }
             switch($kind) {
             case self::CONSTANT_QName:        // 0x07
@@ -724,16 +725,16 @@ class IO_SWF_ABC {
         }
     }
     function dump_method_body_info($info) {
-        echo "    method:".$info["method"]." max_stack:".$info["max_stack"]." local_count:".$info["local_count"]." init_scope_depth:".$info["init_scope_depth"]." max_scope_depth:".$info["max_scope_depth"]."\n";
+        echo " method:".$info["method"]." max_stack:".$info["max_stack"]." local_count:".$info["local_count"]." init_scope_depth:".$info["init_scope_depth"]." max_scope_depth:".$info["max_scope_depth"]."\n";
         $info["code"]->dump();
         $exception_count = count($info["exception"]);
-        echo "    exception_count:$exception_count";
+        echo "        exception_count:$exception_count";
         foreach ($info["exception"] as $exception) {
             $this->dump_exception_info($exception);
         }
         echo "\n";
         $trait_count = count($info["trait"]);
-        echo "    trait(count=$trait_count):\n";
+        echo "        trait(count=$trait_count):\n";
         foreach ($info["trait"] as $trait) {
             $this->dump_traits_info($trait);
         }
