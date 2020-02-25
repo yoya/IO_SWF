@@ -47,7 +47,7 @@ class IO_SWF_Type_LINESTYLEARRAY implements IO_SWF_Type {
     }
     static function string($lineStyles, $opts = array()) {
         $tagCode = $opts['tagCode'];
-        $text = '';
+        $text = '    ';
         if (count($lineStyles) > 0) {
             foreach ($lineStyles as $idx => $lineStyle) {
                 $text .= "    [" . ($idx + 1) . "] ";

@@ -306,12 +306,12 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function string($shapeRecords, $opts = array()) {
         $tagCode = $opts['tagCode'];
         if (isset($opts['indent'])) {
-            $indent_text = '';
+            $indent_text = '    ';
             for ($i = 0 ; $i < $opts['indent'] ; $i++) {
                 $indent_text .= "    "; // str_pad? str_repeat ?
             }
         } else {
-            $indent_text = "    ";
+            $indent_text = "        ";
         }
         $text = '';
         foreach ($shapeRecords as $shapeRecord) {

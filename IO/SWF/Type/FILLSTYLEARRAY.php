@@ -47,7 +47,7 @@ class IO_SWF_Type_FILLSTYLEARRAY implements IO_SWF_Type {
         return true;
     }
     static function string($fillStyles, $opts = array()) {
-        $text = '';
+        $text = '    ';
         if (count($fillStyles) > 0) {
             foreach ($fillStyles as $idx => $fillStyle) {
                 $text .= "    [" . ($idx + 1) . "] ";
