@@ -220,14 +220,14 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
                     } else {
                         $color_str = IO_SWF_Type_RGBA::string($color);
                     }
-                    $text .= "\t\tRatio: $ratio Color:$color_str\n";
+                    $text .= "        Ratio: $ratio Color:$color_str\n";
                 } else {
                     $startRatio = $gradientRecord['StartRatio'];
                     $startColorStr = IO_SWF_Type_RGBA::string($gradientRecord['StartColor']);
                     $endRatio   = $gradientRecord['EndRatio'];
 
                     $endColorStr = IO_SWF_Type_RGBA::string($gradientRecord['EndColor']);
-                    $text .= "\t\tStart: Ratio:$startRatio Color:$startColorStr => End: Ratio:$endRatio Color:$endColorStr\n";
+                    $text .= "        Start: Ratio:$startRatio Color:$startColorStr => End: Ratio:$endRatio Color:$endColorStr\n";
                 }
             }
             break;
@@ -238,16 +238,16 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
             $text .= "Bitmap($fillStyleType): ";
             $text .= "  BitmapId: ".$fillStyle['BitmapId']."\n";
             if ($isMorph === false) {
-                $text .= "\tBitmapMatrix:\n";
+                $text .= "    BitmapMatrix:\n";
                 $opts = array('indent' => 2);
                 $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['BitmapMatrix'], $opts);
                 $text .= $matrix_str . "\n";
             } else {
                 $opts = array('indent' => 2);
-                $text .= "\tStartBitmapMatrix:\n";
+                $text .= "    StartBitmapMatrix:\n";
                 $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['StartBitmapMatrix'], $opts);
                 $text .= $matrix_str . "\n";
-                $text .= "\tEndBitmapMatrix:\n";
+                $text .= "    EndBitmapMatrix:\n";
                 $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['EndBitmapMatrix'], $opts);
                 $text .= $matrix_str . "\n";
             }

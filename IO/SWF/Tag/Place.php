@@ -108,43 +108,43 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
     }
     
     function dumpContent($tagCode, $opts = array()) {
-        printf("\tFlags: %02X", $this->_placeFlags);
+        printf("    Flags: %02X", $this->_placeFlags);
         if ($tagCode >= 70)  {
             printf(" %02X", $this->_placeFlags2);
         }
         echo "  Move: ".($this->_placeFlagMove?'true':'false')."\n";
         if (is_null($this->_depth) === false) {
-            echo "\tDepth: ".$this->_depth."\n";
+            echo "    Depth: ".$this->_depth."\n";
         }
         if (is_null($this->_className) === false) {
-            echo "\tClassName: ".$this->_className."\n";
+            echo "    ClassName: ".$this->_className."\n";
         }
         if (is_null($this->_characterId) === false) {
-            echo "\tCharacterId: ".$this->_characterId."\n";
+            echo "    CharacterId: ".$this->_characterId."\n";
         }
         if (is_null($this->_matrix) === false) {
             $opts['indent'] = 2;
-            echo "\tMatrix:\n".IO_SWF_Type_MATRIX::string($this->_matrix, $opts)."\n";
+            echo "    Matrix:\n".IO_SWF_Type_MATRIX::string($this->_matrix, $opts)."\n";
         }
         if (is_null($this->_colorTransform) === false) {
             if ($tagCode == 4) { // PlaceObject
-                echo "\tColorTransform: ".IO_SWF_Type_CXFORM::string($this->_colorTransform)."\n";
+                echo "    ColorTransform: ".IO_SWF_Type_CXFORM::string($this->_colorTransform)."\n";
             } else {
-                echo "\tColorTransform: ".IO_SWF_Type_CXFORMWITHALPHA::string($this->_colorTransform)."\n";
+                echo "    ColorTransform: ".IO_SWF_Type_CXFORMWITHALPHA::string($this->_colorTransform)."\n";
             }
         }
         if (is_null($this->_ratio) === false) {
-            echo "\tRatio: ".$this->_ratio."\n";
+            echo "    Ratio: ".$this->_ratio."\n";
         }
 
         if (is_null($this->_name) === false) {
-            echo "\tName: ".$this->_name."\n";
+            echo "    Name: ".$this->_name."\n";
         }
         if (is_null($this->_clipDepth) === false) {
-            echo "\tClipDepth: ".$this->_clipDepth."\n";
+            echo "    ClipDepth: ".$this->_clipDepth."\n";
         }
         if (is_null($this->_surfaceFilterList) === false) {
-            echo "\tSurfaceFilterList: ".IO_SWF_Type_FILTERLIST::string($this->_surfaceFilterList)."\n";
+            echo "    SurfaceFilterList: ".IO_SWF_Type_FILTERLIST::string($this->_surfaceFilterList)."\n";
         }
         if (is_null($this->_blendMode) === false) {
             if ($this->_blendMode < 15) {
@@ -165,14 +165,14 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             } else {
                 $blendModeText = "reserved";
             }
-            echo "\tBlendMode: ".$this->_blendMode." ($blendModeText)\n";
+            echo "    BlendMode: ".$this->_blendMode." ($blendModeText)\n";
         }
         if (is_null($this->_bitmapCache) === false) {
-            echo "\tBitmapCache: ".$this->_bitmapCache."\n";
+            echo "    BitmapCache: ".$this->_bitmapCache."\n";
         }
         if (is_null($this->_clipActions) === false) {
-            echo "\tClipActions:\n";
-            echo "\t".IO_SWF_Type_CLIPACTIONS::string($this->_clipActions, $opts)."\n";
+            echo "    ClipActions:\n";
+            echo "    ".IO_SWF_Type_CLIPACTIONS::string($this->_clipActions, $opts)."\n";
         }
     }
     

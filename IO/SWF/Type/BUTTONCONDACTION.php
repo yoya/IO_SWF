@@ -53,19 +53,19 @@ class IO_SWF_Type_BUTTONCONDACTION implements IO_SWF_Type {
         return true;
     }
     static function string($condAction, $opts = array()) {
-        $text = "\tBUTTONCONDACTION (CondActionSize:{$condAction['CondActionSize']})\n";
+        $text = "    BUTTONCONDACTION (CondActionSize:{$condAction['CondActionSize']})\n";
 
-        $text .= "\t\tCondAction: ";
+        $text .= "        CondAction: ";
         foreach (self::$buttoncond_list as $key) {
             $text .= " $key:".$condAction['Cond'.$key];
         }
         $text .= "\n";
-        $text .= "\t\tCondKeyPress:".$condAction['CondKeyPress']." CondOverDownToIdle:".$condAction['CondOverDownToIdle']."\n";
+        $text .= "        CondKeyPress:".$condAction['CondKeyPress']." CondOverDownToIdle:".$condAction['CondOverDownToIdle']."\n";
         
         
-        $text .= "\t\tActions:\n";
+        $text .= "        Actions:\n";
         foreach ($condAction['Actions'] as $action) {
-            $text .= "\t\t\t".IO_SWF_Type_Action::string($action, $opts)."\n";
+            $text .= "            ".IO_SWF_Type_Action::string($action, $opts)."\n";
         }
         return $text;
     }

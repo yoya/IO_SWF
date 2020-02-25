@@ -308,10 +308,10 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         if (isset($opts['indent'])) {
             $indent_text = '';
             for ($i = 0 ; $i < $opts['indent'] ; $i++) {
-                $indent_text .= "\t"; // str_pad? str_repeat ?
+                $indent_text .= "    "; // str_pad? str_repeat ?
             }
         } else {
-            $indent_text = "\t";
+            $indent_text = "    ";
         }
         $text = '';
         foreach ($shapeRecords as $shapeRecord) {

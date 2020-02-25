@@ -50,11 +50,11 @@ class IO_SWF_Type_LINESTYLEARRAY implements IO_SWF_Type {
         $text = '';
         if (count($lineStyles) > 0) {
             foreach ($lineStyles as $idx => $lineStyle) {
-                $text .= "\t[" . ($idx + 1) . "] ";
+                $text .= "    [" . ($idx + 1) . "] ";
                 $text .= IO_SWF_Type_LINESTYLE::string($lineStyle, $opts);
             }
         } else {
-            $text .= "\t(none)\n";
+            $text .= "    (none)\n";
         }
         return $text;
     }

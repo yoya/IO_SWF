@@ -95,11 +95,11 @@ class IO_SWF_Type_MATRIX implements IO_SWF_Type {
 %s| %3.3f %3.3f |  %3.2f
 EOS;
 	return 	sprintf($text_fmt, 
-		str_repeat("\t", $indent),
+		str_repeat("    ", $indent),
         $matrix['ScaleX'] / 0x10000,
         $matrix['RotateSkew0'] / 0x10000,
 		$matrix['TranslateX'] / 20,
-		str_repeat("\t", $indent),
+		str_repeat("    ", $indent),
 		$matrix['RotateSkew1'] / 0x10000,
 		$matrix['ScaleY'] / 0x10000,
 		$matrix['TranslateY'] / 20);

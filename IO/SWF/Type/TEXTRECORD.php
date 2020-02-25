@@ -117,12 +117,12 @@ class IO_SWF_Type_TEXTRECORD implements IO_SWF_Type {
             $text .= "YOffset: {$textrecord['YOffset']}";
         }
         if ($text != '') {
-            $text .= "\n\t";
+            $text .= "\n    ";
         }
 
         $text .= "GryphEntries:";
         foreach ($textrecord['GlyphEntries'] as $glyphEntrie) {
-            $text .= "\n\t\t".IO_SWF_Type_GLYPHENTRY::string($glyphEntrie, $opts);
+            $text .= "\n        ".IO_SWF_Type_GLYPHENTRY::string($glyphEntrie, $opts);
         }
         $text .= "\n";
         return $text;

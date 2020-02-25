@@ -19,7 +19,7 @@ class IO_SWF_Tag_BGColor extends IO_SWF_Tag_Base {
 
     function dumpContent($tagCode, $opts = array()) {
         $color_str = IO_SWF_Type_RGB::string($this->_color);
-        echo "\tColor: $color_str\n";
+        echo "    Color: $color_str\n";
     }
 
     function buildContent($tagCode, $opts = array()) {

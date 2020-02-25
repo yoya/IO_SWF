@@ -476,7 +476,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
               case 0x88: // ActonConstantPool
                 $str .= " Count=".$action['Count'].PHP_EOL;
                 foreach ($action['ConstantPool'] as $idx => $c) {
-                    $str .= "\t[$idx] $c".PHP_EOL;
+                    $str .= "        [$idx] $c".PHP_EOL;
                 }
                 break;
               case 0x96: // ActonPush

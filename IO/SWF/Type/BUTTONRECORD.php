@@ -83,17 +83,17 @@ class IO_SWF_Type_BUTTONRECORD implements IO_SWF_Type {
         $text = '';
         $buttonHasBlendMode = $buttonrecord['ButtonHasBlandMode'];
         $buttonHasFilterList = $buttonrecord['ButtonHasFilterList'];
-        $text .= "HasBlandMode:".$buttonrecord['ButtonHasBlandMode'].' HasFilterList:'. $buttonrecord['ButtonHasFilterList']."\n\t\t";
+        $text .= "HasBlandMode:".$buttonrecord['ButtonHasBlandMode'].' HasFilterList:'. $buttonrecord['ButtonHasFilterList']."\n        ";
         foreach (array('StateHitTest', 'StateDown', 'StateOver', 'StateUp') as $label) {
             $text .= $label.':'.$buttonrecord['Button'.$label].' ';
         }
-        $text .= "\n\t\t";
+        $text .= "\n        ";
         $text .= "CharacterID:{$buttonrecord['CharacterID']} PlaceDepth:{$buttonrecord['PlaceDepth']}";
         $text .= "\n";
         $opts['indent']++;
         $text .= IO_SWF_Type_MATRIX::string($buttonrecord['PlaceMatrix'], $opts)."\n";
         if ($opts['tagCode'] == 34) { // DefineButton2
-            $text .= "\t\tColorTransform:". IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
+            $text .= "        ColorTransform:". IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
         } else {
             $text .= 'ColorTransform:'.IO_SWF_Type_CXFORM::string($buttonrecord['ColorTransform']).' ';
         }

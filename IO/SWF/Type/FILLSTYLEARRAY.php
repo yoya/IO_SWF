@@ -50,11 +50,11 @@ class IO_SWF_Type_FILLSTYLEARRAY implements IO_SWF_Type {
         $text = '';
         if (count($fillStyles) > 0) {
             foreach ($fillStyles as $idx => $fillStyle) {
-                $text .= "\t[" . ($idx + 1) . "] ";
+                $text .= "    [" . ($idx + 1) . "] ";
                 $text .= IO_SWF_Type_FILLSTYLE::string($fillStyle, $opts);
             }
         } else {
-            $text .= "\t(none)\n";
+            $text .= "    (none)\n";
         }
         return $text;
     }

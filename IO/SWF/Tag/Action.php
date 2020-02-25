@@ -89,9 +89,9 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             $action_str = IO_SWF_Type_Action::string($action);
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_branches[$i])) {
-                echo "\t[$i] $action_str (LABEL: " . $this->_branches[$i] . ")\n";
+                echo "    [$i] $action_str (LABEL: " . $this->_branches[$i] . ")\n";
             } else {
-                echo "\t[$i] $action_str\n";
+                echo "    [$i] $action_str\n";
             }
         }
         if (count($this->_actions) > 0) {

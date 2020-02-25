@@ -149,9 +149,9 @@ class IO_SWF_Type_FILTER implements IO_SWF_Type {
         }
     }
     static function string($filterlist, $opts = array()) {
-        $text = "\tNumberOfFilters:{$filterlist['NumberOfFilters']}\n";
+        $text = "    NumberOfFilters:{$filterlist['NumberOfFilters']}\n";
         foreach ($filterlist['Filter'] as $filter_entry) {
-            $text .= "\t\t".IO_SWF_Type_FILTER::string($$filter_entry, $opts);
+            $text .= "        ".IO_SWF_Type_FILTER::string($$filter_entry, $opts);
         }
     	return $text;
     }
