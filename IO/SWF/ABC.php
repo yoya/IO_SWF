@@ -711,7 +711,7 @@ class IO_SWF_ABC {
     function dump_class_info($info) {
         $cinit = $info["cinit"];
         $trait_count = count($info["traits"]);
-        echo "        cinit: $cinit  trait_count: $trait_count\n";
+        echo " cinit: $cinit  trait_count: $trait_count\n";
         foreach ($info["traits"] as $idx => $trait) {
             $this->dump_traits_info($trait);
         }
