@@ -45,7 +45,7 @@ class IO_SWF_Tag_ABC extends IO_SWF_Tag_Base {
         $writer = new IO_Bit();
         $writer->putUI32LE($this->_Flags);
         IO_SWF_Type_String::build($writer, $this->_Name);
-        $writer->putDatal($this->_ABCData);
+        $writer->putData($this->_ABCData);
     	return $writer->output();
     }
 }
