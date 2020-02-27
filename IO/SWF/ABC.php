@@ -666,8 +666,10 @@ class IO_SWF_ABC {
         echo "\n";
         $iinit = $info["iinit"];
         $trait_count = count($info["trait"]);
-        echo "        iinit:$iinit trait(count=$trait_count):\n";
-        foreach ($info["trait"] as $trait) {
+        echo "        iinit:$iinit\n";
+        echo "        trait(count=$trait_count):\n";
+        foreach ($info["trait"] as $idx => $trait) {
+            echo "            [$idx]";
             $this->dump_traits_info($trait);
         }
     }
@@ -675,9 +677,9 @@ class IO_SWF_ABC {
         $name = $info["name"];
         $kind = $info["kind"];
         $nameName = $this->getMultiname_name($name);
-        echo "        name:$name($nameName) ";
+        echo " name:$name($nameName) ";
         printf("kind:0x%02x\n", $kind);
-        echo "        ";
+        echo "              ";
         switch ($kind & 0x0F) {
         case 0:  // Trait_Slot
         case 6:  // Trait_Const
@@ -701,9 +703,9 @@ class IO_SWF_ABC {
         }
         if ($kind & 0x40) {  // ATTR_Metadata
             $metadata_count = count($info["metadata"]);
-            echo "        metadata(count=$metadata_count):";
-            foreach ($info["metadata"] as $data) {
-                echo " $data";
+            echo "              metadata(count=$metadata_count):";
+            foreach ($info["metadata"] as $i => $data) {
+                echo " [$i] $data";
             }
             echo "\n";
         }
