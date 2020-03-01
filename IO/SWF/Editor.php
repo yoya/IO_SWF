@@ -1077,6 +1077,7 @@ class IO_SWF_Editor extends IO_SWF {
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
         $tagsEachKrass = []; // desc sort by tagNo (version as a result)
+        $doABC = null;
         foreach ($tagInfoList as $tagNo => $tagInfo) {
             if (isset($tagInfo["klass"])) {
                 $klass = $tagInfo["klass"];
@@ -1111,6 +1112,18 @@ class IO_SWF_Editor extends IO_SWF {
                 }
                 $tag->content = null;
             }
+            if ($tagCode === 82) {  // DoABC
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                $doABC = $tag;
+            }
+            if ($tagCode === 76) {  // SymbolClass
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                $this->ABCtoAction($tags, $doABC, $tag, $spriteList);
+            }
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
@@ -1129,6 +1142,8 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
+                $spriteId = $tag->tag->_spriteId;
+                $spriteList[$spriteId] = $tag;
                 $this->downgradeTags($tag->tag->_controlTags, $tagsEachKrass,
                                      $swfVersion, $limitSwfVersion, $eliminate);
                 $tag->content = null;
@@ -1154,5 +1169,85 @@ class IO_SWF_Editor extends IO_SWF {
             }
             fprintf(STDERR, "%s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
         }
+    }
+    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList) {
+        $abc = $doABC->tag->_ABC;
+        // var_dump($abc->getMultiname_name($abc->instance->name));
+        // var_dump($symbolTag->tag->_Symbols);
+        foreach ($symbolTag->tag->_Symbols as $tagAndName) {
+            $spriteId = $tagAndName["Tag"];
+            $symbolName = $tagAndName["Name"];
+            list($ns, $name) = explode(".", $symbolName);
+            // echo "$spriteId => $ns :: $name\n";
+            $inst = $this->getInstanceByName($abc, $ns, $name);
+            list($frame, $methodId) = $this->getFrameAndCodeByInstance($abc, $inst);
+            // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
+            $code = $this->getCodeByMethodId($abc, $methodId);
+            $actionTag = $this->ABCCodetoActionTag($abc, $code);
+            $target_tags = null;
+            if ($spriteId === 0) {
+                $target_tags = & $this->_tags;
+            } else if (isset($spriteList[$spriteId])) {
+                $target_tags = & $spriteList[$spriteId]->tag->_controlTags;
+            } else {
+                throw new Exception("not found sprite:$spriteId");
+            }
+            $f = 0;
+            foreach ($target_tags as $offset => $tag) {
+                if ($frame <= $f) {
+                    break;
+                }
+                if ($tag->code === 1) {  // ShowFrame
+                    $f++;
+                }
+            }
+            array_splice($target_tags, $offset, 1, [$actionTag]);
+            // var_dump($target_tags);
+        }
+    }
+    function getInstanceByName($abc, $ns, $name) {
+        foreach ($abc->instance as $inst) {
+            $multiname = $abc->_constant_pool["multiname"][$inst["name"]];
+            $multiname_ns = $abc->getString_name($multiname["ns"]);
+            $multiname_name = $abc->getString_name($multiname["name"]);
+            if (($ns === $multiname_ns) && ($name === $multiname_name)) {
+                return $inst;
+            }
+        }
+    }
+    function getFrameAndCodeByInstance($abc, $inst) {
+        foreach ($inst["trait"] as $trait) {
+            $kind = $trait["kind"];
+            switch ($kind & 0x0F) {
+            case 1:  // Trait_Method
+            case 2:  // Trait_Getter
+            case 3:  // Trait_Setter
+                $trait_multiname = $abc->_constant_pool["multiname"][$trait["name"]];
+                $name = $abc->getString_name($trait_multiname["name"]);
+                if (substr($name, 0, 5) === "frame") {
+                    $frame = intval(substr($name, 5));
+                    return [$frame, $trait["method"]];
+                } else {
+                    throw new Exception("unexpected trait name:$name");
+                }
+            }
+        }
+    }
+    function getCodeByMethodId($abc, $methodId) {
+        return $abc->method_body[$methodId]["code"];
+    }
+    function ABCCodetoActionTag($abc, $code) {
+        $swfInfo = array('Version' => $this->_headers['Version']);
+        $action_tag = new IO_SWF_Tag($swfInfo);
+        $action_tag->code = 12; // DoAction
+        $action_tag->content = '';
+        $action_tag->parseTagContent();
+        $action_tag->content = null;
+        $action_tag->tag->_actions = [
+            0x07, // [0] Stop(Code:0x07)
+            // [1] End(Code:0x00)
+        ];
+        //;
+        return $action_tag;
     }
 }
