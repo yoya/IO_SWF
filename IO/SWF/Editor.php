@@ -1070,7 +1070,7 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
-    function degrade($swfVersion, $limitSwfVersion, $eliminate) {
+    function downgrade($swfVersion, $limitSwfVersion, $eliminate) {
         if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
             throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
         }
@@ -1087,9 +1087,11 @@ class IO_SWF_Editor extends IO_SWF {
                 array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
             }
         }
-        $this->degradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
+        $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
     }
-    function degradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
+    function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
+        $doABC = null;
+        $spriteList = [];
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
             if ($tagCode <= 1) {  // End(0), ShowFrame(1)
@@ -1127,8 +1129,8 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                $this->degradeTags($tag->tag->_controlTags, $tagsEachKrass,
-                                   $swfVersion, $limitSwfVersion, $eliminate);
+                $this->downgradeTags($tag->tag->_controlTags, $tagsEachKrass,
+                                     $swfVersion, $limitSwfVersion, $eliminate);
                 $tag->content = null;
                 continue;
             }

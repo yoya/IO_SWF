@@ -9,8 +9,8 @@ if (is_readable('vendor/autoload.php')) {
 $options = getopt("f:v:l:E");
 
 function usage() {
-    echo "Usage: php swfdegrade.php -f <swf_file> -v <swf_version> -l <limit_swf_version> [-E]\n";
-    echo "ex) php swfdegrade.php -f test.swf -v 4 -l 4\n";
+    echo "Usage: php swfdowngrade.php -f <swf_file> -v <swf_version> -l <limit_swf_version> [-E]\n";
+    echo "ex) php swfdowngrade.php -f test.swf -v 4 -l 4\n";
 }
 
 if ((! is_readable($options['f'])) ||
@@ -48,7 +48,7 @@ $swf = new IO_SWF_Editor();
 
 $swf->parse($swfdata);
 
-$swf->degrade($swfVersion, $limitSwfVersion, $eliminate);
+$swf->downgrade($swfVersion, $limitSwfVersion, $eliminate);
 
 echo $swf->build();
 
