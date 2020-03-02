@@ -190,32 +190,32 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                 break;
               case 0x8E: // ActionDefineFunction2
                 $action['FunctionName'] = $reader->getDataUntil("\0");
-		$action['NumParams'] = $numParams = $reader->getUI16LE();
+                $action['NumParams'] = $numParams = $reader->getUI16LE();
                 $action['RegisterCount'] = $reader->getUI8();
-		//
-		$action['PreloadParentFlag'] = $reader->getUIBit();
-		$action['PreloadBootFlag'] = $reader->getUIBit();
-		$action['SuppressSuperFlag'] = $reader->getUIBit();
-		$action['PreloadSuperFlag'] = $reader->getUIBit();
-		$action['SuppressArgumentsFlag'] = $reader->getUIBit();
-		$action['PreloadArgumentsFlag'] = $reader->getUIBit();
-		$action['SuppressThisFlag'] = $reader->getUIBit();
-		$action['PreloadThisFlag'] = $reader->getUIBit();
-		//
-		$action['(Reserve)'] = $reader->getUIBits(7);
-		$action['PreloadGlobalFlag'] = $reader->getUIBit();
-		//
-		$parameters = array();
-		for ($i = 0 ; $i < $numParams ; $i++) {
-		    $registerParam = array();
-		    $registerParam['Register'] = $reader->getUI8();
-		    $registerParam['ParamName'] = $reader->getDataUntil("\0");
-		    $parameters []= $registerParam;
-		}
-		$action['Parameters'] = $parameters;
-		$action['codeSize'] = $reader->getUI16LE();
+                //
+                $action['PreloadParentFlag'] = $reader->getUIBit();
+                $action['PreloadBootFlag'] = $reader->getUIBit();
+                $action['SuppressSuperFlag'] = $reader->getUIBit();
+                $action['PreloadSuperFlag'] = $reader->getUIBit();
+                $action['SuppressArgumentsFlag'] = $reader->getUIBit();
+                $action['PreloadArgumentsFlag'] = $reader->getUIBit();
+                $action['SuppressThisFlag'] = $reader->getUIBit();
+                $action['PreloadThisFlag'] = $reader->getUIBit();
+                //
+                $action['(Reserve)'] = $reader->getUIBits(7);
+                $action['PreloadGlobalFlag'] = $reader->getUIBit();
+                //
+                $parameters = array();
+                for ($i = 0 ; $i < $numParams ; $i++) {
+                    $registerParam = array();
+                    $registerParam['Register'] = $reader->getUI8();
+                    $registerParam['ParamName'] = $reader->getDataUntil("\0");
+                    $parameters []= $registerParam;
+                }
+                $action['Parameters'] = $parameters;
+                $action['codeSize'] = $reader->getUI16LE();
                 break;
-              case 0x96: // ActionPush
+            case 0x96: // ActionPush
                 $data = $reader->getData($length);
                 $values = array();
                 $values_reader = new IO_Bit();
@@ -299,7 +299,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
     }
     static function build(&$writer, $action, $opts = array()) {
         $code = $action['Code'];
-            $writer->putUI8($code);
+        $writer->putUI8($code);
         if (0x80 <= $code) {
             switch ($code) {
               case 0x81: // ActionGotoFrame
@@ -337,35 +337,34 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                 $writer->putUI8($action['SkipCount']);
                 break;
               case 0x8E: // ActionDefineFunction2
-	        $writer->putData($action['FunctionName']."\0");
-//		$numParams = $action['NumParams'];
-		$numParams = count($parameters);
-		$writer->putUI16LE($numParams);
-
+                $writer->putData($action['FunctionName']."\0");
+                // $numParams = $action['NumParams'];
+                $numParams = count($parameters);
+                $writer->putUI16LE($numParams);
                 $writer->putUI8($action['RegisterCount']);
-		//
-		$writer->putUIBit($action['PreloadParentFlag']);
-		$writer->putUIBit($action['PreloadBootFlag']);
-		$writer->putUIBit($action['SuppressSuperFlag']);
-		$writer->putUIBit($action['PreloadSuperFlag'] );
-		$writer->putUIBit($action['SuppressArgumentsFlag']);
-		$writer->putUIBit($action['PreloadArgumentsFlag']);
-		$writer->putUIBit($action['SuppressThisFlag']);
-		$writer->putUIBit($action['PreloadThisFlag']);
-		//
-		if (isset($action['(Reserve)'])) {
-		    $writer->putUIBits($action['(Reserve)'], 7);
-		} else {
-		    $writer->putUIBits(0, 7);
-		}
-		$writer->putUIBit($action['PreloadGlobalFlag']);
-		//
-		$parameters = $action['Parameters'];
-		foreach  ($parameters as $registerParam) {
-		    $writer->putUI8($registerParam['Register']);
-		    $writer->putData($registerParam['ParamName']."\0");
-		}
-		$writer->putUI16LE($action['codeSize']);
+                //
+                $writer->putUIBit($action['PreloadParentFlag']);
+                $writer->putUIBit($action['PreloadBootFlag']);
+                $writer->putUIBit($action['SuppressSuperFlag']);
+                $writer->putUIBit($action['PreloadSuperFlag'] );
+                $writer->putUIBit($action['SuppressArgumentsFlag']);
+                $writer->putUIBit($action['PreloadArgumentsFlag']);
+                $writer->putUIBit($action['SuppressThisFlag']);
+                $writer->putUIBit($action['PreloadThisFlag']);
+                //
+                if (isset($action['(Reserve)'])) {
+                    $writer->putUIBits($action['(Reserve)'], 7);
+                } else {
+                    $writer->putUIBits(0, 7);
+                }
+                $writer->putUIBit($action['PreloadGlobalFlag']);
+                //
+                $parameters = $action['Parameters'];
+                foreach  ($parameters as $registerParam) {
+                    $writer->putUI8($registerParam['Register']);
+                    $writer->putData($registerParam['ParamName']."\0");
+                }
+                $writer->putUI16LE($action['codeSize']);
                 break;
                 break;
               case 0x96: // ActionPush
@@ -411,7 +410,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                       case 9: // Constant16
                         $values_writer->putUI16LE($value['Constant16']);
                         break;
-                      default:
+                    default:
                         throw new IO_SWF_Exception("Illegal ActionPush value's type($type)");
                         break;
                     }
@@ -426,10 +425,10 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                 break;
               case 0x9A: // ActionGetURL2
                 $writer->putUI16LE(1);
-//                $writer->putUIBits($action['SendVarsMethod'], 2);
-//                $writer->putUIBits(0, 4); // Reserved
-//                $writer->putUIBit($action['LoadTargetFlag']);
-//                $writer->putUIBit($action['LoadVariablesFlag']);
+                // $writer->putUIBits($action['SendVarsMethod'], 2);
+                // $writer->putUIBits(0, 4); // Reserved
+                // $writer->putUIBit($action['LoadTargetFlag']);
+                // $writer->putUIBit($action['LoadVariablesFlag']);
                 // swf_file_format_spec_v10 bug, field reverse.
                 $writer->putUIBit($action['LoadVariablesFlag']);
                 $writer->putUIBit($action['LoadTargetFlag']);
@@ -455,7 +454,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                     $writer->putUI16LE($action['SceneBias']);
                 }
                 break;
-              default:
+            default:
                 if (isset($action['Data'])) {
                     $data = $action['Data'];
                     $writer->putUI16LE(strlen($data));
