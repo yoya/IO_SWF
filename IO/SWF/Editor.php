@@ -1246,7 +1246,7 @@ class IO_SWF_Editor extends IO_SWF {
         $action_tag->parseTagContent();
         $action_tag->content = null;
         $action_tag->tag->_actions = [
-            0x07, // [0] Stop(Code:0x07)
+            ["Code" => 0x07], // [0] Stop(Code:0x07)
             // [1] End(Code:0x00)
         ];
         //;
