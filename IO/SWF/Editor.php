@@ -1204,6 +1204,7 @@ class IO_SWF_Editor extends IO_SWF {
             }
             array_splice($target_tags, $offset, 1, [$actionTag]);
             // var_dump($target_tags);
+            unset($target_tags);
         }
     }
     function getInstanceByName($abc, $ns, $name) {
