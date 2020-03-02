@@ -1189,6 +1189,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $target_tags = & $this->_tags;
             } else if (isset($spriteList[$spriteId])) {
                 $target_tags = & $spriteList[$spriteId]->tag->_controlTags;
+                $spriteList[$spriteId]->content = null;
             } else {
                 throw new Exception("not found sprite:$spriteId");
             }
