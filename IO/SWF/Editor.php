@@ -1202,8 +1202,8 @@ class IO_SWF_Editor extends IO_SWF {
                     $f++;
                 }
             }
-            array_splice($target_tags, $offset, 1, [$actionTag]);
-            // var_dump($target_tags);
+            // insert action tag
+            array_splice($target_tags, $offset, 0, [$actionTag]);
             unset($target_tags);
         }
     }
