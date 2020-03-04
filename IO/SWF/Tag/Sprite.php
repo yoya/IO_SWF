@@ -47,10 +47,12 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         $writer = new IO_Bit();
         $writer->putUI16LE($this->_spriteId);
         $writer->putUI16LE($this->_frameCount);
-        foreach ($this->_controlTags as $tag) {
+        foreach ($this->_controlTags as $idx => $tag) {
             $tagData = $tag->build();
-            if ($tagData != false) {
+            if ($tagData !== false) {
                 $writer->putData($tagData);
+            } else {
+                throw new Exception("failed to tag build in sprite controlTags:[$idx]");
             }
         }
     	return $writer->output();
