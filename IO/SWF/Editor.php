@@ -1193,7 +1193,7 @@ class IO_SWF_Editor extends IO_SWF {
             } else {
                 throw new Exception("not found sprite:$spriteId");
             }
-            $f = 0;
+            $f = 1;
             foreach ($target_tags as $offset => $tag) {
                 if ($frame <= $f) {
                     break;
