@@ -34,6 +34,9 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         echo "\tSprite: SpriteID={$this->_spriteId} FrameCount={$this->_frameCount}\n";
         $opts['FrameNum'] = 0;
         foreach ($this->_controlTags as $tag) {
+            if ($tag->code === 39) {  // SpriteTag
+                echo "(nested sprites are forbidden)\n";
+            }
             echo "  ";
             try {
                 $tag->dump($opts);
