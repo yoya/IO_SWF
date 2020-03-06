@@ -59,7 +59,9 @@ class IO_SWF_ABC_Code {
         }
         return $entry[2];
     }
-    function setABC($abc) {
+    //
+    function __construct($abc) {
+        assert($abc instanceof IO_SWF_ABC);
         $this->abc = $abc;
     }
     function parse($codeData) {

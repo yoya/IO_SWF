@@ -438,8 +438,7 @@ class IO_SWF_ABC {
         $info["max_scope_depth"]  = $bit->get_u30();
         $code_length              = $bit->get_u30();
         $code_data                = $bit->getData($code_length);
-        $code = new IO_SWF_ABC_Code();
-        $code->setABC($this);
+        $code = new IO_SWF_ABC_Code($this);
         $code->parse($code_data);
         $info["code"]             = $code;
         $exception_count          = $bit->get_u30();
