@@ -1208,17 +1208,19 @@ class IO_SWF_Editor extends IO_SWF {
                 throw new Exception("not found sprite:$spriteId");
             }
             $f = 1;
-            foreach ($target_tags as $offset => $tag) {
+            $offset = 0;
+            foreach ($target_tags as $tag) {
                 if ($frame <= $f) {
                     break;
                 }
                 if ($tag->code === 1) {  // ShowFrame
                     $f++;
                 }
+                $offset++;
             }
             // insert action tag
             array_splice($target_tags, $offset, 0, [$actionTag]);
-            unset($target_tags);
+            unset($target_tags);  // remove reference
         }
     }
 }
