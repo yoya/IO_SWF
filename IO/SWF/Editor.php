@@ -1183,7 +1183,8 @@ class IO_SWF_Editor extends IO_SWF {
             list($frame, $methodId) = $abc->getFrameAndCodeByInstance($inst);
             // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
             $code = $abc->getCodeByMethodId($methodId);
-            $actionTag = $this->ABCCodetoActionTag($abc, $code);
+            $actionTag = $abc->ABCCodetoActionTag($this->_headers['Version'],
+                                                  $code);
             $target_tags = null;
             if ($spriteId === 0) {
                 $target_tags = & $this->_tags;
@@ -1206,19 +1207,5 @@ class IO_SWF_Editor extends IO_SWF {
             array_splice($target_tags, $offset, 0, [$actionTag]);
             unset($target_tags);
         }
-    }
-    function ABCCodetoActionTag($abc, $code) {
-        $swfInfo = array('Version' => $this->_headers['Version']);
-        $action_tag = new IO_SWF_Tag($swfInfo);
-        $action_tag->code = 12; // DoAction
-        $action_tag->content = '';
-        $action_tag->parseTagContent();
-        $action_tag->content = null;
-        $action_tag->tag->_actions = [
-            ["Code" => 0x07], // [0] Stop(Code:0x07)
-            // [1] End(Code:0x00)
-        ];
-        //;
-        return $action_tag;
     }
 }

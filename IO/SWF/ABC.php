@@ -779,4 +779,21 @@ class IO_SWF_ABC {
     function getCodeByMethodId($methodId) {
         return $this->method_body[$methodId]["code"];
     }
+    function ABCCodetoActionTag($version, $code) {
+        $actions = [];
+        //
+        $actions = [
+            ["Code" => 0x07], // [0] Stop(Code:0x07)
+            // [1] End(Code:0x00)
+        ];
+        //
+        $swfInfo = array('Version' => $version);
+        $action_tag = new IO_SWF_Tag($swfInfo);
+        $action_tag->code = 12; // DoAction
+        $action_tag->content = '';
+        $action_tag->parseTagContent();
+        $action_tag->content = null;
+        $action_tag->tag->_actions = $actions;
+        return $action_tag;
+    }
 }
