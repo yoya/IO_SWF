@@ -160,6 +160,9 @@ class IO_SWF_ABC_Code {
                                   "Frame" => $frame_plus1 - 1];
                     $actions []= ["Code" => 0x06]; // Play
                     break;
+                case "play":
+                    $actions []= ["Code" => 0x06]; // Play
+                    break;
                 case "stop":
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
