@@ -140,6 +140,10 @@ class IO_SWF_ABC_Code {
             $bit->input($codeSlice);
             $inst = $bit->getUI8();
             switch ($inst) {
+            case 0x24:  // pushbyte
+                $value = $bit->getUI8();
+                array_push($abcStack, $value);
+                break;
             case 0x25:  // pushshort
                 $value = $bit->get_u30();
                 array_push($abcStack, $value);
@@ -161,6 +165,9 @@ class IO_SWF_ABC_Code {
                     break;
                 }
                 break;
+            default:
+                // $instName = $this->getInstructionName($inst);
+                // fprintf(STDERR, "unsupported instruction:$instName($inst)");
             }
         }
         //
