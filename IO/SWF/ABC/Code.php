@@ -134,10 +134,35 @@ class IO_SWF_ABC_Code {
     function ABCCodetoActionTag($version) {
         $actions = [];
         //
-        $actions = [
-            ["Code" => 0x07], // [0] Stop(Code:0x07)
-            // [1] End(Code:0x00)
-        ];
+        $abcStack = [];
+        foreach ($this->codeArray as $idx => $codeSlice) {
+            $bit = new IO_SWF_ABC_Bit();
+            $bit->input($codeSlice);
+            $inst = $bit->getUI8();
+            switch ($inst) {
+            case 0x25:  // pushshort
+                $value = $bit->get_u30();
+                array_push($abcStack, $value);
+                break;
+            case 0x4f:  // callproperty
+                $index = $bit->get_u30();  // multiname
+                $arg_count = $bit->get_u30();
+                $multiname = $this->abc->_constant_pool["multiname"][$index];
+                $name = $this->abc->getString_name($multiname["name"]);
+                switch ($name) {
+                case "gotoAndPlay":
+                    $frame_plus1 = array_pop($abcStack);
+                    $actions []= ["Code" => 0x81,  // GotoFrame
+                                  "Frame" => $frame_plus1 - 1];
+                    $actions []= ["Code" => 0x06]; // Play
+                    break;
+                case "stop":
+                    $actions []= ["Code" => 0x07]; // Stop
+                    break;
+                }
+                break;
+            }
+        }
         //
         $swfInfo = array('Version' => $version);
         $action_tag = new IO_SWF_Tag($swfInfo);
