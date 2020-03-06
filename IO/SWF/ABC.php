@@ -747,4 +747,36 @@ class IO_SWF_ABC {
     function build() {
         
     }
+    //
+    function getInstanceByName($ns, $name) {
+        foreach ($this->instance as $inst) {
+            $multiname = $this->_constant_pool["multiname"][$inst["name"]];
+            $multiname_ns = $this->getString_name($multiname["ns"]);
+            $multiname_name = $this->getString_name($multiname["name"]);
+            if (($ns === $multiname_ns) && ($name === $multiname_name)) {
+                return $inst;
+            }
+        }
+    }
+    function getFrameAndCodeByInstance($inst) {
+        foreach ($inst["trait"] as $trait) {
+            $kind = $trait["kind"];
+            switch ($kind & 0x0F) {
+            case 1:  // Trait_Method
+            case 2:  // Trait_Getter
+            case 3:  // Trait_Setter
+                $trait_multiname = $this->_constant_pool["multiname"][$trait["name"]];
+                $name = $this->getString_name($trait_multiname["name"]);
+                if (substr($name, 0, 5) === "frame") {
+                    $frame = intval(substr($name, 5));
+                    return [$frame, $trait["method"]];
+                } else {
+                    throw new Exception("unexpected trait name:$name");
+                }
+            }
+        }
+    }
+    function getCodeByMethodId($methodId) {
+        return $this->method_body[$methodId]["code"];
+    }
 }

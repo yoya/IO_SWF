@@ -1179,10 +1179,10 @@ class IO_SWF_Editor extends IO_SWF {
             $symbolName = $tagAndName["Name"];
             list($ns, $name) = explode(".", $symbolName);
             // echo "$spriteId => $ns :: $name\n";
-            $inst = $this->getInstanceByName($abc, $ns, $name);
-            list($frame, $methodId) = $this->getFrameAndCodeByInstance($abc, $inst);
+            $inst = $abc->getInstanceByName($ns, $name);
+            list($frame, $methodId) = $abc->getFrameAndCodeByInstance($inst);
             // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
-            $code = $this->getCodeByMethodId($abc, $methodId);
+            $code = $abc->getCodeByMethodId($methodId);
             $actionTag = $this->ABCCodetoActionTag($abc, $code);
             $target_tags = null;
             if ($spriteId === 0) {
@@ -1206,37 +1206,6 @@ class IO_SWF_Editor extends IO_SWF {
             array_splice($target_tags, $offset, 0, [$actionTag]);
             unset($target_tags);
         }
-    }
-    function getInstanceByName($abc, $ns, $name) {
-        foreach ($abc->instance as $inst) {
-            $multiname = $abc->_constant_pool["multiname"][$inst["name"]];
-            $multiname_ns = $abc->getString_name($multiname["ns"]);
-            $multiname_name = $abc->getString_name($multiname["name"]);
-            if (($ns === $multiname_ns) && ($name === $multiname_name)) {
-                return $inst;
-            }
-        }
-    }
-    function getFrameAndCodeByInstance($abc, $inst) {
-        foreach ($inst["trait"] as $trait) {
-            $kind = $trait["kind"];
-            switch ($kind & 0x0F) {
-            case 1:  // Trait_Method
-            case 2:  // Trait_Getter
-            case 3:  // Trait_Setter
-                $trait_multiname = $abc->_constant_pool["multiname"][$trait["name"]];
-                $name = $abc->getString_name($trait_multiname["name"]);
-                if (substr($name, 0, 5) === "frame") {
-                    $frame = intval(substr($name, 5));
-                    return [$frame, $trait["method"]];
-                } else {
-                    throw new Exception("unexpected trait name:$name");
-                }
-            }
-        }
-    }
-    function getCodeByMethodId($abc, $methodId) {
-        return $abc->method_body[$methodId]["code"];
     }
     function ABCCodetoActionTag($abc, $code) {
         $swfInfo = array('Version' => $this->_headers['Version']);
