@@ -1074,6 +1074,7 @@ class IO_SWF_Editor extends IO_SWF {
         if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
             throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
         }
+        $origVersion = $this->_headers['Version'];
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
         $tagsEachKrass = []; // desc sort by tagNo (version as a result)
@@ -1088,7 +1089,9 @@ class IO_SWF_Editor extends IO_SWF {
                 array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
             }
         }
-        $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $eliminate);
+        if (($origVersion >= 9) && ($limitSwfVersion <= 8)) {
+            $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $eliminate);
+        }
         $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
     }
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion) {
