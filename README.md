@@ -39,3 +39,7 @@ FrameCount: 1
 Tags:
 (omit)
 ```
+
+# More detail
+
+- https://github.com/yoya/IO_SWF/wiki
