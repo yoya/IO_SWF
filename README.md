@@ -26,7 +26,7 @@ MIT License
 
 # Usage
 
-- sfdump.php (binary structure dump)
+- swfdump.php (binary structure information dump)
 
 ```
 % php vendor/yoya/io_swf/sample/swfdump.php -f input.swf
