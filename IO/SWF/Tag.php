@@ -92,18 +92,22 @@ class IO_SWF_Tag {
         91 => array('name' => 'DefineFont4', 'version' => 10),
         777 => array('name' => 'Reflex', 'version' => null), // swftools ?
         );
+
     function __construct($swfInfo) {
         $this->swfInfo = $swfInfo;
     }
+
     function getTagInfoList() {
         return self::$tagMap;
     }
+
     function getTagInfo($tagCode, $label) {
         if (isset(self::$tagMap[$tagCode][$label])) {
            return self::$tagMap[$tagCode][$label];
         }
         return false;
     }
+
     function parse(&$reader, $opts = array()) {
         list($this->byte_offset, $dummy) = $reader->getOffset();
         $tagAndLength = $reader->getUI16LE();
@@ -124,6 +128,7 @@ class IO_SWF_Tag {
 */
         $this->byte_size = $byte_offset - $this->byte_offset;
     }
+
     function dump(&$opts = array()) {
         $code = $this->code;
         $name = $this->getTagInfo($code, 'name');
@@ -147,6 +152,7 @@ class IO_SWF_Tag {
            $bitio->hexdump($this->byte_offset, $this->byte_size);
         }
     }
+
     function build($opts = array()) {
         $code = $this->code;
         if (is_null($this->content)) {
@@ -177,6 +183,7 @@ class IO_SWF_Tag {
         }
         return $writer->output() . $this->content;
     }
+
     function parseTagContent($opts = array()) {
         if (is_null($this->tag) === false) {
             return true;
@@ -198,6 +205,7 @@ class IO_SWF_Tag {
         $this->tag = $obj;
         return true;
     }
+
     function buildTagContent() {
             if ((is_null($this->content) === false)) {
             return $this->content;
@@ -230,6 +238,7 @@ class IO_SWF_Tag {
             break;
         }
     }
+
     function replaceCharacterId($trans_table) {
         $new_cid = $trans_table[$this->characterId];
         if ($new_cid == $this->characterId) {
@@ -280,6 +289,7 @@ class IO_SWF_Tag {
         }
         return true;
     }
+
     function replaceReferenceId($trans_table) {
         if ($this->parseTagContent() === false) {
             new IO_SWF_Exception("parseTagContent failed");

@@ -16,6 +16,7 @@ class IO_SWF_Bitmap {
     const FORMAT_JPEG = 1;
     const FORMAT_PNG = 2;
     const FORMAT_GIF = 4;
+
     static function detect_bitmap_format($bitmap_data) {
         if (strncmp($bitmap_data, "\xff\xd8\xff", 3) == 0) {
             return self::FORMAT_JPEG;
@@ -26,6 +27,7 @@ class IO_SWF_Bitmap {
         }
         return self::FORMAT_UNKNOWN;
     }
+
     static function get_jpegsize($jpegdata) {
         $chunk_length = 0;
         $jpegdata_len = strlen($jpegdata);
@@ -67,7 +69,7 @@ class IO_SWF_Bitmap {
         }
         return false; // NG
     }
-    
+
     static function get_pngsize($pngdata) {
         $pngdata_len = strlen($pngdata);
         if ($pngdata_len< 24) {
@@ -78,7 +80,7 @@ class IO_SWF_Bitmap {
         $height =(((ord($pngdata[20])*0x100) + ord($pngdata[21]))*0x100 + ord($pngdata[22]))*0x100 + ord($pngdata[23]);
         return array('width' => $width, 'height' => $height); // success
     }
-    
+
     static function get_gifsize($gifdata) {
         $gifdata_len = strlen($gifdata);
         if ($gifdata_len < 10) {
@@ -89,7 +91,7 @@ class IO_SWF_Bitmap {
         $height = 0x100 * ord($gifdata[9]) + ord($gifdata[8]);
         return array('width' => $width, 'height' => $height); // success
     }
-    
+
     static function get_bitmapsize($bitmapdata) {
         if (strncmp($bitmapdata, "\xff\xd8\xff", 3) == 0) { // JPEG
             return self::get_jpegsize($bitmapdata);

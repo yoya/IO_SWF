@@ -43,9 +43,11 @@ class IO_SWF_JPEG {
         );
     var $_jpegdata = null;
     var $_jpegChunk = array();
+
     function input($jpegdata) {
         $this->_jpegdata = $jpegdata;
     }
+
     function _splitChunk($eoiFinish = true, $sosScan = true) {
         $bitin = new IO_Bit();
         $bitin->input($this->_jpegdata);

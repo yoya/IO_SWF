@@ -154,6 +154,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return true;
     }
+
     function setReferenceId() {
         if ($this->setReferenceIdDone) {
             return ;
@@ -194,6 +195,7 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
+
     function replaceTagContent($tagCode, $content, $limit = 1) {
         $count = 0;
         foreach ($this->_tags as &$tag) {
@@ -207,6 +209,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $count;
     }
+
     function getTagContent($tagCode) {
         $count = 0;
         foreach ($this->_tags as &$tag) {
@@ -216,7 +219,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return false;
     }
-    
+
     function replaceTagContentByCharacterId($tagCode, $characterId, $content_after_character_id) {
         if (! is_array($tagCode)) {
             $tagCode = array($tagCode);
@@ -254,7 +257,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return $ret;
     }
-    
+
     function replaceBitmapTagByCharacterId($tagCode, $characterId, $replaceTag) {
         if (! is_array($tagCode)) {
             $tagCode = array($tagCode);
@@ -617,6 +620,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return false;
     }
+
     function searchMovieClipTagByTargetPath($target_path, $opts) {
         /*
          * scanning for target sprite tag
@@ -769,12 +773,15 @@ class IO_SWF_Editor extends IO_SWF {
         array_splice($this->_tags, $target_sprite_tag_idx, 0, $mc_character_tag_list);
         return true;
     }
+
     function getMovieClip($target_path) {
         return $this->getOrGrepMovieClip($target_path, false);
     }
+
     function grepMovieClip($target_path) {
         return $this->getOrGrepMovieClip($target_path, true);
     }
+
     function getOrGrepMovieClip($target_path, $is_grep) {
         $this->setCharacterId();
         $mc_tag_idx = null;
@@ -850,6 +857,7 @@ class IO_SWF_Editor extends IO_SWF {
         $swf->purgeUselessContents();
         return $swf->build();
     }
+
     function listMovieClip_r($prefix, $characterId, $name, $parent_cids, &$spriteTable) {
         $spriteId = $characterId;
         $spriteTable[$spriteId]['name'] = $name;
@@ -867,6 +875,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         return true;
     }
+
     function listMovieClip() {
         $spriteTable = array();
         foreach ($this->_tags as $tag) {
@@ -907,6 +916,7 @@ class IO_SWF_Editor extends IO_SWF {
         unset($tag);
         return $spriteTable;
     }
+
     function selectByCIDs($cids) {
         $cid_table = array();
         foreach ($cids as $cid) {
@@ -990,6 +1000,7 @@ class IO_SWF_Editor extends IO_SWF {
         // $swf->purgeUselessContents();
         return $swf->build();
     }
+
     function purgeUselessContents() {
         $this->setCharacterId();
         $this->setReferenceId();
@@ -1014,6 +1025,7 @@ class IO_SWF_Editor extends IO_SWF {
             } 
         }
     }
+
     function replaceEditString($id, $initialText) {
         $this->setCharacterId();
         foreach ($this->_tags as &$tag) {
@@ -1040,6 +1052,7 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
+
     function getEditString($id) {
         $this->setCharacterId();
         foreach ($this->_tags as &$tag) {
@@ -1070,6 +1083,7 @@ class IO_SWF_Editor extends IO_SWF {
         trigger_error("Can't found EditText($id)");
         return false;
     }
+
     function downgrade($swfVersion, $limitSwfVersion, $eliminate) {
         if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
             throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
@@ -1094,6 +1108,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
     }
+
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion) {
         $doABC = null;
         $spriteList = [];
@@ -1121,8 +1136,8 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
-    function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
 
+    function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
         // downgrade other tags.
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
@@ -1187,6 +1202,7 @@ class IO_SWF_Editor extends IO_SWF {
             fprintf(STDERR, "%s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
         }
     }
+
     function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList) {
         $abc = $doABC->tag->_ABC;
         // var_dump($abc->getMultiname_name($abc->instance->name));
