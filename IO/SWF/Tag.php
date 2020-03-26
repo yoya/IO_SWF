@@ -84,7 +84,10 @@ class IO_SWF_Tag {
         83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'version' => 8),
         84 => array('name' => 'DefineMorphShape2', 'version' => 8),
         // 85 missing
-        86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => 9),
+        // 86:DefineSceneAndFrameLabelData added in SWFv9,
+        // but sometimes included in SWFv4 publish,
+        // so seems to be specially treated as vSWFv4 tags.
+        86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => 4),
         87 => array('name' => 'DefineBinaryData', 'version' => 9),
         88 => array('name' => 'DefineFontName', 'version' => 9),
         89 => array('name' => 'StartSound2', 'version' => 9),
