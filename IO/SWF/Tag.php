@@ -86,7 +86,7 @@ class IO_SWF_Tag {
         // 85 missing
         // 86:DefineSceneAndFrameLabelData added in SWFv9,
         // but sometimes included in SWFv4 publish,
-        // so seems to be specially treated as vSWFv4 tags.
+        // so seems to be specially treated as SWFv4 tags.
         86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => 4),
         87 => array('name' => 'DefineBinaryData', 'version' => 9),
         88 => array('name' => 'DefineFontName', 'version' => 9),
