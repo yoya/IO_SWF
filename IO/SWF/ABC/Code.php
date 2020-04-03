@@ -12,6 +12,7 @@ class IO_SWF_ABC_Code {
         0x1d => ["popscope"      , []           ],  // 29
         0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
         0x25 => ["pushshort"     , ["u30"]      ],  // 37
+        0x2C => ["pushstring"    , ["u30"]      ],  // 44
         0x30 => ["pushscope"     , []           ],  // 48
         0x41 => ["call"          , ["u30"]      ],  // 65
         0x47 => ["returnvoid"    , []           ],  // 71
