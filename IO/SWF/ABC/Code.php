@@ -12,7 +12,7 @@ class IO_SWF_ABC_Code {
         0x1d => ["popscope"      , []           ],  // 29
         0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
         0x25 => ["pushshort"     , ["u30"]      ],  // 37
-        0x2C => ["pushstring"    , ["u30"]      ],  // 44
+        0x2C => ["pushstring"    , ["u30"]      , ["string"]   ],  // 44
         0x30 => ["pushscope"     , []           ],  // 48
         0x41 => ["call"          , ["u30"]      ],  // 65
         0x47 => ["returnvoid"    , []           ],  // 71
@@ -31,7 +31,7 @@ class IO_SWF_ABC_Code {
         0xa8 => ["bitand"        , []           ],  // 168
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
-        0xc5 => ["addi"          , []           ],  // 197
+        0xc5 => ["add_i"         , []           ],  // 197
         0xd0 => ["getlocal_0"    , []           ],  // 208
         0xd1 => ["getlocal_1"    , []           ],  // 209
         0xd2 => ["getlocal_2"    , []           ],  // 210
@@ -121,6 +121,10 @@ class IO_SWF_ABC_Code {
                     switch ($pool) {
                     case "multiname":
                         $name = $this->abc->getMultiname_name($v);
+                        echo "($name)";
+                        break;
+                    case "string":
+                        $name = $this->abc->getString_name($v);
                         echo "($name)";
                         break;
                     default:
