@@ -145,6 +145,9 @@ class IO_SWF_ABC_Code {
             $bit->input($codeSlice);
             $inst = $bit->getUI8();
             switch ($inst) {
+            case 0x1d:  // popscope
+                // do nothing
+                break;
             case 0x24:  // pushbyte
                 $value = $bit->getUI8();
                 array_push($abcStack, $value);
@@ -152,6 +155,17 @@ class IO_SWF_ABC_Code {
             case 0x25:  // pushshort
                 $value = $bit->get_u30();
                 array_push($abcStack, $value);
+                break;
+            case 0x2C:  // pushshort
+                $v = $bit->get_u30();
+                $value = $this->abc->getString_name($v);
+                array_push($abcStack, $value);
+                break;
+            case 0x30:  // pushscope
+                // do nothing
+                break;
+            case 0x47:  // returnvoid
+                // do nothing
                 break;
             case 0x4f:  // callproperty
                 $index = $bit->get_u30();  // multiname
@@ -172,6 +186,9 @@ class IO_SWF_ABC_Code {
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 }
+                break;
+            case 0x5d:  // findpropstrict
+                // do nothing
                 break;
             default:
                 // $instName = $this->getInstructionName($inst);
