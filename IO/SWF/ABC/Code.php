@@ -191,8 +191,8 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             default:
-                // $instName = $this->getInstructionName($inst);
-                // fprintf(STDERR, "unsupported instruction:$instName($inst)");
+                $instName = $this->getInstructionName($inst);
+                fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
             }
         }
         //
