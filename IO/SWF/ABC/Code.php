@@ -174,10 +174,20 @@ class IO_SWF_ABC_Code {
                 $name = $this->abc->getString_name($multiname["name"]);
                 switch ($name) {
                 case "gotoAndPlay":
-                    $frame_plus1 = array_pop($abcStack);
-                    $actions []= ["Code" => 0x81,  // GotoFrame
-                                  "Frame" => $frame_plus1 - 1];
-                    $actions []= ["Code" => 0x06]; // Play
+                    $targetFrame = array_pop($abcStack);
+                    if (is_int($targetFrame)) {
+                        $actions []= ["Code" => 0x81,  // GotoFrame
+                                      "Frame" => $targetFrame - 1];
+                        $actions []= ["Code" => 0x06]; // Play
+                    } else { // is_string
+                        $actions []= ["Code" => 0x96, // Push
+                                      "Values" => [
+                                          ["Type" => 0,  // String
+                                           "String" => $targetFrame]
+                                      ]];
+                        $actions []= ["Code" => 0x9F,  // GotoFrame2
+                                      "SceneBiasFlag" => 0, "PlayFlag" => 1];
+                    }
                     break;
                 case "play":
                     $actions []= ["Code" => 0x06]; // Play
