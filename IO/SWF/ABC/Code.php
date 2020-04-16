@@ -25,6 +25,7 @@ class IO_SWF_ABC_Code {
         0x18 => ["ifge"          , ["s24"]      ],  // 24
         0x19 => ["ifstricteq"    , ["s24"]      ],  // 25 // spec doc wrong
         0x1a => ["ifstrictne"    , ["s24"]      ],  // 26 // spec doc wrong
+        0x1b => ["lookupswitch"  , ["s24","u30","s24..."]],  // 27
         0x1d => ["popscope"      , []           ],  // 29
         0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
         0x25 => ["pushshort"     , ["u30"]      ],  // 37
@@ -53,6 +54,8 @@ class IO_SWF_ABC_Code {
         0xa8 => ["bitand"        , []           ],  // 168
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
+        0xad => ["lessthan"      , []           ],  // 173
+        0xae => ["lessequals"    , []           ],  // 174
         0xb1 => ["instanceof"    , []           ],  // 177
         0xb2 => ["istype"        , ["u30"]      ],  // 178
         0xb3 => ["istypelate"    , []           ],  // 179
@@ -105,16 +108,22 @@ class IO_SWF_ABC_Code {
             list($startOffset, $dummy) = $bit->getOffset();
             $inst = $bit->getUI8();
             $argsType = $this->getInstructionArgsType($inst);
+            $v = null;
             foreach ($argsType as $argType) {
                 switch ($argType) {
                 case "u30":
-                    $bit->get_u30();
+                    $v = $bit->get_u30();
                     break;
                 case "s24":
-                    $bit->get_s24();
+                    $v = $bit->get_s24();
                     break;
                 case "ubyte":
-                    $bit->getUI8();
+                    $v = $bit->getUI8();
+                    break;
+                case "s24...":
+                    foreach (range(0, $v) as $i) {
+                        $bit->get_s24();
+                    }
                     break;
                 default:
                     throw new IO_SWF_Exception("unknown type$argType");
@@ -148,6 +157,14 @@ class IO_SWF_ABC_Code {
                     break;
                 case "ubyte":
                     $v = $bit->getUI8();
+                    break;
+                case "s24...":
+                    $v = "[";
+                    foreach (range(0, $v) as $i) {
+                        $vv = $bit->get_s24();
+                        $v .= "$vv,";
+                    }
+                    $v .= "]";
                     break;
                 default:
                     throw new IO_SWF_Exception("unknown type$argType");
