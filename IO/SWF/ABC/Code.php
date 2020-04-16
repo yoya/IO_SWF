@@ -9,18 +9,25 @@ class IO_SWF_ABC_Code {
     var $abc = null;
     var $instructionTable = [
         //         name             Arg type    Arg to pool
+        0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
+        0x09 => ["label"         , []           ],  // 9
+        0x10 => ["jump"          , ["s24"]      ],  // 16
+        0x15 => ["iflt"          , ["s24"]      ],  // 21
         0x1d => ["popscope"      , []           ],  // 29
         0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
         0x25 => ["pushshort"     , ["u30"]      ],  // 37
+        0x2A => ["dup"           , []           ],  // 42
         0x2C => ["pushstring"    , ["u30"]      , ["string"]   ],  // 44
         0x30 => ["pushscope"     , []           ],  // 48
         0x41 => ["call"          , ["u30"]      ],  // 65
+        0x46 => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 70
         0x47 => ["returnvoid"    , []           ],  // 71
         0x49 => ["construct"     , ["u30"]      ],  // 73
-        0x4f => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 79
+        0x4f => ["callpropvoid"  , ["u30","u30"], ["multiname"]],  // 79
         0x58 => ["newclass"      , ["u30"]      ],  // 88
         0x5d => ["findpropstrict", ["u30"]      , ["multiname"]],  // 93
         0x60 => ["getlex"        , ["u30"]      , ["multiname"]],  // 96
+        0x61 => ["setproperty"   , ["u30"]      , ["multiname"]],  // 97
         0x65 => ["getscopeobject", ["u30"]      ],  // 101 (u30?)
         0x66 => ["getproperty"   , ["u30"]      ],  // 102
         0x68 => ["initproperty"  , ["u30"]      ],  // 104
@@ -28,14 +35,20 @@ class IO_SWF_ABC_Code {
         0x87 => ["astypelate"    , []           ],  // 135
         0x97 => ["bitnot"        , []           ],  // 151
         0xa0 => ["add"           , []           ],  // 160
+        0xa2 => ["multiply"      , []           ],  // 162
         0xa8 => ["bitand"        , []           ],  // 168
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
+        0xc0 => ["increment_i"   , []           ],  // 192
         0xc5 => ["add_i"         , []           ],  // 197
         0xd0 => ["getlocal_0"    , []           ],  // 208
         0xd1 => ["getlocal_1"    , []           ],  // 209
         0xd2 => ["getlocal_2"    , []           ],  // 210
         0xd3 => ["getlocal_3"    , []           ],  // 211
+        0xd4 => ["setlocal_0"    , []           ],  // 212
+        0xd5 => ["setlocal_1"    , []           ],  // 213
+        0xd6 => ["setlocal_2"    , []           ],  // 214
+        0xd7 => ["setlocal_3"    , []           ],  // 215
     ];
     function getInstructionEntry($n) {
         if (!isset($this->instructionTable[$n])) {
@@ -78,6 +91,9 @@ class IO_SWF_ABC_Code {
                 case "u30":
                     $bit->get_u30();
                     break;
+                case "s24":
+                    $bit->get_s24();
+                    break;
                 case "ubyte":
                     $bit->getUI8();
                     break;
@@ -107,6 +123,9 @@ class IO_SWF_ABC_Code {
                 switch ($argType) {
                 case "u30":
                     $v = $bit->get_u30();
+                    break;
+                case "s24":
+                    $v = $bit->get_s24();
                     break;
                 case "ubyte":
                     $v = $bit->getUI8();
