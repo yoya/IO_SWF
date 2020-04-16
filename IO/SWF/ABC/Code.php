@@ -53,6 +53,10 @@ class IO_SWF_ABC_Code {
         0xa8 => ["bitand"        , []           ],  // 168
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
+        0xb1 => ["instanceof"    , []           ],  // 177
+        0xb2 => ["istype"        , ["u30"]      ],  // 178
+        0xb3 => ["istypelate"    , []           ],  // 179
+        0xb4 => ["in"            , []           ],  // 180
         0xc0 => ["increment_i"   , []           ],  // 192
         0xc2 => ["inclocal_i"    , ["u30"]      ],  // 194
         0xc5 => ["add_i"         , []           ],  // 197
