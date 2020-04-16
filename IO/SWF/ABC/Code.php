@@ -45,6 +45,8 @@ class IO_SWF_ABC_Code {
         0x68 => ["initproperty"  , ["u30"]      ],  // 104
         0x86 => ["astype"        , ["u30"]      ],  // 134
         0x87 => ["astypelate"    , []           ],  // 135
+        0x91 => ["increment"     , []           ],  // 145
+        0x92 => ["inclocal"      , ["u30"]      ],  // 146
         0x97 => ["bitnot"        , []           ],  // 151
         0xa0 => ["add"           , []           ],  // 160
         0xa2 => ["multiply"      , []           ],  // 162
@@ -52,6 +54,7 @@ class IO_SWF_ABC_Code {
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
         0xc0 => ["increment_i"   , []           ],  // 192
+        0xc2 => ["inclocal_i"    , ["u30"]      ],  // 194
         0xc5 => ["add_i"         , []           ],  // 197
         0xd0 => ["getlocal_0"    , []           ],  // 208
         0xd1 => ["getlocal_1"    , []           ],  // 209
