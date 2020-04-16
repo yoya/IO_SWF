@@ -11,8 +11,20 @@ class IO_SWF_ABC_Code {
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
         0x09 => ["label"         , []           ],  // 9
+        0x0c => ["ifnlt"         , ["s24"]      ],  // 12
+        0x0d => ["ifnle"         , ["s24"]      ],  // 13
+        0x0e => ["ifngt"         , ["s24"]      ],  // 14
+        0x0f => ["ifnge"         , ["s24"]      ],  // 15
         0x10 => ["jump"          , ["s24"]      ],  // 16
+        0x11 => ["iftrue"        , ["s24"]      ],  // 17
+        0x13 => ["ifeq"          , ["s24"]      ],  // 19
+        0x14 => ["ifne"          , ["s24"]      ],  // 20
         0x15 => ["iflt"          , ["s24"]      ],  // 21
+        0x16 => ["ifle"          , ["s24"]      ],  // 22
+        0x17 => ["ifgt"          , ["s24"]      ],  // 23
+        0x18 => ["ifge"          , ["s24"]      ],  // 24
+        0x19 => ["ifstricteq"    , ["s24"]      ],  // 25 // spec doc wrong
+        0x1a => ["ifstrictne"    , ["s24"]      ],  // 26 // spec doc wrong
         0x1d => ["popscope"      , []           ],  // 29
         0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
         0x25 => ["pushshort"     , ["u30"]      ],  // 37
