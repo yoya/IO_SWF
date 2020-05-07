@@ -221,7 +221,7 @@ class IO_SWF_JPEG {
         }
         foreach ($this->_jpegChunk as $chunk) {
             $marker = $chunk['marker'];
-            $marker_name = $this->marker_name_table{$marker};
+            $marker_name = $this->marker_name_table[$marker];
             if (is_null($chunk['data'])) {
                 echo "$marker_name:".PHP_EOL;
             } else {

@@ -29,7 +29,7 @@ class IO_SWF {
         $this->_headers['Signature'] = $reader->getData(3);
         $this->_headers['Version'] = $reader->getUI8();
         $this->_headers['FileLength'] = $reader->getUI32LE();
-        if ($this->_headers['Signature']{0} == 'C') {
+        if ($this->_headers['Signature'][0] == 'C') {
             // CWS の場合、FileLength の後ろが zlib 圧縮されている
             $uncompressed_data = gzuncompress(substr($swfdata, 8));
             if ($uncompressed_data === false) {
@@ -92,7 +92,7 @@ class IO_SWF {
         $fileLength += 8; // swf header
         $this->_headers['FileLength'] = $fileLength;
         $writer_head->setUI32LE($fileLength, 4);
-        if ($this->_headers['Signature']{0} == 'C') {
+        if ($this->_headers['Signature'][0] == 'C') {
             return $writer_head->output() . gzcompress($writer->output());
         }
         return $writer_head->output().$writer->output();
