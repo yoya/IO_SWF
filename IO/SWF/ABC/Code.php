@@ -104,6 +104,7 @@ class IO_SWF_ABC_Code {
         $this->codeData = $codeData;
         $bit = new IO_SWF_ABC_Bit();
         $bit->input($codeData);
+        list($baseOffset, $dummy) = $bit->getOffset();
         while ($bit->hasNextData(1)) {
             list($startOffset, $dummy) = $bit->getOffset();
             $inst = $bit->getUI8();
@@ -131,17 +132,21 @@ class IO_SWF_ABC_Code {
                 }
             }
             list($nextOffset, $dummy) = $bit->getOffset();
-            $this->codeArray []= substr($codeData, $startOffset,
-                                        $nextOffset - $startOffset);
+            $offset = $startOffset;
+            $size = $nextOffset - $startOffset;
+            $this->codeArray []= ["bytes" => substr($codeData, $offset, $size),
+                                  "offset" => $offset,
+                                  "size" => $size];
         }
     }
     function dump() {
         $codeLength = strlen($this->codeData);
         $codeCount = count($this->codeArray);
         echo "        code(bytesize=$codeLength, nInst=$codeCount):\n";
-        foreach ($this->codeArray as $idx => $codeSlice) {
+        foreach ($this->codeArray as $idx => $code) {
+            $bytes = $code["bytes"];
             $bit = new IO_SWF_ABC_Bit();
-            $bit->input($codeSlice);
+            $bit->input($bytes);
             $inst = $bit->getUI8();
             $instName = $this->getInstructionName($inst);
             $argsType = $this->getInstructionArgsType($inst);
@@ -195,9 +200,10 @@ class IO_SWF_ABC_Code {
         $actions = [];
         //
         $abcStack = [];
-        foreach ($this->codeArray as $idx => $codeSlice) {
+        foreach ($this->codeArray as $idx => $code) {
+            $bytes = $code["bytes"];
             $bit = new IO_SWF_ABC_Bit();
-            $bit->input($codeSlice);
+            $bit->input($bytes);
             $inst = $bit->getUI8();
             switch ($inst) {
             case 0x1d:  // popscope
