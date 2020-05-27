@@ -72,6 +72,21 @@ class IO_SWF_ABC_Code {
         0xd6 => ["setlocal_2"    , []           ],  // 214
         0xd7 => ["setlocal_3"    , []           ],  // 215
     ];
+    function isBranchInstruction($code) {
+        if ((0x0c <= $code) && ($code < 0x1a)) {
+            return true; // jump or if... instruction
+        }
+        return false; // others
+    }
+    function getCodeArrayIndexByBranchOffset($idx, $branchOffset) {
+        $offset = $this->codeArray[$idx + 1]["offset"] + $branchOffset;
+        foreach ($this->codeArray as $branchIdx => $code) {
+            if ($offset === $code["offset"]) {
+                return $branchIdx;
+            }
+        }
+        return null;
+    }
     function getInstructionEntry($n) {
         if (!isset($this->instructionTable[$n])) {
             throw new IO_SWF_Exception("unknown instruction:$n");
@@ -191,6 +206,13 @@ class IO_SWF_ABC_Code {
                         throw new IO_SWF_Exception("Unknown pool keyword:$pool");
                     }
                 }
+            }
+            if ($this->isBranchInstruction($inst)) {
+                $branchIdx = $this->getCodeArrayIndexByBranchOffset($idx, $v);
+                if (is_null($branchIdx)) {
+                    $branchIdx = "(no match)";
+                }
+                echo "=> [$branchIdx]";
             }
             echo "\n";
             $bit = null;
