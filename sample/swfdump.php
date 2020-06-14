@@ -8,13 +8,17 @@ if (is_readable('vendor/autoload.php')) {
 
 $options = getopt("f:hla");
 
-if ((isset($options['f']) === false) || (is_readable($options['f']) === false)) {
+if (! isset($options['f']))  {
     echo "Usage: php swfdump.php -f <swf_file> [-h] [-l] [-a]\n";
     echo "ex) php swfdump.php -f test.swf -h -l -a\n";
     exit(1);
 }
 
-$swfdata = file_get_contents($options['f']);
+$filename = $options['f'];
+if ($filename === "-") {
+    $filename = "php://stdin";
+}
+$swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF();
 

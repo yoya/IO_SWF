@@ -13,15 +13,18 @@ function usage() {
     echo "ex) php swfdowngrade.php -f test.swf -v 4\n";
 }
 
-if ((! is_readable($options['f'])) ||
-    (! is_numeric($options['v'])) ||
-    (isset($options['l']) &&(! is_numeric($options['l'])))) {
-    echo "ERROR: require f v l options\n";
+if (! isset($options['f']) || (! isset($options['v']))) {
+    echo "ERROR: require f,v options\n";
     usage();
     exit (1);
 }
 
 $filename = $options['f'];
+
+if ($filename === '-') {
+    $filename = "php://stdin";
+}
+
 $swfVersion = $options['v'];
 $limitSwfVersion = isset($options['l'])? $options['l']: null;
 $eliminate = ! isset($options['E']);
@@ -34,6 +37,7 @@ if (is_readable($filename) === false) {
     usage();
     exit (1);
 }
+
 if (is_numeric($swfVersion) === false) {
     echo "ERROR: swfVersion:$swfVersion is not numeric.\n";
     usage();
