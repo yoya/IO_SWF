@@ -80,6 +80,18 @@ class IO_SWF_ABC {
     function getString_name($n)  {
         return $this->_constant_pool["string"][$n];
     }
+    function getMultiname($n)  {
+        if ($n === 0) {
+            return [];
+        }
+        $multiname_name = "";
+        if (! isset($this->_constant_pool["multiname"][$n])) {
+            printf(STDERR, "no multiname\n");
+            return [];
+        }
+        $info = $this->_constant_pool["multiname"][$n];
+        return $info;
+    }
     function getMultiname_name($n)  {
         if ($n === 0) {
             return "*";
