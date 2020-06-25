@@ -219,8 +219,21 @@ class IO_SWF_ABC_Code {
         }
     }
     function ABCCodetoActionTag($version) {
+        // property map
+        $propertyMap = [];
+        foreach ($this->codeArray as $idx => $code) {
+            $bytes = $code["bytes"];
+            $bit = new IO_SWF_ABC_Bit();
+            $bit->input($bytes);
+            $inst = $bit->getUI8();
+            if ($inst === 0x61) { // setproperty
+                $index = $bit->get_u30();
+                $info = $this->abc->getMultiname($index);
+                $propertyMap[$index] = $this->abc->getString_name($info["name"]);
+            }
+        }
+        // convert code AS3 = AS1 with abc stack.
         $actions = [];
-        //
         $abcStack = [];
         foreach ($this->codeArray as $idx => $code) {
             $bytes = $code["bytes"];
@@ -282,6 +295,42 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x5d:  // findpropstrict
                 // do nothing
+                break;
+            case 0x61:  // setproperty
+                $index = $bit->get_u30();
+                $name = $propertyMap[$index];
+                $actions []= ["Code" => 0x96, // Push
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                $actions []= ["Code" => 0x1D]; // SetVariable
+                break;
+            case 0x66:  // getproperty
+                $index = $bit->get_u30();
+                $name = $propertyMap[$index];
+                $actions []= ["Code" => 0x96, // Push
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                $actions []= ["Code" => 0x1C]; // GetVariable
+                break;
+            case 0x68:  // initproperty
+                $index = $bit->get_u30();
+                $name = $propertyMap[$index];
+                $actions []= ["Code" => 0x96, // Push
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                $value = array_pop($abcStack);
+                $actions []= ["Code" => 0x96, // Push
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $value]
+                              ]];
+                $actions []= ["Code" => 0x1d]; // SetVariable
                 break;
             default:
                 $instName = $this->getInstructionName($inst);
