@@ -301,74 +301,68 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
         $code = $action['Code'];
         $writer->putUI8($code);
         if (0x80 <= $code) {
+            $values_writer = new IO_Bit();
             switch ($code) {
               case 0x81: // ActionGotoFrame
-                $writer->putUI16LE(2);
-                $writer->putUI16LE($action['Frame']);
+                $values_writer->putUI16LE($action['Frame']);
                 break;
               case 0x83: // ActionGetURL
                 $data = $action['UrlString']."\0".$action['TargetString']."\0";
-                $writer->putUI16LE(strlen($data));
-                $writer->putData($data);
+                $values_writer->putData($data);
                 break;
               case 0x88: // ActionConstantPool
                 $count = count($action['ConstantPool']);
                 $data = implode("\0", $action['ConstantPool'])."\0";
-                $writer->putUI16LE(strlen($data) + 2);
-                $writer->putUI16LE($count);
-                $writer->putData($data);
+                $values_writer->putUI16LE($count);
+                $values_writer->putData($data);
                 break;
               case 0x8A: // ActionWaitForFrame
-                $writer->putUI16LE($action['Frame']);
-                $writer->putUI8($action['SkipCount']);
+                $values_writer->putUI16LE($action['Frame']);
+                $values_writer->putUI8($action['SkipCount']);
                 break;
               case 0x8B: // ActionSetTarget
                 $data = $action['TargetName']."\0";
-                $writer->putUI16LE(strlen($data));
-                $writer->putData($data);
+                $values_writer->putData($data);
                 break;
               case 0x8C: // ActionGoToLabel
                 $data = $action['Label']."\0";
-                $writer->putUI16LE(strlen($data));
-                $writer->putData($data);
+                $values_writer->putData($data);
                 break;
               case 0x8D: // ActionWaitForFrame2
-                $writer->putUI16LE($action['Frame']);
-                $writer->putUI8($action['SkipCount']);
+                $values_writer->putUI16LE($action['Frame']);
+                $values_writer->putUI8($action['SkipCount']);
                 break;
               case 0x8E: // ActionDefineFunction2
-                $writer->putData($action['FunctionName']."\0");
+                $values_writer->putData($action['FunctionName']."\0");
                 // $numParams = $action['NumParams'];
                 $numParams = count($parameters);
-                $writer->putUI16LE($numParams);
-                $writer->putUI8($action['RegisterCount']);
+                $values_writer->putUI16LE($numParams);
+                $values_writer->putUI8($action['RegisterCount']);
                 //
-                $writer->putUIBit($action['PreloadParentFlag']);
-                $writer->putUIBit($action['PreloadBootFlag']);
-                $writer->putUIBit($action['SuppressSuperFlag']);
-                $writer->putUIBit($action['PreloadSuperFlag'] );
-                $writer->putUIBit($action['SuppressArgumentsFlag']);
-                $writer->putUIBit($action['PreloadArgumentsFlag']);
-                $writer->putUIBit($action['SuppressThisFlag']);
-                $writer->putUIBit($action['PreloadThisFlag']);
+                $values_writer->putUIBit($action['PreloadParentFlag']);
+                $values_writer->putUIBit($action['PreloadBootFlag']);
+                $values_writer->putUIBit($action['SuppressSuperFlag']);
+                $values_writer->putUIBit($action['PreloadSuperFlag'] );
+                $values_writer->putUIBit($action['SuppressArgumentsFlag']);
+                $values_writer->putUIBit($action['PreloadArgumentsFlag']);
+                $values_writer->putUIBit($action['SuppressThisFlag']);
+                $values_writer->putUIBit($action['PreloadThisFlag']);
                 //
                 if (isset($action['(Reserve)'])) {
-                    $writer->putUIBits($action['(Reserve)'], 7);
+                    $values_writer->putUIBits($action['(Reserve)'], 7);
                 } else {
-                    $writer->putUIBits(0, 7);
+                    $values_writer->putUIBits(0, 7);
                 }
-                $writer->putUIBit($action['PreloadGlobalFlag']);
+                $values_writer->putUIBit($action['PreloadGlobalFlag']);
                 //
                 $parameters = $action['Parameters'];
                 foreach  ($parameters as $registerParam) {
-                    $writer->putUI8($registerParam['Register']);
-                    $writer->putData($registerParam['ParamName']."\0");
+                    $values_writer->putUI8($registerParam['Register']);
+                    $values_writer->putData($registerParam['ParamName']."\0");
                 }
-                $writer->putUI16LE($action['codeSize']);
-                break;
+                $values_writer->putUI16LE($action['codeSize']);
                 break;
               case 0x96: // ActionPush
-                $values_writer = new IO_Bit();
                 foreach ($action['Values'] as $value) {
                     $type = $value['Type'];
                     $values_writer->putUI8($type);
@@ -415,55 +409,47 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                         break;
                     }
                 } 
-                $values_data = $values_writer->output();
-                $writer->putUI16LE(strlen($values_data));
-                $writer->putData($values_data);
                 break;
               case 0x99: // ActionJump
-                $writer->putUI16LE(2);
-                $writer->putSI16LE($action['BranchOffset']);
+                $values_writer->putSI16LE($action['BranchOffset']);
                 break;
               case 0x9A: // ActionGetURL2
-                $writer->putUI16LE(1);
-                // $writer->putUIBits($action['SendVarsMethod'], 2);
-                // $writer->putUIBits(0, 4); // Reserved
-                // $writer->putUIBit($action['LoadTargetFlag']);
-                // $writer->putUIBit($action['LoadVariablesFlag']);
+                // $values_writer->putUIBits($action['SendVarsMethod'], 2);
+                // $values_writer->putUIBits(0, 4); // Reserved
+                // $values_writer->putUIBit($action['LoadTargetFlag']);
+                // $values_writer->putUIBit($action['LoadVariablesFlag']);
                 // swf_file_format_spec_v10 bug, field reverse.
-                $writer->putUIBit($action['LoadVariablesFlag']);
-                $writer->putUIBit($action['LoadTargetFlag']);
-                $writer->putUIBits(0, 4); // Reserved
-                $writer->putUIBits($action['SendVarsMethod'], 2);
+                $values_writer->putUIBit($action['LoadVariablesFlag']);
+                $values_writer->putUIBit($action['LoadTargetFlag']);
+                $values_writer->putUIBits(0, 4); // Reserved
+                $values_writer->putUIBits($action['SendVarsMethod'], 2);
                 break;
               case 0x9D: // ActionIf
-                $writer->putUI16LE(2);
-                $writer->putSI16LE($action['Offset']);
+                $values_writer->putSI16LE($action['Offset']);
                 break;
               case 0x9F: // ActionGotoFrame2
                 if (isset($action['SceneBias'])) {
                     $sceneBiasFlag = 1;
-                    $writer->putUI16LE(3);
                 } else {
                     $sceneBiasFlag = 0;
-                    $writer->putUI16LE(1);
                 }
-                $writer->putUIBits(0, 6); // Reserved
-                $writer->putUIBit($sceneBiasFlag);
-                $writer->putUIBit($action['PlayFlag']);
+                $values_writer->putUIBits(0, 6); // Reserved
+                $values_writer->putUIBit($sceneBiasFlag);
+                $values_writer->putUIBit($action['PlayFlag']);
                 if ($sceneBiasFlag) {
-                    $writer->putUI16LE($action['SceneBias']);
+                    $values_writer->putUI16LE($action['SceneBias']);
                 }
                 break;
             default:
                 if (isset($action['Data'])) {
                     $data = $action['Data'];
-                    $writer->putUI16LE(strlen($data));
-                    $writer->putData($data);
-                } else {
-                    $writer->putUI16LE(0);
+                    $values_writer->putData($data);
                 }
                 break;
             }
+            $values_data = $values_writer->output();
+            $writer->putUI16LE(strlen($values_data));
+            $writer->putData($values_data);
         }
     }
     static function string($action, $opts = array()) {
