@@ -235,12 +235,22 @@ class IO_SWF_ABC_Code {
         // convert code AS3 = AS1 with abc stack.
         $actions = [];
         $abcStack = [];
+        $labels = [];
+        $branches = [];
         foreach ($this->codeArray as $idx => $code) {
             $bytes = $code["bytes"];
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($bytes);
             $inst = $bit->getUI8();
+            $labels[count($actions)] = $code["offset"];
             switch ($inst) {
+            case 0x10:  // jump
+                $branchOffset = $bit->get_s24();
+                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                $actions []= ["Code" => 0x99,  // Jump
+                              "Length" => 2,
+                              "BranchOffset" => 0]; // temporary
+                break;
             case 0x1d:  // popscope
                 // do nothing
                 break;
@@ -261,7 +271,7 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             case 0x47:  // returnvoid
-                // do nothing
+                $actions []= ["Code" => 0x00]; // End
                 break;
             case 0x4f:  // callproperty
                 $index = $bit->get_u30();  // multiname
@@ -337,12 +347,27 @@ class IO_SWF_ABC_Code {
                 fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
             }
         }
-        //
+        // The branch fitting to the label.
+        // Because some AS3 instructions do not convert to AS1 action.
+        foreach ($actions as $idx => $act) {
+            if (isset($branches[$idx])) {
+                foreach ($actions as $i => $a) {
+                    if (isset($labels[$i])) {
+                        if ($branches[$idx] <= $labels[$i]) {
+                            break;
+                        }
+                    }
+                }
+                $branches[$idx] = $labels[$i];
+            }
+        }
         $swfInfo = array('Version' => $version);
         $action_tag = new IO_SWF_Tag($swfInfo);
         $action_tag->code = 12; // DoAction
         $action_tag->content = '';
         $action_tag->parseTagContent();
+        $action_tag->tag->_labels = $labels;
+        $action_tag->tag->_branches = $branches;
         $action_tag->content = null;
         $action_tag->tag->_actions = $actions;
         return $action_tag;
