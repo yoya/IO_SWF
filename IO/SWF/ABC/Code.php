@@ -256,16 +256,16 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x24:  // pushbyte
                 $value = $bit->getUI8();
-                array_push($abcStack, $value);
+                array_push($abcStack, [$value, "byte"]);
                 break;
             case 0x25:  // pushshort
                 $value = $bit->get_u30();
-                array_push($abcStack, $value);
+                array_push($abcStack, [$value, "short"]);
                 break;
             case 0x2C:  // pushshort
                 $v = $bit->get_u30();
                 $value = $this->abc->getString_name($v);
-                array_push($abcStack, $value);
+                array_push($abcStack, [$value, "string"]);
                 break;
             case 0x30:  // pushscope
                 // do nothing
@@ -280,13 +280,15 @@ class IO_SWF_ABC_Code {
                 $name = $this->abc->getString_name($multiname["name"]);
                 switch ($name) {
                 case "gotoAndPlay":
-                    $targetFrame = array_pop($abcStack);
-                    if (is_int($targetFrame)) {
+                    list($targetFrame, $valuetype) = array_pop($abcStack);
+                    if ($valuetype !== "string") {
+                        // integer
                         $actions []= ["Code" => 0x81,  // GotoFrame
                                       "Length" => 2,
                                       "Frame" => $targetFrame - 1];
                         $actions []= ["Code" => 0x06]; // Play
-                    } else { // is_string
+                    } else {
+                        // string
                         $actions []= ["Code" => 0x96, // Push
                                       "Length" => 1 + strlen($targetFrame) + 1,
                                       "Values" => [
@@ -339,12 +341,12 @@ class IO_SWF_ABC_Code {
                                   ["Type" => 0,  // String
                                    "String" => $name]
                               ]];
-                $value = array_pop($abcStack);
+                list($value, $valuetype) = array_pop($abcStack);
                 $actions []= ["Code" => 0x96, // Push
                               "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
-                                   "String" => $value]
+                                   "String" => (string) $value]
                               ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
                 break;
