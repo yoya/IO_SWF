@@ -283,10 +283,12 @@ class IO_SWF_ABC_Code {
                     $targetFrame = array_pop($abcStack);
                     if (is_int($targetFrame)) {
                         $actions []= ["Code" => 0x81,  // GotoFrame
+                                      "Length" => 2,
                                       "Frame" => $targetFrame - 1];
                         $actions []= ["Code" => 0x06]; // Play
                     } else { // is_string
                         $actions []= ["Code" => 0x96, // Push
+                                      "Length" => 1 + strlen($targetFrame) + 1,
                                       "Values" => [
                                           ["Type" => 0,  // String
                                            "String" => $targetFrame]
@@ -310,6 +312,7 @@ class IO_SWF_ABC_Code {
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $name]
@@ -320,6 +323,7 @@ class IO_SWF_ABC_Code {
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $name]
@@ -330,12 +334,14 @@ class IO_SWF_ABC_Code {
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $name]
                               ]];
                 $value = array_pop($abcStack);
                 $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $value]
