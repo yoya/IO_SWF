@@ -22,7 +22,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
 
     static function actionLength($action) {
         $length = 1;
-        if ($action['Code'] >= 0x80) {
+        $code = $action['Code'];
+        if ($code >= 0x80) {
+            if (! isset($action['Length'])) {
+                throw new Exception("! isset(action['Length']) Code:$code");
+            }
             $length += 2 + $action['Length'];
         }
         return $length;
@@ -113,9 +117,13 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {  // Jump
                 // Find label to jump
                 for ($j = 0; $j <= count($this->_actions); $j++) {
-                    if (isset($this->_labels[$j])
-                        && $this->_labels[$j] == $this->_branches[$i]) {
-                        break;
+                    if (isset($this->_labels[$j])) {
+                        if (! isset($this->_branches[$i])) {
+                            throw new Exception("not found branchs idx:$i. exist idx:".join(",", array_keys($this->_branches)));
+                        }
+                        if ($this->_labels[$j] == $this->_branches[$i]) {
+                            break;
+                        }
                     }
                 }
 
