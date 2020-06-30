@@ -251,6 +251,7 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             case 0x10:  // jump
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
                 $actions []= ["Code" => 0x99,  // Jump
@@ -277,6 +278,7 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             case 0x47:  // returnvoid
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
                 $actions []= ["Code" => 0x00]; // End
                 break;
             case 0x4f:  // callproperty
@@ -286,6 +288,7 @@ class IO_SWF_ABC_Code {
                 $name = $this->abc->getString_name($multiname["name"]);
                 switch ($name) {
                 case "gotoAndPlay":
+                    $this->flushActionStack($abcStack, $actions, $labels, 1);
                     list($targetFrame, $valuetype) = array_pop($abcStack);
                     if ($valuetype !== "string") {
                         // integer
@@ -307,9 +310,11 @@ class IO_SWF_ABC_Code {
                     }
                     break;
                 case "play":
+                    $this->flushActionStack($abcStack, $actions, $labels, 0);
                     $actions []= ["Code" => 0x06]; // Play
                     break;
                 case "stop":
+                    $this->flushActionStack($abcStack, $actions, $labels, 0);
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 }
@@ -318,6 +323,7 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             case 0x61:  // setproperty
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
@@ -329,6 +335,7 @@ class IO_SWF_ABC_Code {
                 $actions []= ["Code" => 0x1D]; // SetVariable
                 break;
             case 0x66:  // getproperty
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
@@ -340,6 +347,7 @@ class IO_SWF_ABC_Code {
                 $actions []= ["Code" => 0x1C]; // GetVariable
                 break;
             case 0x68:  // initproperty
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
@@ -386,5 +394,19 @@ class IO_SWF_ABC_Code {
         $action_tag->content = null;
         $action_tag->tag->_actions = $actions;
         return $action_tag;
+    }
+    function flushActionStack(&$abcStack, &$actions, &$labels, $remain = 0) {
+        // as FIFO
+        while (count($abcStack) > $remain) {
+            list($value, $valuetype, $code) = array_shift($abcStack);
+            $labels[count($actions)] = $code["offset"];
+            $data = (string) $value;
+            $actions []= ["Code" => 0x96, // Push
+                          "Length" => 1 + strlen($data) + 1,
+                          "Values" => [
+                              ["Type" => 0,  // String
+                               "String" => $data]
+                          ]];
+        }
     }
 }
