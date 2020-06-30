@@ -302,6 +302,7 @@ class IO_SWF_ABC_Code {
                                            "String" => $targetFrame]
                                       ]];
                         $actions []= ["Code" => 0x9F,  // GotoFrame2
+                                      "Length" => 1,
                                       "SceneBiasFlag" => 0, "PlayFlag" => 1];
                     }
                     break;
