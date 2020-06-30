@@ -244,6 +244,12 @@ class IO_SWF_ABC_Code {
             $inst = $bit->getUI8();
             $labels[count($actions)] = $code["offset"];
             switch ($inst) {
+            case 0x08:  // kill
+                // do nothing
+                break;
+            case 0x09:  // label
+                // do nothing
+                break;
             case 0x10:  // jump
                 $branchOffset = $bit->get_s24();
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
