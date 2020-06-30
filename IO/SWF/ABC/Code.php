@@ -226,7 +226,7 @@ class IO_SWF_ABC_Code {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($bytes);
             $inst = $bit->getUI8();
-            if ($inst === 0x61) { // setproperty
+            if ($inst === 0x68) { // initproperty
                 $index = $bit->get_u30();
                 $info = $this->abc->getMultiname($index);
                 $propertyMap[$index] = $this->abc->getString_name($info["name"]);
