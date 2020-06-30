@@ -262,16 +262,16 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x24:  // pushbyte
                 $value = $bit->getUI8();
-                array_push($abcStack, [$value, "byte"]);
+                array_push($abcStack, [$value, "byte", $code]);
                 break;
             case 0x25:  // pushshort
                 $value = $bit->get_u30();
-                array_push($abcStack, [$value, "short"]);
+                array_push($abcStack, [$value, "short", $code]);
                 break;
             case 0x2C:  // pushshort
                 $v = $bit->get_u30();
                 $value = $this->abc->getString_name($v);
-                array_push($abcStack, [$value, "string"]);
+                array_push($abcStack, [$value, "string", $code]);
                 break;
             case 0x30:  // pushscope
                 // do nothing
