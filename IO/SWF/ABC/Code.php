@@ -269,7 +269,19 @@ class IO_SWF_ABC_Code {
                 $value = $bit->get_u30();
                 array_push($abcStack, [$value, "short", $code]);
                 break;
-            case 0x2C:  // pushshort
+            case 0x2A:  // dup
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
+                /*
+                case 0xd0:  // getlocal_0
+                case 0xd1:  // getlocal_1
+                case 0xd2:  // getlocal_2
+                case 0xd3:  // getlocal_3
+                    break;
+                default:
+                }
+                */
+                break;
+            case 0x2C:  // pushstring
                 $v = $bit->get_u30();
                 $value = $this->abc->getString_name($v);
                 array_push($abcStack, [$value, "string", $code]);
@@ -364,6 +376,20 @@ class IO_SWF_ABC_Code {
                                    "String" => (string) $value]
                               ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
+                break;
+            case 0xd0:  // getlocal_0
+            case 0xd1:  // getlocal_1
+            case 0xd2:  // getlocal_2
+            case 0xd3:  // getlocal_3
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
+                // register(local_x) to stack
+                break;
+            case 0xd4:  // setlocal_0
+            case 0xd5:  // setlocal_1
+            case 0xd6:  // setlocal_2
+            case 0xd7:  // setlocal_3
+                $this->flushActionStack($abcStack, $actions, $labels, 0);
+                // stack to register (local_x)
                 break;
             default:
                 $instName = $this->getInstructionName($inst);
