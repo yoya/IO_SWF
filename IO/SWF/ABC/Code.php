@@ -237,7 +237,7 @@ class IO_SWF_ABC_Code {
         $abcQueue = [];
         $labels = [];
         $branches = [];
-        foreach ($this->codeArray as $idx => $code) {
+        foreach ($this->codeArray as $code) {
             $bytes = $code["bytes"];
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($bytes);
