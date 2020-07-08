@@ -6,11 +6,11 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF.php';
 }
 
-$options = getopt("f:hla");
+$options = getopt("f:hlA");
 
 if (! isset($options['f']))  {
-    echo "Usage: php swfdump.php -f <swf_file> [-h] [-l] [-a]\n";
-    echo "ex) php swfdump.php -f test.swf -h -l -a\n";
+    echo "Usage: php swfdump.php -f <swf_file> [-h] [-l] [-A]\n";
+    echo "ex) php swfdump.php -f test.swf -h -l\n";
     exit(1);
 }
 
@@ -24,15 +24,9 @@ $swf = new IO_SWF();
 
 $swf->parse($swfdata);
 
-$opts = array();
-
-if (isset($options['h'])) {
-    $opts['hexdump'] = true;
-}
-if (isset($options['l'])) {
-    $opts['addlabel'] = true;
-}
-$opts['abcdump'] = isset($options['a']);
+$opts = [ 'hexdump'  =>   isset($options['h']),
+          'addlabel' =>   isset($options['l']),
+          'abcdump'  => ! isset($options['A']) ];
 
 $swf->dump($opts);
 
