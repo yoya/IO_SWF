@@ -219,19 +219,44 @@ class IO_SWF_ABC_Code {
         }
     }
     function ABCCodetoActionTag($version) {
-        // property map
+        // preprocess, set stack value & propertyMap
         $propertyMap = [];
-        foreach ($this->codeArray as $idx => $code) {
-            $bytes = $code["bytes"];
+        foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
-            $bit->input($bytes);
+            $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
-            if ($inst === 0x68) { // initproperty
+            $code["inst"] = $inst;
+            switch ($inst) {
+            case 0x24:  // pushbyte
+                $code["value"] = $bit->getUI8();
+                $code["valuetype"] = "byte";
+                break;
+            case 0x25:  // pushshort
+                $code["value"] = $bit->get_u30();
+                $code["valuetype"] = "short";
+                break;
+            case 0x2C:  // pushstring
+                $v = $bit->get_u30();
+                $code["value"] = $this->abc->getString_name($v);
+                $code["valuetype"] = "string";
+                break;
+            case 0x46:  // callproperty
                 $index = $bit->get_u30();
                 $info = $this->abc->getMultiname($index);
-                $propertyMap[$index] = $this->abc->getString_name($info["name"]);
+                $code["name"] = $this->abc->getString_name($info["name"]);
+                $code["arg_count"] = $bit->get_u30();
+                break;
+            case 0x4f:  // callpropvoid
+            case 0x68:  // initproperty
+                $index = $bit->get_u30();
+                $info = $this->abc->getMultiname($index);
+                $name = $this->abc->getString_name($info["name"]);
+                $propertyMap[$index] = $name;
+                $code["name"] = $name;
+                break;
             }
         }
+        unset($code); // remove reference.
         // convert code AS3 = AS1 with abc stack.
         $actions = [];
         $abcQueue = [];
