@@ -262,19 +262,14 @@ class IO_SWF_ABC_Code {
         $abcQueue = [];
         $labels = [];
         $branches = [];
-        foreach ($this->codeArray as $code) {
-            $bytes = $code["bytes"];
-            $bit = new IO_SWF_ABC_Bit();
-            $bit->input($bytes);
-            $inst = $bit->getUI8();
+        $skip_count = 0;
+        foreach ($this->codeArray as $idx => $code) {
             $labels[count($actions)] = $code["offset"];
+            if ($skip_count > 0) { $skip_count--; continue; }
+            $bit = new IO_SWF_ABC_Bit();
+            $bit->input($code["bytes"]);
+            $inst = $bit->getUI8();
             switch ($inst) {
-            case 0x08:  // kill
-                // do nothing
-                break;
-            case 0x09:  // label
-                // do nothing
-                break;
             case 0x10:  // jump
                 $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
@@ -282,17 +277,6 @@ class IO_SWF_ABC_Code {
                 $actions []= ["Code" => 0x99,  // Jump
                               "Length" => 2,
                               "BranchOffset" => 0]; // temporary
-                break;
-            case 0x1d:  // popscope
-                // do nothing
-                break;
-            case 0x24:  // pushbyte
-                $value = $bit->getUI8();
-                array_push($abcQueue, [$value, "byte", $code]);
-                break;
-            case 0x25:  // pushshort
-                $value = $bit->get_u30();
-                array_push($abcQueue, [$value, "short", $code]);
                 break;
             case 0x2A:  // dup
                 $this->flushABCQueue($abcQueue, $actions, $labels, 0);
@@ -306,41 +290,30 @@ class IO_SWF_ABC_Code {
                 }
                 */
                 break;
-            case 0x2C:  // pushstring
-                $v = $bit->get_u30();
-                $value = $this->abc->getString_name($v);
-                array_push($abcQueue, [$value, "string", $code]);
-                break;
-            case 0x30:  // pushscope
-                // do nothing
-                break;
             case 0x47:  // returnvoid
                 $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                 $actions []= ["Code" => 0x00]; // End
                 break;
-            case 0x4f:  // callproperty
+            case 0x4f:  // callpropvoid
                 $index = $bit->get_u30();  // multiname
                 $arg_count = $bit->get_u30();
                 $multiname = $this->abc->_constant_pool["multiname"][$index];
                 $name = $this->abc->getString_name($multiname["name"]);
                 switch ($name) {
                 case "gotoAndPlay":
+                    /*
+                      AS3: GotoAndPlay()
+                     */
                     $this->flushABCQueue($abcQueue, $actions, $labels, 1);
-                    list($targetFrame, $valuetype) = array_pop($abcQueue);
-                    if ($valuetype !== "string") {
+                    $c = array_pop($abcQueue);
+                    if (isset($c["value"]) && ($c["valuetype"] !== "string")) {
                         // integer
                         $actions []= ["Code" => 0x81,  // GotoFrame
                                       "Length" => 2,
-                                      "Frame" => $targetFrame - 1];
+                                      "Frame" => $c["value"] - 1];
                         $actions []= ["Code" => 0x06]; // Play
                     } else {
-                        // string
-                        $actions []= ["Code" => 0x96, // Push
-                                      "Length" => 1 + strlen($targetFrame) + 1,
-                                      "Values" => [
-                                          ["Type" => 0,  // String
-                                           "String" => $targetFrame]
-                                      ]];
+                        $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                         $actions []= ["Code" => 0x9F,  // GotoFrame2
                                       "Length" => 1,
                                       "SceneBiasFlag" => 0, "PlayFlag" => 1];
@@ -355,9 +328,6 @@ class IO_SWF_ABC_Code {
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 }
-                break;
-            case 0x5d:  // findpropstrict
-                // do nothing
                 break;
             case 0x61:  // setproperty
                 $this->flushABCQueue($abcQueue, $actions, $labels, 0);
@@ -384,7 +354,7 @@ class IO_SWF_ABC_Code {
                 $actions []= ["Code" => 0x1C]; // GetVariable
                 break;
             case 0x68:  // initproperty
-                $this->flushABCQueue($abcQueue, $actions, $labels, 0);
+                $this->flushABCQueue($abcQueue, $actions, $labels, 1);
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index];
                 $actions []= ["Code" => 0x96, // Push
@@ -393,12 +363,12 @@ class IO_SWF_ABC_Code {
                                   ["Type" => 0,  // String
                                    "String" => $name]
                               ]];
-                list($value, $valuetype) = array_pop($abcQueue);
+                $code = array_pop($abcQueue);
                 $actions []= ["Code" => 0x96, // Push
                               "Length" => 1 + strlen($name) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
-                                   "String" => (string) $value]
+                                   "String" => (string) $code["value"]]
                               ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
                 break;
@@ -417,8 +387,7 @@ class IO_SWF_ABC_Code {
                 // stack to register (local_x)
                 break;
             default:
-                $instName = $this->getInstructionName($inst);
-                fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
+                array_push($abcQueue, $code);
             }
         }
         // The branch fitting to the label.
@@ -449,15 +418,48 @@ class IO_SWF_ABC_Code {
     function flushABCQueue(&$abcQueue, &$actions, &$labels, $remain = 0) {
         // as FIFO
         while (count($abcQueue) > $remain) {
-            list($value, $valuetype, $code) = array_shift($abcQueue);
+            $code = array_shift($abcQueue);
             $labels[count($actions)] = $code["offset"];
-            $data = (string) $value;
-            $actions []= ["Code" => 0x96, // Push
-                          "Length" => 1 + strlen($data) + 1,
-                          "Values" => [
-                              ["Type" => 0,  // String
-                               "String" => $data]
-                          ]];
+            $bit = new IO_SWF_ABC_Bit();
+            $bit->input($code["bytes"]);
+            $inst = $bit->getUI8();
+            switch ($inst) {
+            case 0x08:  // kill
+                // do nothing
+                break;
+            case 0x09:  // label
+                // do nothing
+                break;
+            case 0x1d:  // popscope
+                // do nothing
+                break;
+            case 0x24:  // pushbyte
+            case 0x25:  // pushshort
+            case 0x2C:  // pushstring
+                $data = (string) $code["value"];
+                $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($data) + 1,
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $data]
+                              ]];
+                break;
+            case 0x30:  // pushscope
+                // do nothing
+                break;
+            case 0x5d:  // findpropstrict
+                // do nothing
+                break;
+            case 0xa0:  // add
+                $actions []= ["Code" => 0x0A];  // Add
+                break;
+            case 0xa2:  // multiply
+                $actions []= ["Code" => 0x0C];  // Multiply
+                break;
+            default:
+                $instName = $this->getInstructionName($inst);
+                fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
+            }
         }
     }
 }
