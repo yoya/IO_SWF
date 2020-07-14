@@ -523,6 +523,9 @@ class IO_SWF_ABC_Code {
             case 0xa2:  // multiply
                 $actions []= ["Code" => 0x0C];  // Multiply
                 break;
+            case 0x60:  // getlex
+                // do nothing
+                break;
             default:
                 $instName = $this->getInstructionName($inst);
                 fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
