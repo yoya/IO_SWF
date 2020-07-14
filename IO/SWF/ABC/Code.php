@@ -278,6 +278,14 @@ class IO_SWF_ABC_Code {
                               "Length" => 2,
                               "BranchOffset" => 0]; // temporary
                 break;
+            case 0x15:  // iflt
+                $branchOffset = $bit->get_s24();
+                $actions []= ["Code" => 0x0F];  // Less
+                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                $actions []= ["Code" => 0x9D,  // If
+                              "Length" => 2,
+                              "Offset" => 0]; // temporary
+                break;
             case 0x2A:  // dup
                 $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                 /*
@@ -412,6 +420,24 @@ class IO_SWF_ABC_Code {
                                    "String" => (string) $code["value"]]
                               ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
+                break;
+            case 0xc0:  // increment_i
+                $this->flushABCQueue($abcQueue, $actions, $labels, 0);
+                /*
+                  AS3: i++;
+                  [0] increment_i
+                  AS1: i = i + 1;
+                  [0] push 1
+                  [1] add
+                 */
+                $data = "1";
+                $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($data) + 1,
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $data]
+                              ]];
+                $actions []= ["Code" => 0x0A];  // Add
                 break;
             case 0xd0:  // getlocal_0
             case 0xd1:  // getlocal_1
