@@ -114,7 +114,8 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         $action = null;
         for ($i = 0; $i < count($this->_actions); $i++) {
             $action = $this->_actions[$i];
-            if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {  // Jump
+            // Jump or If
+            if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {
                 // Find label to jump
                 for ($j = 0; $j <= count($this->_actions); $j++) {
                     if (isset($this->_labels[$j])) {
