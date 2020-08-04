@@ -301,6 +301,7 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x46:  // callproperty
                 if ($code["name"] === "random") {
+                    $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                     assert($code["arg_count"] === 0);
                     /*
                       <== AS3: floor(Math.random() * 4)
@@ -338,6 +339,8 @@ class IO_SWF_ABC_Code {
                               ]];
                     $actions []= ["Code" => 0x30];  // RandomNumber
                     $skip_count = 3;  // pushbyte, multiply, callproperty
+                } else {
+                    throw new Exception("support callproperty for random only");
                 }
                 break;
             case 0x47:  // returnvoid
