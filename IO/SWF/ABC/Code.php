@@ -279,6 +279,7 @@ class IO_SWF_ABC_Code {
                               "BranchOffset" => 0]; // temporary
                 break;
             case 0x15:  // iflt
+                $this->flushABCQueue($abcQueue, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
                 $actions []= ["Code" => 0x0F];  // Less
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
