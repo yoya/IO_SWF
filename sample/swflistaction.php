@@ -12,9 +12,13 @@ if ($argc != 2) {
     exit(1);
 }
 
-assert(is_readable($argv[1]));
+$filename = $argv[1];
 
-$swfdata = file_get_contents($argv[1]);
+if ($filename === "-") {
+    $filename = "php://stdin";
+}
+
+$swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF_Editor();
 
