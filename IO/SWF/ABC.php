@@ -770,6 +770,7 @@ class IO_SWF_ABC {
         }
     }
     function getFrameAndCodeByInstance($inst) {
+        $frameMethodArray = [];
         foreach ($inst["trait"] as $trait) {
             $kind = $trait["kind"];
             switch ($kind & 0x0F) {
@@ -780,12 +781,13 @@ class IO_SWF_ABC {
                 $name = $this->getString_name($trait_multiname["name"]);
                 if (substr($name, 0, 5) === "frame") {
                     $frame = intval(substr($name, 5));
-                    return [$frame, $trait["method"]];
+                    $frameMethodArray []= [$frame, $trait["method"]];
                 } else {
                     throw new Exception("unexpected trait name:$name");
                 }
             }
         }
+        return $frameMethodArray;
     }
     function getCodeByMethodId($methodId) {
         return $this->method_body[$methodId]["code"];

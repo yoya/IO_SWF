@@ -1213,33 +1213,36 @@ class IO_SWF_Editor extends IO_SWF {
             list($ns, $name) = explode(".", $symbolName);
             // echo "$spriteId => $ns :: $name\n";
             $inst = $abc->getInstanceByName($ns, $name);
-            list($frame, $methodId) = $abc->getFrameAndCodeByInstance($inst);
-            // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
-            $code = $abc->getCodeByMethodId($methodId);
-            $actionTag = $code->ABCCodetoActionTag($this->_headers['Version']);
-            $target_tags = null;
-            if ($spriteId === 0) {
-                $target_tags = & $this->_tags;
-            } else if (isset($spriteList[$spriteId])) {
-                $target_tags = & $spriteList[$spriteId]->tag->_controlTags;
-                $spriteList[$spriteId]->content = null;
-            } else {
-                throw new Exception("not found sprite:$spriteId");
-            }
-            $f = 1;
-            $offset = 0;
-            foreach ($target_tags as $tag) {
-                if ($frame <= $f) {
-                    break;
+            $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
+            foreach ($frameMethodArray as $methodArray) {
+                list($frame, $methodId) = $methodArray;
+                // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
+                $code = $abc->getCodeByMethodId($methodId);
+                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version']);
+                $target_tags = null;
+                if ($spriteId === 0) {
+                    $target_tags = & $this->_tags;
+                } else if (isset($spriteList[$spriteId])) {
+                    $target_tags = & $spriteList[$spriteId]->tag->_controlTags;
+                    $spriteList[$spriteId]->content = null;
+                } else {
+                    throw new Exception("not found sprite:$spriteId");
                 }
-                if ($tag->code === 1) {  // ShowFrame
-                    $f++;
+                $f = 1;
+                $offset = 0;
+                foreach ($target_tags as $tag) {
+                    if ($frame <= $f) {
+                        break;
+                    }
+                    if ($tag->code === 1) {  // ShowFrame
+                        $f++;
+                    }
+                    $offset++;
                 }
-                $offset++;
+                // insert action tag
+                array_splice($target_tags, $offset, 0, [$actionTag]);
+                unset($target_tags);  // remove reference
             }
-            // insert action tag
-            array_splice($target_tags, $offset, 0, [$actionTag]);
-            unset($target_tags);  // remove reference
         }
     }
 }
