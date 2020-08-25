@@ -38,12 +38,13 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
     $indentStr = str_repeat(" ", 4*$indent);
     $headFrame = true;
     $frameCount = 0;
+    $cid = null;
     foreach ($tags as $idx => $tag) {
         if ($headFrame) {
             echo "$indentStr====Frame[$frameCount]====\n";
             $headFrame = false;
         }
-        $code = $tag->code;        
+        $code = $tag->code;
         if ($code === 0) {  // End
             break;
         }
@@ -61,7 +62,9 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
             if (! $tag->parseTagContent()) {
                 throw Exception("can't parse sprite tag content");
             }
-            $cid = $tag->tag->_characterId;
+            if ($tag->tag->_characterId) {
+                $cid = $tag->tag->_characterId;
+            }
             if (isset($tag->tag->_matrix)) {
                 $matrix = $tag->tag->_matrix;
             } else {
@@ -71,7 +74,11 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
             $multipliedMatrix = multiplyMatrix($matrix, $parentMatrix);
             dumpMatrix([$matrix, $parentMatrix, null, $multipliedMatrix], $indent+0.5);
             $target_tag = $swf->getTagByCharacterId($cid);
-            swftreematrix($swf, [$target_tag], $multipliedMatrix, $indent+1);
+            if (is_null($target_tag)) {
+                throw Exception("not found object cid:cid:$cid\n");
+            } else {
+                swftreematrix($swf, [$target_tag], $multipliedMatrix, $indent+1);
+            }
             break;
         case "Sprite":
             if (! $tag->parseTagContent()) {
