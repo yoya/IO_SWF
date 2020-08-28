@@ -27,6 +27,7 @@ $swf->parse($swfdata);
 swflistaction($swf->_tags, null);
 
 function swflistaction($swftags, $spriteId) {
+    $abc = null;
     $currentFrame = 1;
     foreach ($swftags as $idx => $tag) {
         $tag_code = $tag->code;
@@ -42,8 +43,8 @@ function swflistaction($swftags, $spriteId) {
                 }
                 $action_num = count($tag->tag->_actions);
             } catch (IO_Bit_Exception $e) {
-                if (isset($tag_in_sprite->tag->_actions)) {
-                    $action_num = count($tag_in_sprite->tag->_actions);
+                if (isset($tag->tag->_actions)) {
+                    $action_num = count($tag->tag->_actions);
                     $action_num .= "(at least)";
                 } else {
                     $action_num = "(parse error)";
@@ -56,6 +57,57 @@ function swflistaction($swftags, $spriteId) {
                 echo "spriteId:(root)";
             }
             echo "  frame:$currentFrame\t=> instruction:$action_num  length=$length\n";
+        }
+        if ($tag_code == 82) { // DoABC
+            try {
+                if ($tag->parseTagContent() === false) {
+                    echo "Unknown ABC Tag\n";
+                    exit(1);
+                }
+                $method_num = count($tag->tag->_ABC->method);
+            } catch (IO_Bit_Exception $e) {
+                if (isset($tag->tag->_ABC->method)) {
+                    $method_num = count($tag->tag->_ABC->method);
+                    $method_num .= "(at least)";
+                } else {
+                    $action_num = "(parse error)";
+                }
+            }
+            $length = strlen($tag->content);
+            if ($spriteId) {
+                echo "spriteId:$spriteId";
+            } else {
+                echo "spriteId:(root)";
+            }
+            echo "  frame:$currentFrame\t=> method:$method_num  length=$length\n";
+            $abc = $tag->tag->_ABC;
+        }
+        if ($tag_code == 76) { // SymbolClass
+            try {
+                if ($tag->parseTagContent() === false) {
+                    echo "Unknown ABC Tag\n";
+                    exit(1);
+                }
+                $symbol_num = count($tag->tag->_Symbols);
+            } catch (IO_Bit_Exception $e) {
+                echo "SynbolClass: parse error occurred";
+            }
+            foreach ($tag->tag->_Symbols as $symbol) {
+                $id = $symbol["Tag"];
+                $symbolName = $symbol["Name"];
+                echo "  symbol: spriteId:$id name:$symbolName\n";
+                list($ns, $name) = explode(".", $symbolName);
+                $inst = $abc->getInstanceByName($ns, $name);
+                $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
+                foreach ($frameMethodArray as $methodArray) {
+                    list($frame, $methodId) = $methodArray;
+                    $code = $abc->getCodeByMethodId($methodId);
+                    $method_lines = count($code->codeArray);
+                    $method_size = strlen($code->codeData);
+                    echo "    frame:$frame => method_lines:$method_lines  method_size=$method_size\n";
+                }
+            }
+            $abc = null;
         }
         if ($tag_code == 39) { // DefineSprite
             if ($tag->parseTagContent() === false) {
