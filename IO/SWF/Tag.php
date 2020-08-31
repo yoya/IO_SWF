@@ -61,8 +61,8 @@ class IO_SWF_Tag {
         58 => array('name' => '', 'version' => null),
         59 => array('name' => 'DoInitAction', 'klass' => 'Action', 'version' => 6),
         //
-        60 => array('name' => 'DefineVideoStream', 'version' => 6),
-        61 => array('name' => 'VideoFrame', 'version' => 6),
+        60 => array('name' => 'DefineVideoStream', 'klass' => 'VideoStream','version' => 6),
+        61 => array('name' => 'VideoFrame', 'klass' => 'VideoFrame', 'version' => 6),
         62 => array('name' => 'DefineFontInfo2', 'version' => 6),
         // 63 missing
         64 => array('name' => 'EnableDebugger2', 'version' => 6),
