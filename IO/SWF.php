@@ -126,6 +126,9 @@ class IO_SWF {
         foreach ($this->_tags as $tag) {
             try {
                 $tag->dump($opts);
+                if ($tag->code === 60) {  // DefineVideoStream
+                    $opts['_CodecID'] = $tag->tag->_CodecID;
+                }
             } catch (IO_Bit_Exception $e) {
                 echo "(tag dump failed) $e\n";
             }

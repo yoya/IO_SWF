@@ -17,15 +17,44 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
     	$reader->input($content);
         $this->_StreamID = $reader->getUI16LE();
         $this->_FrameNum = $reader->getUI16LE();
-        $this->_VideoData = $reader->getDataUntil(false);
+        if (isset($opts['_CodecID'])) {
+            $this->_CodecID = $codecID = $opts['_CodecID'];
+            switch ($codecID) {
+            case 5:  // VP6SWFALPHAVIDEOPACKET
+                $this->_OffsetToAlpha = $reader->getUIBits(24);
+                $this->_Data = $reader->getData($this->_OffsetToAlpha);
+                $this->_Alphadata = $reader->getDataUntil(false);
+                break;
+            default:
+                $this->_VideoData = $reader->getDataUntil(false);
+                break;
+            }
+        } else {
+            $this->_VideoData = $reader->getDataUntil(false);
+        }
     }
 
     function dumpContent($tagCode, $opts = array()) {
         $data_len = strlen($this->_VideoData);
         echo "    StreamID: {$this->_StreamID}";
         echo "  FrameNum: {$this->_FrameNum}";
-        echo "  VideoData: (len=$data_len)";
-        echo "\n";
+        if ($this->_CodecID) {
+            $codecID = $this->_CodecID;
+            switch ($codecID) {
+            case 5:  // VP6SWFALPHAVIDEOPACKET
+                echo "  OffsetToAlpha: {$this->_OffsetToAlpha}\n";
+                $data_len = strlen($this->_Data);
+                $alphadata_len = strlen($this->_Alphadata);
+                echo "    Data: (len=$data_len)";
+                echo "  AlphaData: (len=$alphadata_len)\n";
+                break;
+            default:
+                echo "  VideoData: (len=$data_len)\n";
+                break;
+            }
+        } else {
+            echo "  VideoData: (len=$data_len)\n";
+        }
     }
 
     function buildContent($tagCode, $opts = array()) {
