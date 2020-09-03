@@ -7,8 +7,8 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 if (($argc != 3)) {
-    echo "Usage: php swfgetsound.php <swf_file> <sound_id>\n";
-    echo "ex) php swfgetsound.php sound.swf 2\n";
+    echo "Usage: php swfgetsounddata.php <swf_file> <sound_id>\n";
+    echo "ex) php swfgetsounddata.php sound.swf 2\n";
     exit(1);
 }
 
@@ -23,7 +23,7 @@ $swf->parse($swfdata);
 
 $sounddata = $swf->getSoundData($sound_id);
 if ($sounddata === false) {
-    echo "getSOUNDData($sound_id) failed\n";;
+    echo "getSoundData($sound_id) failed\n";;
     exit(1);
 }
 
