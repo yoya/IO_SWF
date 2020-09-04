@@ -18,8 +18,8 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
         $this->_StreamID = $reader->getUI16LE();
         $this->_FrameNum = $reader->getUI16LE();
         $this->_VideoData = $reader->getDataUntil(false);
-        if (isset($opts['_CodecID'])) {
-            $this->_CodecID = $codecID = $opts['_CodecID'];
+        if (isset($opts['_CodecID'][$this->_StreamID])) {
+            $this->_CodecID = $codecID = $opts['_CodecID'][$this->_StreamID];
             $readerVideo = new IO_Bit();
             $readerVideo->input($this->_VideoData);
             switch ($codecID) {
@@ -45,8 +45,9 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
         echo "    StreamID: {$this->_StreamID}";
         echo "  FrameNum: {$this->_FrameNum}";
         echo "  VideoData: (len=$vdata_len)\n";
-        if ($this->_CodecID) {
-            $codecID = $this->_CodecID;
+        if (isset($this->_CodecID) &&
+            isset($this->_CodecID[$this->_StreamID])) {
+            $codecID = $this->_CodecID[$this->_StreamID];
             switch ($codecID) {
             case 4:  // VP6SWFVIDEOPACKET
                 $data_len = strlen($this->_Data);
