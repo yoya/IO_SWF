@@ -187,6 +187,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $this->_setReferenceId($tag);
             }
         }
+        unset($tag);
         $this->setReferenceIdDone = true;
     }
 

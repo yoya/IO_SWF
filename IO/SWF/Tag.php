@@ -210,7 +210,7 @@ class IO_SWF_Tag {
     }
 
     function buildTagContent() {
-            if ((is_null($this->content) === false)) {
+        if ((is_null($this->content) === false)) {
             return $this->content;
         }
         if (is_null($this->tag)) {
