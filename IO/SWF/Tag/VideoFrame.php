@@ -29,7 +29,7 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
             case 5:  // VP6SWFALPHAVIDEOPACKET
                 $this->_OffsetToAlpha = $readerVideo->getUIBits(24);
                 $this->_Data = $readerVideo->getData($this->_OffsetToAlpha);
-                $this->_Alphadata = $readerVideo->getDataUntil(false);
+                $this->_AlphaData = $readerVideo->getDataUntil(false);
                 break;
             case 2:  // H263VIDEOPACKET
             case 3:  // SCREENVIDEOPACKET
@@ -54,7 +54,7 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
                 break;
             case 5:  // VP6SWFALPHAVIDEOPACKET
                 $data_len = strlen($this->_Data);
-                $alphadata_len = strlen($this->_Alphadata);
+                $alphadata_len = strlen($this->_AlphaData);
                 echo "    OffsetToAlpha: {$this->_OffsetToAlpha}";
                 echo "  Data: (len=$data_len)";
                 echo "  AlphaData: (len=$alphadata_len)\n";
