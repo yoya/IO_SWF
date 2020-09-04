@@ -66,6 +66,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 37: // DefineTextEdit
               case 39: // DefineSprite
               case 34: // DefineButton2
+              case 60: // DefineVideoStream
                 $tag->characterId = $content_reader->getUI16LE();
                 break;
             }
@@ -151,6 +152,9 @@ class IO_SWF_Editor extends IO_SWF {
                 }
             }
             break;
+        case 61: // VideoFrame
+            $tag->referenceId = $content_reader->getUI16LE(); // StreamID
+            break;
         }
         return true;
     }
@@ -194,6 +198,38 @@ class IO_SWF_Editor extends IO_SWF {
                 }
             }
         }
+    }
+    function getTagsByReferenceId($referenceId) {
+        return $this->_getTagsByReferenceId($referenceId, $this->_tags);
+    }
+    function _getTagsByReferenceId($referenceId, $input_tags) {
+        $tags = [];
+        foreach ($input_tags as $tag) {
+            if (isset($tag->referenceId)) {
+                // echo "code:".$tag->code." Ids:" . (is_array($refId)? join(",", $refId): $refId)."\n";
+                $refId = $tag->referenceId;
+                if (is_array($refId)) {
+                    foreach ($refId as $id) {
+                        if ($id == $referenceId) {
+                            $tags []= $tag;
+                            break;
+                        }
+                    }
+                } else {
+                    if ($refId == $referenceId) {
+                        $tags []= $tag;
+                    }
+                }
+            }
+            if ($tag->code == 39) { // DefineSprite
+                if ($tag->parseTagContent() === false) {
+                    throw new IO_SWF_Exception("failed to parseTagContent");
+                }
+                $tags_sprite = $this->_getTagsByReferenceId($referenceId, $tag->tag->_controlTags);
+                $tags = array_merge($tags, $tags_sprite);
+            }
+        }
+        return $tags;
     }
 
     function replaceTagContent($tagCode, $content, $limit = 1) {
@@ -515,6 +551,42 @@ class IO_SWF_Editor extends IO_SWF {
             return false;
         }
         return $tag->getSoundData();
+    }
+
+    function getVideoFrames($video_id) {
+        $opts = ['_CodecID' => []];
+        $this->setCharacterId();
+        $this->setReferenceId();
+        $tag = $this->getTagByCharacterId($video_id);
+        $tag_code = $tag->code;
+        if ($tag_code !== 60) { // // DefineVideoStream
+            fprintf(STDERR, "stream_id:$video_id tag->code:$tag_code != 60\n");
+            return false;
+        }
+        if (! $tag->parseTagContent()) {
+            fprintf(STDERR, "failed parseTagContent\n");
+            return false;
+        }
+        $opts['_CodecID'][$tag->tag->_CharacterID] = $tag->tag->_CodecID;
+        //
+        $tags = $this->getTagsByReferenceId($video_id);  // VideoFrames
+        $frames = [];
+        foreach ($tags as $tag) {
+            $tag_code = $tag->code;
+            if ($tag_code === 61) { // VideFrame
+                if (! $tag->parseTagContent($opts)) {
+                    fprintf(STDERR, "failed parseTagContent\n");
+                    return false;
+                }
+                $frame = ["Data" => $tag->getVideoData($opts)];
+                $alphaData = $tag->getVideoAlphaData($opts);
+                if ($alphaData !== false) {
+                    $frame["AlphaData"] = $alphaData;
+                }
+                $frames []= $frame;
+            }
+        }
+        return $frames;
     }
 
     function applyShapeAdjustModeByRefId($bitmap_id, $new_height, $old_height) {

@@ -434,4 +434,32 @@ class IO_SWF_Tag {
         $soundData = $this->tag->SoundData;
         return $soundData;
     }
+    
+    function getVideoData() {
+        $tag_code = $this->code;
+        if ($tag_code != 61) { // VideoFrame
+            return false;
+        }
+        if (! $this->parseTagContent()) {
+            return false;
+        }
+        if (isset($this->tag->_Data)) {
+            return $this->tag->_Data;
+        }
+        return false;
+    }
+
+    function getVideoAlphaData() {
+        $tag_code = $this->code;
+        if ($tag_code != 61) { // VideoFrame
+            return false;
+        }
+        if (! $this->parseTagContent()) {
+            return false;
+        }
+        if (isset(($this->tag->_AlphaData))) {
+            return $this->tag->_AlphaData;
+        }
+        return false;
+    }
 }
