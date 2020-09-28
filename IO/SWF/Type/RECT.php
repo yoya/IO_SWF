@@ -24,6 +24,7 @@ class IO_SWF_Type_RECT implements IO_SWF_Type {
     }
     static function build(&$writer, $frameSize, $opts = array()) {
         $nBits = 0;
+        assert(is_array($frameSize));
     	foreach ($frameSize as $size) {
 	        if ($size == 0){
 	            $bits = 0;
