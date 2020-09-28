@@ -15,7 +15,7 @@ class IO_SWF_Tag {
         // code => array(name , klass)
         0 => array('name' => 'End', 'version' => 1),
         1 => array('name' => 'ShowFrame', 'version' => 1),
-        2 => array('name' => 'DefineShape',  'klass' => 'Shape', 'version' => 1 ),
+        2 => array('name' => 'DefineShape',  'klass' => 'Shape', 'kind' => 'Shape', 'version' => 1 ),
 //             3 => array('name' => 'FreeCharacter'), // ???
         4 => array('name' => 'PlaceObject', 'klass' => 'Place', 'version' => 1),
         5 => array('name' => 'RemoveObject', 'klass' => 'Remove', 'version' => 1),
@@ -35,14 +35,14 @@ class IO_SWF_Tag {
         19 => array('name' => 'SoundStreamBlock', 'version' => 1),
         20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless', 'version' => 2),
         21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg', 'version' => 2),
-        22 => array('name' => 'DefineShape2', 'klass' => 'Shape', 'version' => 2),
+        22 => array('name' => 'DefineShape2', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 2),
         24 => array('name' => 'Protect', 'version' => 2),
         // 25 missing
         26 => array('name' => 'PlaceObject2', 'klass' => 'Place', 'version' => 3),
         // 27 missing
         28 => array('name' => 'RemoveObject2', 'klass' => 'Remove', 'version' => 3),
         // 29,30,31 missing
-        32 => array('name' => 'DefineShape3', 'klass' => 'Shape', 'version' => 3),
+        32 => array('name' => 'DefineShape3', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 3),
         33 => array('name' => 'DefineText2', 'klass' => 'Text', 'version' => 3),
         34 => array('name' => 'DefineButton2', 'klass' => 'Button', 'version' => 3),
         35 => array('name' => 'DefineBitsJPEG3', 'klass' => 'Jpeg', 'version' => 3),
@@ -54,7 +54,7 @@ class IO_SWF_Tag {
         43 => array('name' => 'FrameLabel', 'klass' => 'FrameLabel', 'version' => 3),
         // 44 missing
         45 => array('name' => 'SoundStreamHead2', 'version' => 3),
-        46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape', 'version' => 3),
+        46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape', 'kind' => 'MorphShape', 'version' => 3),
         48 => array('name' => 'DefineFont2', 'klass' => 'Font', 'version' => 3),
         56 => array('name' => 'ExportAssets', 'version' => 5),
         57 => array('name' => '', 'version' => null),
@@ -81,8 +81,8 @@ class IO_SWF_Tag {
         78 => array('name' => 'DefineScalingGrid', 'version' => 8),
         // 79,80,81 missing
         82 => array('name' => 'DoABC', 'klass' => 'ABC', 'version' => 9),
-        83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'version' => 8),
-        84 => array('name' => 'DefineMorphShape2', 'version' => 8),
+        83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 8),
+        84 => array('name' => 'DefineMorphShape2', 'kind' => 'MorphShape', 'version' => 8),
         // 85 missing
         // 86:DefineSceneAndFrameLabelData added in SWFv9,
         // but sometimes included in SWFv4 publish,

@@ -1170,10 +1170,11 @@ class IO_SWF_Editor extends IO_SWF {
             if (isset($tagInfo["klass"])) {
                 $klass = $tagInfo["klass"];
                 $version = $tagInfo["version"];
-                if (isset($tagsEachKrass[$klass]) === false) {
-                    $tagsEachKrass[$klass] = [];
+                $klass_kind = $klass . (isset($tagInfo["kind"])? ("_".$tagInfo["kind"]): "");
+                if (isset($tagsEachKrass[$klass_kind]) === false) {
+                    $tagsEachKrass[$klass_kind] = [];
                 }
-                array_unshift($tagsEachKrass[$klass], [$tagNo, $version]);
+                array_unshift($tagsEachKrass[$klass_kind], [$tagNo, $version]);
             }
         }
         if (($origVersion >= 9) && ($limitSwfVersion <= 8)) {
@@ -1244,7 +1245,9 @@ class IO_SWF_Editor extends IO_SWF {
                 continue;
             }
             $klass = $tag->getTagInfo($tagCode, "klass");
+            $kind = $tag->getTagInfo($tagCode, "kind");
             $tagVersion = $tag->getTagInfo($tagCode, "version");
+            $klass_kind = $klass . ($kind? ("_".$kind): "");
             if ($tagCode === 39) {  // DefineSprite
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
@@ -1261,7 +1264,7 @@ class IO_SWF_Editor extends IO_SWF {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
             $tag->content = null;
-            foreach ($tagsEachKrass[$klass] as $tagNoVer) {
+            foreach ($tagsEachKrass[$klass_kind] as $tagNoVer) {
                 list($no, $ver) = $tagNoVer;
                 if ($ver <= $limitSwfVersion) {
                     $tag->code = $no;
