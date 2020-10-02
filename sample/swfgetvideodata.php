@@ -4,13 +4,13 @@ if (is_readable('vendor/autoload.php')) {
     require 'vendor/autoload.php';
 } else {
     require_once 'IO/SWF/Editor.php';
+    require_once 'IO/SWF/AE.php';
 }
 
 function usage() {
-    echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile> [outalphafile]]\n";
+    echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile>]\n";
     echo "ex) php swfgetvideodata.php video.swf\n";
-    echo "ex) php swfgetvideodata.php video.swf 1 data-%04.vp6\n";
-    echo "ex) php swfgetvideodata.php video.swf 1 data-%04.vp6 alpha-%04d.vp6\n";
+    echo "ex) php swfgetvideodata.php video.swf 1 data.vp6\n";
 }
 
 if (($argc < 2)) {
@@ -34,37 +34,36 @@ if (($argc < 4)) {
 assert(isset($argv[2]));
 
 $video_id = $argv[2];
-$datafilename = $argv[3];
-$alphafilename = ($argc < 5)?null: $argv[4];
+$filename = $argv[3];
 
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
+$videoStream = $swf->getVideoStream($video_id);
 $videoframes = $swf->getVideoFrames($video_id);
 
+if ($videoStream === false) {
+    echo "getVideoStream($video_id) failed\n";;
+    exit(1);
+}
 if ($videoframes === false) {
     echo "getVideoFrames($video_id) failed\n";;
     exit(1);
 }
 
+$ae = new IO_SWF_AE($swf->_headers, $videoStream);
+
+$keyFrame = true;  // XXX
+
 foreach ($videoframes as $idx => $frame) {
     if (isset($frame["Data"])) {
-        $fname = sprintf($datafilename, $idx);
-        echo "$fname\n";
-        file_put_contents($fname, $frame["Data"]);
-    } else {
-        fprintf(STDERR, "ERROR: No VideFrame Data\n");
-        exit (1);
+        $ae->addFrame($keyFrame, $frame["Data"], false);
     }
-    if (! is_null($alphafilename)) {
-        if (isset($frame["AlphaData"])) {
-            $faname = sprintf($alphafilename, $idx);
-            echo "$faname\n";
-            file_put_contents($faname, $frame["AlphaData"]);
-        } else {
-            fprintf(STDERR, "ERROR: No VideoFrame AlphaData\n");
-            exit (1);
-        }
+    if (isset($frame["AlphaData"])) {
+        $ae->addFrame($keyFrame, $frame["AlphaData"], true);
     }
+    $keyFrame = false;
 }
+
+file_put_contents($filename, $ae->output());
 
 exit(0);
