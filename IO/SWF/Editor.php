@@ -554,6 +554,21 @@ class IO_SWF_Editor extends IO_SWF {
         return $tag->getSoundData();
     }
 
+    function getVideoStream($video_id) {
+        $this->setCharacterId();
+        $tag = $this->getTagByCharacterId($video_id);
+        $tag_code = $tag->code;
+        if ($tag_code !== 60) { // // DefineVideoStream
+            fprintf(STDERR, "stream_id:$video_id tag->code:$tag_code != 60\n");
+            return false;
+        }
+        if (! $tag->parseTagContent()) {
+            fprintf(STDERR, "failed parseTagContent\n");
+            return false;
+        }
+        return $tag->tag;
+    }
+
     function getVideoFrames($video_id) {
         $opts = ['_CodecID' => []];
         $this->setCharacterId();
