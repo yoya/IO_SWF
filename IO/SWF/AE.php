@@ -14,14 +14,12 @@ class IO_SWF_AE {
     var $largetstFrameChunkSizeOffset = null;
     var $largetstFrameChunkSize = 0;
     function __construct($swfHeaders, $videoStream) {
-        // var_dump($swfHeaders);
-        // var_dump($videoStream);
         $bit = new IO_Bit();
-        //
+        // EA video header
         $bit->putData("MVhd");
-        $bit->putUI32LE(0x20); // MVhd length 20 is constant.
-        //
-        $bit->putData("vp60"); // VP60
+        $bit->putUI32LE(0x20);  // MVhd length 20 is constant.
+        // vp6 extension
+        $bit->putData("vp60");  // VP60
         $bit->putUI16LE($videoStream->_Width);
         $bit->putUI16LE($videoStream->_Height);
         $bit->putUI32LE($videoStream->_NumFrames);
@@ -50,7 +48,7 @@ class IO_SWF_AE {
     function output() {
         $bit = $this->bit;
         if (is_null($this->largetstFrameChunkSizeOffset)) {
-            throw new Exception("largetstFrameChunkSizeOffset is null");
+            throw new Exception("internal error: largetstFrameChunkSizeOffset is null");
         }
         $bit->setUI32LE($this->largetstFrameChunkSize,
                         $this->largetstFrameChunkSizeOffset);
