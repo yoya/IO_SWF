@@ -11,6 +11,8 @@ if (is_readable('vendor/autoload.php')) {
 
 class IO_SWF_AE {
     var $bit = null;
+    var $largetstFrameChunkSizeOffset = null;
+    var $largetstFrameChunkSize = 0;
     function __construct($swfHeaders, $videoStream) {
         // var_dump($swfHeaders);
         // var_dump($videoStream);
@@ -23,6 +25,7 @@ class IO_SWF_AE {
         $bit->putUI16LE($videoStream->_Width);
         $bit->putUI16LE($videoStream->_Height);
         $bit->putUI32LE($videoStream->_NumFrames);
+        list($this->largetstFrameChunkSizeOffset, $dummy) = $bit->getOffset();
         $bit->putUI32LE(0);  // Largetst Frame Chunk size
         $bit->putUI32LE($swfHeaders["FrameRate"] / 0x100);  // frame ratew (denom, rate);
         $bit->putUI32LE(1);  // frame ratew (numerator, scale);
@@ -31,16 +34,27 @@ class IO_SWF_AE {
     }
     function addFrame($keyFrame, $frameData, $alpha) {
         $bit = $this->bit;
+        $frameSize = 4 + 4 + strlen($frameData);
         if ($keyFrame) {
             $bit->putData("MV0K");  // key frame
         } else {
             $bit->putData("MV0F");  // delta frame
         }
-        $bit->putUI32LE(4 + 4 + strlen($frameData));
+        $bit->putUI32LE($frameSize);
         $bit->putData($frameData);
+        //
+        if ($this->largetstFrameChunkSize < $frameSize) {
+            $this->largetstFrameChunkSize = $frameSize;
+        }
     }
     function output() {
-        return $this->bit->output();
+        $bit = $this->bit;
+        if (is_null($this->largetstFrameChunkSizeOffset)) {
+            throw new Exception("largetstFrameChunkSizeOffset is null");
+        }
+        $bit->setUI32LE($this->largetstFrameChunkSize,
+                        $this->largetstFrameChunkSizeOffset);
+        return $bit->output();
     }
 }
 
