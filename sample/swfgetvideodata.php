@@ -52,16 +52,13 @@ if ($videoframes === false) {
 
 $ae = new IO_SWF_AE($swf->_headers, $videoStream);
 
-$keyFrame = true;  // XXX
-
 foreach ($videoframes as $idx => $frame) {
     if (isset($frame["Data"])) {
-        $ae->addFrame($keyFrame, $frame["Data"], false);
+        $ae->addFrame($frame["Data"], false);
     }
     if (isset($frame["AlphaData"])) {
-        $ae->addFrame($keyFrame, $frame["AlphaData"], true);
+        $ae->addFrame($frame["AlphaData"], true);
     }
-    $keyFrame = false;
 }
 
 file_put_contents($filename, $ae->output());

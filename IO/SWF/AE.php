@@ -30,9 +30,10 @@ class IO_SWF_AE {
         //
         $this->bit = $bit;
     }
-    function addFrame($keyFrame, $frameData, $alpha) {
+    function addFrame($frameData, $alpha) {
         $bit = $this->bit;
         $frameSize = 4 + 4 + strlen($frameData);
+        $keyFrame = ! (ord($frameData[0]) & 0x80);
         if ($keyFrame) {
             $bit->putData("MV0K");  // key frame
         } else {
