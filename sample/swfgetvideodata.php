@@ -56,9 +56,6 @@ foreach ($videoframes as $idx => $frame) {
     if (isset($frame["Data"])) {
         $ae->addFrame($frame["Data"], false);
     }
-    if (isset($frame["AlphaData"])) {
-        $ae->addFrame($frame["AlphaData"], true);
-    }
 }
 
 file_put_contents($filename, $ae->output());
