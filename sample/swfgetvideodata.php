@@ -50,12 +50,22 @@ if ($videoframes === false) {
     exit(1);
 }
 
-$ae = new IO_SWF_AE($swf->_headers, $videoStream);
+$has_alpha = count($videoframes)? (isset($videoframes[0]["AlphaData"])):
+                 false;
+
+$ae = new IO_SWF_AE($swf->_headers, $videoStream, $has_alpha);
 
 foreach ($videoframes as $idx => $frame) {
-    if (isset($frame["Data"])) {
-        $ae->addFrame($frame["Data"], false);
+    if (! isset($frame["Data"])) {
+        throw new Exception("internal error: no Data in VideoFrame");
     }
+    if ($has_alpha) {
+        if (! isset($frame["AlphaData"])) {
+            throw new Exception("internal error: no AlphaData in VideoFrame");
+        }
+        $ae->addFrame($frame["AlphaData"], true);
+    }
+    $ae->addFrame($frame["Data"], false);
 }
 
 file_put_contents($filename, $ae->output());

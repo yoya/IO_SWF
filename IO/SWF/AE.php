@@ -13,9 +13,13 @@ class IO_SWF_AE {
     var $bit = null;
     var $largetstFrameChunkSizeOffset = null;
     var $largetstFrameChunkSize = 0;
-    function __construct($swfHeaders, $videoStream) {
+    function __construct($swfHeaders, $videoStream, $has_alpha) {
         $bit = new IO_Bit();
         // EA video header
+        if ($has_alpha) {
+            $bit->putData("AVP6");
+            $bit->putUI32LE(8);  // AVP6 length 8 is constant.
+        }
         $bit->putData("MVhd");
         $bit->putUI32LE(0x20);  // MVhd length 20 is constant.
         // vp6 extension
@@ -28,16 +32,37 @@ class IO_SWF_AE {
         $bit->putUI32LE($swfHeaders["FrameRate"] / 0x100);  // frame ratew (denom, rate);
         $bit->putUI32LE(1);  // frame ratew (numerator, scale);
         //
+        if ($has_alpha) {
+            $bit->putData("AVhd");
+            $bit->putUI32LE(0x20);  // MVhd length 20 is constant.
+            // vp6 extension
+            $bit->putData("vp60");  // VP60
+            $bit->putUI16LE($videoStream->_Width);
+            $bit->putUI16LE($videoStream->_Height);
+            $bit->putUI32LE($videoStream->_NumFrames);
+            list($this->largetstFrameChunkSizeOffset, $dummy) = $bit->getOffset();
+            $bit->putUI32LE(0);  // Largetst Frame Chunk size
+            $bit->putUI32LE($swfHeaders["FrameRate"] / 0x100);  // frame ratew (denom, rate);
+            $bit->putUI32LE(1);  // frame ratew (numerator, scale);
+        }
         $this->bit = $bit;
     }
     function addFrame($frameData, $alpha) {
         $bit = $this->bit;
         $frameSize = 4 + 4 + strlen($frameData);
         $keyFrame = ! (ord($frameData[0]) & 0x80);
-        if ($keyFrame) {
-            $bit->putData("MV0K");  // key frame
+        if ($alpha) {
+            if ($keyFrame) {
+                $bit->putData("AV0K");  // key frame
+            } else {
+                $bit->putData("AV0F");  // delta frame
+            }
         } else {
-            $bit->putData("MV0F");  // delta frame
+            if ($keyFrame) {
+                $bit->putData("MV0K");  // key frame
+            } else {
+                $bit->putData("MV0F");  // delta frame
+            }
         }
         $bit->putUI32LE($frameSize);
         $bit->putData($frameData);
