@@ -56,14 +56,14 @@ $has_alpha = count($videoframes)? (isset($videoframes[0]["AlphaData"])):
 $ae = new IO_SWF_AE($swf->_headers, $videoStream, $has_alpha);
 
 foreach ($videoframes as $idx => $frame) {
-    if (! isset($frame["Data"])) {
-        throw new Exception("internal error: no Data in VideoFrame");
-    }
     if ($has_alpha) {
         if (! isset($frame["AlphaData"])) {
             throw new Exception("internal error: no AlphaData in VideoFrame");
         }
         $ae->addFrame($frame["AlphaData"], true);
+    }
+    if (! isset($frame["Data"])) {
+        throw new Exception("internal error: no Data in VideoFrame");
     }
     $ae->addFrame($frame["Data"], false);
 }
