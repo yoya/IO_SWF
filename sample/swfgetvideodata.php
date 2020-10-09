@@ -8,9 +8,10 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 function usage() {
-    echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile>]\n";
-    echo "ex) php swfgetvideodata.php video.swf\n";
+    echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile> [offset [limitFrames]]]\n";
+    // echo "ex) php swfgetvideodata.php video.swf\n";
     echo "ex) php swfgetvideodata.php video.swf 1 data.vp6\n";
+    echo "ex) php swfgetvideodata.php video.swf 1 data.vp6 0 3\n";
 }
 
 if (($argc < 2)) {
@@ -35,11 +36,39 @@ assert(isset($argv[2]));
 
 $video_id = $argv[2];
 $filename = $argv[3];
+$offsetFrame = isset($argv[4])? intval($argv[4]): null;
+$limitFrames = isset($argv[5])? intval($argv[5]): null;
 
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
 $videoStream = $swf->getVideoStream($video_id);
 $videoframes = $swf->getVideoFrames($video_id);
+
+function showKeyFrameNumbers($videoframes) {
+    echo "frames:";
+    foreach ($videoframes as $idx => $frame) {
+        if (ord($frame["Data"][0]) & 0x80) {
+            echo " $idx";  // delta frame
+        } else {
+            echo " *$idx*";  // key frame
+        }
+    }
+    echo "\n";
+}
+
+if (! is_null($offsetFrame)) {
+    if (ord($videoframes[$offsetFrame]["Data"][0]) & 0x80) { // delta frame
+        echo "ERROR: offsetFrame($offsetFrame) must specify key frame\n";
+        showKeyFrameNumbers($videoframes);
+        exit (1);
+    }
+    if (is_null($limitFrames)) {
+        $videoframes = array_slice($videoframes, $offsetFrame);
+    } else {
+        $videoframes = array_slice($videoframes, $offsetFrame, $limitFrames);
+    }
+    $videoStream->_NumFrames = count($videoframes);
+}
 
 if ($videoStream === false) {
     echo "getVideoStream($video_id) failed\n";;
