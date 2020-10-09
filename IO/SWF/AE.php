@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * 2020/10/03- (c) yoya@awm.jp
+ */
+
 if (is_readable('vendor/autoload.php')) {
     require 'vendor/autoload.php';
 } else {
@@ -21,20 +25,21 @@ class IO_SWF_AE {
             $bit->putUI32LE(8);  // AVP6 length 8 is constant.
         }
         $bit->putData("MVhd");
-        $bit->putUI32LE(0x20);  // MVhd length 20 is constant.
+        $bit->putUI32LE(0x20);  // MVhd length 0x20 is constant.
         // vp6 extension
         $bit->putData("vp60");  // VP60
         $bit->putUI16LE($videoStream->_Width);
         $bit->putUI16LE($videoStream->_Height);
         $bit->putUI32LE($videoStream->_NumFrames);
         list($this->largetstFrameChunkSizeOffset, $dummy) = $bit->getOffset();
-        $bit->putUI32LE(0);  // Largetst Frame Chunk size
-        $bit->putUI32LE($swfHeaders["FrameRate"] / 0x100);  // frame ratew (denom, rate);
-        $bit->putUI32LE(1);  // frame ratew (numerator, scale);
+        $bit->putUI32LE(0);  // Largetst Frame Chunk size, overwritten later.
+        // FrameRate;: denom(rate), numerator(scale);
+        $bit->putUI32LE($swfHeaders["FrameRate"]);
+        $bit->putUI32LE(0x100);
         //
         if ($has_alpha) {
             $bit->putData("AVhd");
-            $bit->putUI32LE(0x20);  // MVhd length 20 is constant.
+            $bit->putUI32LE(0x20);  // AVhd length 0x20 is constant.
             // vp6 extension
             $bit->putData("vp60");  // VP60
             $bit->putUI16LE($videoStream->_Width);
