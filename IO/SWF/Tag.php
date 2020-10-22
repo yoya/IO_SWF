@@ -434,7 +434,7 @@ class IO_SWF_Tag {
         $soundData = $this->tag->SoundData;
         return $soundData;
     }
-    
+
     function getVideoData() {
         $tag_code = $this->code;
         if ($tag_code != 61) { // VideoFrame
@@ -457,7 +457,7 @@ class IO_SWF_Tag {
         if (! $this->parseTagContent()) {
             return false;
         }
-        if (isset(($this->tag->_AlphaData))) {
+        if (isset($this->tag->_AlphaData)) {
             return $this->tag->_AlphaData;
         }
         return false;
