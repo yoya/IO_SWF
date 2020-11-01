@@ -36,6 +36,7 @@ class IO_SWF_ABC_Code {
         0x46 => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 70
         0x47 => ["returnvoid"    , []           ],  // 71
         0x49 => ["construct"     , ["u30"]      ],  // 73
+        0x4a => ["constructprop" , ["u30","u30"], ["multiname"]],  // 74
         0x4f => ["callpropvoid"  , ["u30","u30"], ["multiname"]],  // 79
         0x58 => ["newclass"      , ["u30"]      ],  // 88
         0x5d => ["findpropstrict", ["u30"]      , ["multiname"]],  // 93
@@ -44,11 +45,13 @@ class IO_SWF_ABC_Code {
         0x65 => ["getscopeobject", ["u30"]      ],  // 101 (u30?)
         0x66 => ["getproperty"   , ["u30"]      ],  // 102
         0x68 => ["initproperty"  , ["u30"]      ],  // 104
+        0x75 => ["convert_d"     , []           ],  // 117
         0x86 => ["astype"        , ["u30"]      ],  // 134
         0x87 => ["astypelate"    , []           ],  // 135
         0x91 => ["increment"     , []           ],  // 145
         0x92 => ["inclocal"      , ["u30"]      ],  // 146
-        0x97 => ["bitnot"        , []           ],  // 151
+        0x93 => ["decrement"     , []           ],  // 147
+        0x94 => ["bitnot"        , []           ],  // 151
         0xa0 => ["add"           , []           ],  // 160
         0xa2 => ["multiply"      , []           ],  // 162
         0xa8 => ["bitand"        , []           ],  // 168
