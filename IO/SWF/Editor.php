@@ -1172,10 +1172,12 @@ class IO_SWF_Editor extends IO_SWF {
         return false;
     }
 
-    function downgrade($swfVersion, $limitSwfVersion, $eliminate) {
+    function downgrade($swfVersion, $limitSwfVersion, $opts) {
         if (($swfVersion < 3) || ($limitSwfVersion < 3)) {
             throw new Exception("swfVersion:$swfVersion, limitSwfVersion:$limitSwfVersion must be >= 3");
         }
+        $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
+
         $origVersion = $this->_headers['Version'];
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
@@ -1193,12 +1195,12 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
         if (($origVersion >= 9) && ($limitSwfVersion <= 8)) {
-            $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $eliminate);
+            $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $opts);
         }
-        $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate);
+        $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts);
     }
 
-    function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion) {
+    function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion, $opts) {
         $doABC = null;
         $spriteList = [];
         // downgrade DoABC tag
@@ -1226,7 +1228,8 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
 
-    function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $eliminate) {
+    function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts) {
+        $eliminate = $opts["eliminate"];
         // downgrade other tags.
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
@@ -1268,7 +1271,7 @@ class IO_SWF_Editor extends IO_SWF {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
                 $this->downgradeTags($tag->tag->_controlTags, $tagsEachKrass,
-                                     $swfVersion, $limitSwfVersion, $eliminate);
+                                     $swfVersion, $limitSwfVersion, $opts);
                 $tag->content = null;
                 continue;
             }

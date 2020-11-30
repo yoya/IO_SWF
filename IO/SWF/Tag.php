@@ -159,7 +159,7 @@ class IO_SWF_Tag {
     function build($opts = array()) {
         $code = $this->code;
         if (is_null($this->content)) {
-            $this->content = $this->buildTagContent();
+            $this->content = $this->buildTagContent($opts);
         }
         $length = strlen($this->content);
         $writer = new IO_Bit();
@@ -209,7 +209,7 @@ class IO_SWF_Tag {
         return true;
     }
 
-    function buildTagContent() {
+    function buildTagContent($opts) {
         if ((is_null($this->content) === false)) {
             return $this->content;
         }

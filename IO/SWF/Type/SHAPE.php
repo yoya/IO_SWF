@@ -82,7 +82,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['FillStyle1'] = $currentFillStyle1;
                     $shapeRecord['LineStyle']  = $currentLineStyle;
                     if ($stateNewStyles) {
-                        $opts = array('tagCode' => $tagCode);
+                        $opts['tagCode'] = $tagCode; // XXX
                         $shapeRecord['FillStyles'] = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
                         $shapeRecord['LineStyles'] = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
                         $reader->byteAlign();
@@ -190,9 +190,16 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                             $stateNewStyles = 1;
                         }
                     }
-                    $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
-                    $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
-                    $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
+                    if ($opts['preserveStyleState']) {
+                        $stateNewStyles  = $shapeRecord['StateNewStyles'];
+                        $stateLineStyle  = $shapeRecord['StateLineStyle'];
+                        $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
+                        $stateFillStyle0 = $shapeRecord['StateFillStyle0'];
+                    } else {
+                        $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
+                        $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
+                        $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
+                    }
                     if (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY)) {
                         $stateMoveTo = true;
                     } else {
@@ -238,7 +245,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         $writer->putUIBits($currentLineStyle, $numLineBits);
                     }
                     if ($stateNewStyles) {
-                        $opts = array('tagCode' => $tagCode);
+                        $opts['tagCode'] = $tagCode;  // XXX
                         IO_SWF_Type_FILLSTYLEARRAY::build($writer, $shapeRecord['FillStyles'], $opts);
                         IO_SWF_Type_LINESTYLEARRAY::build($writer, $shapeRecord['LineStyles'], $opts);
                         $writer->byteAlign();

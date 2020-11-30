@@ -103,7 +103,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if (empty($opts['noShapeId'])) {
             $writer->putUI16LE($this->_shapeId);
         }
-        $opts = array('tagCode' => $tagCode);
+        $opts['tagCode'] = $tagCode;
         if ($isMorph === false) {
             IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
             // 描画スタイル

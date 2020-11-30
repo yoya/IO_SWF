@@ -64,7 +64,9 @@ class IO_SWF {
         return true;
     }
     
-    function build() {
+    function build($opts = []) {
+        $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
+
         $writer_head = new IO_Bit();
         $writer = new IO_Bit();
 
@@ -81,7 +83,7 @@ class IO_SWF {
         
         /* SWF Tags */
         foreach ($this->_tags as $idx => $tag) {
-            $tagData = $tag->build();
+            $tagData = $tag->build($opts);
             if ($tagData != false) {
                 $writer->putData($tagData);
             } else {

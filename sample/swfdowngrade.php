@@ -27,10 +27,15 @@ if ($filename === '-') {
 
 $swfVersion = $options['v'];
 $limitSwfVersion = isset($options['l'])? $options['l']: null;
-$eliminate = ! isset($options['E']);
 if (is_null($limitSwfVersion)) {
     $limitSwfVersion = $swfVersion;
 }
+
+$opts = [
+    'preserveStyleState' => true,
+    'eliminate'          => ! isset($options['E'])
+];
+
 
 if (is_readable($filename) === false) {
     echo "ERROR: can't open file:$filename\n";
@@ -55,8 +60,8 @@ $swf = new IO_SWF_Editor();
 
 $swf->parse($swfdata);
 
-$swf->downgrade($swfVersion, $limitSwfVersion, $eliminate);
+$swf->downgrade($swfVersion, $limitSwfVersion, $opts);
 
-echo $swf->build();
+echo $swf->build($opts);
 
 exit(0);
