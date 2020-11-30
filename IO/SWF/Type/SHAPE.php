@@ -48,6 +48,10 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $stateLineStyle = $reader->getUIBit();
                     $stateFillStyle1 = $reader->getUIBit();
                     $stateFillStyle0 = $reader->getUIBit();
+                    $shapeRecord['StateNewStyles']  = $stateNewStyles;
+                    $shapeRecord['StateLineStyle']  = $stateLineStyle;
+                    $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
+                    $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
 
                     $stateMoveTo = $reader->getUIBit();
                     if ($stateMoveTo) {
@@ -324,7 +328,12 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                    $moveX = $shapeRecord['MoveX'] / 20;
                    $moveY = $shapeRecord['MoveY'] / 20;
                    $text .= "ChangeStyle: MoveTo: ($moveX, $moveY)";
-                   $style_list = array('FillStyle0', 'FillStyle1', 'LineStyle');
+                   $state_list = array('StateNewStyles', 'StateLineStyle', 'StateFillStyle1', 'StateFillStyle0');
+                   $text .= " State:";
+                   foreach ($state_list as $stateKey) {
+                       $text .= " " . ($shapeRecord[$stateKey]? "1": "0");
+                   }
+                   $text .= "\n          ";
                    $text .= "  FillStyle: ".$shapeRecord['FillStyle0']."|".$shapeRecord['FillStyle1'];
                    $text .= "  LineStyle: ".$shapeRecord['LineStyle'];
                    if (isset($shapeRecord['FillStyles']) || isset($shapeRecord['LineStyles'])) { // NewStyle
