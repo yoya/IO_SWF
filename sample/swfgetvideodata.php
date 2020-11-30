@@ -11,7 +11,7 @@ function usage() {
     echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile> [offset [limitFrames]]]\n";
     // echo "ex) php swfgetvideodata.php video.swf\n";
     echo "ex) php swfgetvideodata.php video.swf 1 data.vp6\n";
-    echo "ex) php swfgetvideodata.php video.swf 1 data.vp6 0 3\n";
+    echo "ex) php swfgetvideodata.php video.swf 1 data-3frames.vp6 0 3\n";
 }
 
 if (($argc < 2)) {
@@ -30,7 +30,6 @@ if (($argc < 4)) {
     usage();
     exit(1);
 }
-
 
 assert(isset($argv[2]));
 
