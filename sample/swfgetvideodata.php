@@ -7,36 +7,37 @@ if (is_readable('vendor/autoload.php')) {
     require_once 'IO/SWF/AE.php';
 }
 
+function echoerr($msg) {
+    fprintf(STDERR, "%s", $msg);
+}
+
 function usage() {
-    echo "Usage: php swfgetvideodata.php <swf_file> [<video_id> <outfile> [offset [limitFrames]]]\n";
-    // echo "ex) php swfgetvideodata.php video.swf\n";
-    echo "ex) php swfgetvideodata.php video.swf 1 data.vp6\n";
-    echo "ex) php swfgetvideodata.php video.swf 1 data-3frames.vp6 0 3\n";
+    echoerr("Usage: php swfgetvideodata.php -f <swf_file> -i <video_id> [-o offset] [-n numFrames] [-A]\n");
+    echoerr("ex) php swfgetvideodata.php -f video.swf -i 1 > data.vp6\n");
+    echoerr("ex) php swfgetvideodata.php -f video.swf -i 1 -n 3 > data-3frames.vp6\n");
+    echoerr("ex) php swfgetvideodata.php -f video.swf -i 1 -A > data-noalpha.vp6\n");
 }
+$options = getopt("f:i:o:i:hA");
 
-if (($argc < 2)) {
+if (isset($options['f']) && is_readable($options['f']) &&
+    isset($options['i']) && is_numeric($options['i'])) {
+    // OK
+} else {
     usage();
     exit(1);
 }
 
-assert(is_readable($argv[1]));
-$swfdata = file_get_contents($argv[1]);
-
-if ($argc === 2) {  // list
-    echo "list video, not implemented yet.\n";
-    exit(0);
+$filename = $options['f'];
+if ($filename === "-") {
+    $filename = "php://stdin";
 }
-if (($argc < 4)) {
-    usage();
-    exit(1);
-}
+$swfdata = file_get_contents($filename);
 
 assert(isset($argv[2]));
 
-$video_id = $argv[2];
-$filename = $argv[3];
-$offsetFrame = isset($argv[4])? intval($argv[4]): null;
-$limitFrames = isset($argv[5])? intval($argv[5]): null;
+$video_id = isset($options['i'])? $options['i']: 0;
+$offsetFrame = isset($options['o'])? intval($options['o']): null;
+$numFrames = isset($options['n'])? intval($options['n']): null;
 
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
@@ -44,42 +45,46 @@ $videoStream = $swf->getVideoStream($video_id);
 $videoframes = $swf->getVideoFrames($video_id);
 
 function showKeyFrameNumbers($videoframes) {
-    echo "frames:";
+    echoerr("frames:");
     foreach ($videoframes as $idx => $frame) {
         if (ord($frame["Data"][0]) & 0x80) {
-            echo " $idx";  // delta frame
+            echoerr(" $idx");  // delta frame
         } else {
-            echo " *$idx*";  // key frame
+            echoerr(" *$idx*");  // key frame
         }
     }
-    echo "\n";
+    echoerr("\n");
 }
 
 if (! is_null($offsetFrame)) {
     if (ord($videoframes[$offsetFrame]["Data"][0]) & 0x80) { // delta frame
-        echo "ERROR: offsetFrame($offsetFrame) must specify key frame\n";
+        echoerr("ERROR: offsetFrame($offsetFrame) must specify key frame\n");
         showKeyFrameNumbers($videoframes);
         exit (1);
     }
-    if (is_null($limitFrames)) {
+    if (is_null($numFrames)) {
         $videoframes = array_slice($videoframes, $offsetFrame);
     } else {
-        $videoframes = array_slice($videoframes, $offsetFrame, $limitFrames);
+        $videoframes = array_slice($videoframes, $offsetFrame, $numFrames);
     }
     $videoStream->_NumFrames = count($videoframes);
 }
 
 if ($videoStream === false) {
-    echo "getVideoStream($video_id) failed\n";;
+    echoerr("getVideoStream($video_id) failed\n");
     exit(1);
 }
 if ($videoframes === false) {
-    echo "getVideoFrames($video_id) failed\n";;
+    echoerr("getVideoFrames($video_id) failed\n");
     exit(1);
 }
 
 $has_alpha = count($videoframes)? (isset($videoframes[0]["AlphaData"])):
                  false;
+
+if (isset($options['A'])) {
+    $has_alpha = false;
+}
 
 $ae = new IO_SWF_AE($swf->_headers, $videoStream, $has_alpha);
 
@@ -96,6 +101,6 @@ foreach ($videoframes as $idx => $frame) {
     $ae->addFrame($frame["Data"], false);
 }
 
-file_put_contents($filename, $ae->output());
+echo $ae->output();
 
 exit(0);
