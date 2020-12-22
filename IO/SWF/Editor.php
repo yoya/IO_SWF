@@ -974,7 +974,7 @@ class IO_SWF_Editor extends IO_SWF {
                 if (is_null($tag->tag->_name) === false) {
                     $cid = $tag->tag->_characterId;
                     $name = $tag->tag->_name;
-                    $mc_list = $this->listMovieClip_r(null, $cid, $name, array(), $spriteTable);
+                    $this->listMovieClip_r(null, $cid, $name, array(), $spriteTable);
                 }
                 break;
             case 39: // DefineSprite
