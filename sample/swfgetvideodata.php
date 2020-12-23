@@ -17,7 +17,7 @@ function usage() {
     echoerr("ex) php swfgetvideodata.php -f video.swf -i 1 -n 3 > data-3frames.vp6\n");
     echoerr("ex) php swfgetvideodata.php -f video.swf -i 1 -A > data-noalpha.vp6\n");
 }
-$options = getopt("f:i:o:i:hA");
+$options = getopt("f:i:o:n:A");
 
 if (isset($options['f']) && is_readable($options['f']) &&
     isset($options['i']) && is_numeric($options['i'])) {
@@ -35,9 +35,12 @@ $swfdata = file_get_contents($filename);
 
 assert(isset($argv[2]));
 
-$video_id = isset($options['i'])? $options['i']: 0;
-$offsetFrame = isset($options['o'])? intval($options['o']): null;
+$video_id = intval($options['i']);
+$offsetFrame = isset($options['o'])? intval($options['o']): 0;
 $numFrames = isset($options['n'])? intval($options['n']): null;
+$no_alpha = isset($options['A']);
+
+echoerr("filename:$filename video_id:$video_id offsetFrame:$offsetFrame numFrames:$numFrames no_alpha:$no_alpha\n");
 
 $swf = new IO_SWF_Editor();
 $swf->parse($swfdata);
@@ -56,7 +59,7 @@ function showKeyFrameNumbers($videoframes) {
     echoerr("\n");
 }
 
-if (! is_null($offsetFrame)) {
+if ((0 < $offsetFrame) || (! is_null($offsetFrame))) {
     if (ord($videoframes[$offsetFrame]["Data"][0]) & 0x80) { // delta frame
         echoerr("ERROR: offsetFrame($offsetFrame) must specify key frame\n");
         showKeyFrameNumbers($videoframes);
@@ -78,12 +81,10 @@ if ($videoframes === false) {
     echoerr("getVideoFrames($video_id) failed\n");
     exit(1);
 }
-
-$has_alpha = count($videoframes)? (isset($videoframes[0]["AlphaData"])):
-                 false;
-
-if (isset($options['A'])) {
+if ($no_alpha || (count($videoframes) === 0)) {
     $has_alpha = false;
+} else {
+    $has_alpha = isset($videoframes[0]["AlphaData"]);
 }
 
 $ae = new IO_SWF_AE($swf->_headers, $videoStream, $has_alpha);
