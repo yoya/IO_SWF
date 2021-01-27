@@ -21,7 +21,7 @@ class IO_SWF_Tag_Sprite extends IO_SWF_Tag_Base {
         /* SWF Tags */
         while (true) {
             $tag = new IO_SWF_Tag($this->swfInfo);
-            $tag->parse($reader);
+            $tag->parse($reader, $opts);
             $this->_controlTags[] = $tag;
             if ($tag->code == 0) { // END Tag
                 break;

@@ -111,7 +111,7 @@ class IO_SWF_Tag {
         return false;
     }
 
-    function parse(&$reader, $opts = array()) {
+    function parse(&$reader, $opts) {
         list($this->byte_offset, $dummy) = $reader->getOffset();
         $tagAndLength = $reader->getUI16LE();
         $this->code = $tagAndLength >> 6;
@@ -132,7 +132,7 @@ class IO_SWF_Tag {
         $this->byte_size = $byte_offset - $this->byte_offset;
     }
 
-    function dump(&$opts = array()) {
+    function dump(&$opts) {
         $code = $this->code;
         $name = $this->getTagInfo($code, 'name');
         if ($name === false) {

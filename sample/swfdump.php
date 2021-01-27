@@ -22,11 +22,11 @@ $swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF();
 
-$swf->parse($swfdata);
-
 $opts = [ 'hexdump'  =>   isset($options['h']),
           'addlabel' =>   isset($options['l']),
           'abcdump'  => ! isset($options['A']) ];
+
+$swf->parse($swfdata, $opts);
 
 $swf->dump($opts);
 

@@ -21,7 +21,7 @@ class IO_SWF {
     // for debug
     var $_swfdata = null;
 
-    function parse($swfdata) {
+    function parse($swfdata, $opts) {
         $reader = new IO_Bit();
         $reader->input($swfdata);
         $this->_swfdata  = $swfdata;
@@ -55,7 +55,7 @@ class IO_SWF {
         while (true) {
 	    $swfInfo = array('Version' => $this->_headers['Version']);
       	    $tag = new IO_SWF_Tag($swfInfo);
-            $tag->parse($reader);
+            $tag->parse($reader, $opts);
             $this->_tags[] = $tag;
             if ($tag->code == 0) { // END Tag
                 break;
