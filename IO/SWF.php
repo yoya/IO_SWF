@@ -21,7 +21,7 @@ class IO_SWF {
     // for debug
     var $_swfdata = null;
 
-    function parse($swfdata, $opts) {
+    function parse($swfdata, $opts = array()) {
         $reader = new IO_Bit();
         $reader->input($swfdata);
         $this->_swfdata  = $swfdata;
