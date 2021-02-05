@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title> SWF downgrade to v4 </title>
+  </head>
+  <style>
+    body { background-color: #fee; }
+    div {
+        position:absolute;
+        width: 300px;  height: 300px;
+        top: 0px;  left: 0px;
+        background-color: #efe;
+    }
+    p {
+        text-align: center;
+        padding-top: 100pt
+    }
+    input[type=file] {
+        position:absolute;
+        width:300px;  height:300px;
+    }
+  </style>
+  <body>
+    <div> <p> drop SWF file here </p> </div>
+    <form action="swftov4.php" method="POST" enctype="multipart/form-data">
+      <input type="file" id="swffile" autocomplete=off onchange="this.form.submit()" />
+    </form>
+  </body>
+</html>
