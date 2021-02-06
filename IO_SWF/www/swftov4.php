@@ -6,6 +6,21 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-error_reporting(E_ALL);
+$tmp_name = $_FILES["swffile"]["tmp_name"];
+$filename = $_FILES["swffile"]["name"];
 
-var_dump($_FILES);
+$swfVersion = 4;
+$limitSwfVersion = $swfVersion;
+$opts = [ 'preserveStyleState' => true, 'eliminate' => true ];
+
+$swfdata = file_get_contents($tmp_name);
+
+$swf = new IO_SWF_Editor();
+$swf->parse($swfdata, $opts);
+$swf->downgrade($swfVersion, $limitSwfVersion, $opts);
+
+$filepath = pathinfo($filename);
+$filename = $filepath['filename'] . "-tov4.swf";
+header("Content-Type: application/x-shockwave-flash");
+header("Content-Disposition: attachment; filename=$filename");
+echo $swf->build($opts);
