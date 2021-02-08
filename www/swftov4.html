@@ -1,19 +1,19 @@
 <html>
   <head>
     <title> SWF downgrade to v4 </title>
+    <style>
+      body { background-color: #edd; }
+      div, input {
+          position: absolute;  top: 0px;  left: 0px;
+          margin: 10px;  width: 300px;  height: 300px;
+          border-radius: 3ex;
+      }
+      div { background-color: #efe; line-height: 2em; }
+      p { text-align: center;  padding-top: 80pt; }
+      input { padding: 25px; }
+      input:hover { background-color:#00f2;  }
+    </style>
   </head>
-  <style>
-    body { background-color: #edd; }
-    div, input {
-        position: absolute;  top: 0px;  left: 0px;
-        margin: 10px;  width: 300px;  height: 300px;
-        border-radius: 3ex;
-    }
-    div { background-color: #efe; line-height: 2em; }
-    p { text-align: center;  padding-top: 80pt; }
-    input { padding: 25px; }
-    input:hover { background-color:#00f2;  }
-  </style>
   <body>
     <form action="swftov4.php" method="POST" enctype="multipart/form-data">
       <div>
@@ -22,7 +22,8 @@
           (downgrade to SWFv4)
         </p>
       </div>
-      <input type="file" name="swffile" autocomplete=off onchange="this.form.submit()" />
+      <input type="file" name="swffile" autocomplete=off
+             onchange="this.form.submit()" />
     </form>
   </body>
 </html>
