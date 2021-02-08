@@ -26,10 +26,13 @@ class IO_SWF {
         $reader->input($swfdata);
         $this->_swfdata  = $swfdata;
         /* SWF Header */
-        $this->_headers['Signature'] = $reader->getData(3);
+        $signature = $reader->getData(3);
+        $this->_headers['Signature'] = $signature;
         $this->_headers['Version'] = $reader->getUI8();
         $this->_headers['FileLength'] = $reader->getUI32LE();
-        if ($this->_headers['Signature'][0] == 'C') {
+        if ($signature === 'FWS') {
+            ;
+        } else if ($signature === 'CWS') {
             // CWS の場合、FileLength の後ろが zlib 圧縮されている
             $uncompressed_data = gzuncompress(substr($swfdata, 8));
             if ($uncompressed_data === false) {
@@ -42,6 +45,10 @@ class IO_SWF {
             $reader->input($swfdata);
             $this->_swfdata  = $swfdata;
             $reader->setOffset($byte_offset, 0);
+        } else if ($signature === 'ZWS') {
+            throw new IO_SWF_Exception("ZWS unsupported");
+        } else {
+            throw new IO_SWF_Exception("no SWF signature($signature)");
         }
         /* SWF Movie Header */
         $this->_headers['FrameSize'] = IO_SWF_Type_RECT::parse($reader);
