@@ -38,6 +38,7 @@ class IO_SWF_AE {
         $bit->putUI32LE(0x100);
         //
         if ($has_alpha) {
+            // vp6 extension alpha
             $bit->putData("AVhd");
             $bit->putUI32LE(0x20);  // AVhd length 0x20 is constant.
             // vp6 extension
