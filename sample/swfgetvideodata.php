@@ -30,7 +30,7 @@ if (isset($options['f']) && is_readable($options['f']) &&
     exit(1);
 }
 
-if (isset($options['c']) && is_readable($options['a'])) {
+if (isset($options['c']) && isset($options['a'])) {
     echo "exclusive option -c and -a \n";
     usage();
     exit(1);
@@ -104,7 +104,7 @@ foreach ($videoframes as $idx => $frame) {
         if (! isset($frame["AlphaData"])) {
             throw new Exception("internal error: no AlphaData in VideoFrame");
         }
-        $ae->addFrame($frame["AlphaData"], true);
+        $ae->addFrame($frame["AlphaData"], false);
     } else {
         if ($has_alpha) {
             if (! isset($frame["AlphaData"])) {
