@@ -27,6 +27,24 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
     var $_bitmapCache = null;
     var $_clipActions = null;
     //
+    var $_placeFlags;
+    var $_placeFlagHasClipActions;
+    var $_placeFlagHasClipDepth;
+    var $_placeFlagHasName;
+    var $_placeFlagHasRatio;
+    var $_placeFlagHasColorTransform;
+    var $_placeFlagHasMatrix;
+    var $_placeFlagHasCharacter;
+    var $_placeFlagMove;
+    //
+    var $_placeFlags2;
+    var $_placeFlagReserved;
+    var $_placeFlagHasImage;
+    var $_placeFlagHasClassName;
+    var $_placeFlagHasCacheAsBitmap;
+    var $_placeFlagHasBlendMode;
+    var $_placeFlagHasFilterList;
+    //
     function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);

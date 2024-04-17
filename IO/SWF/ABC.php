@@ -116,9 +116,12 @@ class IO_SWF_ABC {
         }
         return $multiname_name;
     }
+    var $_abcdata;
     var $_minor_version = null;
     var $_major_version = null;
     var $_constant_pool;
+    var $method, $metadata, $instance;
+    var $klass, $script, $method_body;
     function parse($abcdata) {
         $this->_abcdata = $abcdata;
         $bit = new IO_SWF_ABC_Bit();

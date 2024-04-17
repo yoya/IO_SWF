@@ -11,6 +11,7 @@ class IO_SWF_Tag {
     var $content = null;
     var $tag = null;
     var $byte_offset, $byte_size;
+    var $byte_offset_content;
     static $tagMap = array(
         // code => array(name , klass)
         0 => array('name' => 'End', 'version' => 1),

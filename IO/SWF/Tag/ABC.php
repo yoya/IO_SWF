@@ -17,6 +17,7 @@ class IO_SWF_Tag_ABC extends IO_SWF_Tag_Base {
     var $_Flags = null;
     var $_Name = null;
     var $_ABCData = null;
+    var $_ABC = null;
 
     function parseContent($tagCode, $content, $opts = array()) {
         $opts['abcdump'] = ! empty($opts['abcdump']);
