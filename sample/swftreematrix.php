@@ -56,21 +56,28 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
         $name = $tag->getTagInfo($code, "name");
         $klass = $tag->getTagInfo($code, "klass");
         echo $indentStr;
-        echo "$code $name($klass)\n";
+        echo "$code $name($klass)";
+        if (! $tag->parseTagContent()) {
+            throw Exception("can't parse $name tag content");
+        }
+        if (isset($tag->tag->_characterId)) {
+            $cid = $tag->tag->_characterId;
+            echo " ID:$cid";
+        } else if (isset($tag->tag->_shapeId)) {
+            $cid = $tag->tag->_shapeId;
+            echo " ID:$cid";
+        } else if (isset($tag->tag->_spriteId)) {
+            $cid = $tag->tag->_spriteId;
+            echo " ID:$cid";
+        }
+        echo "\n";
         switch ($klass) {
         case "Place":
-            if (! $tag->parseTagContent()) {
-                throw Exception("can't parse sprite tag content");
-            }
-            if ($tag->tag->_characterId) {
-                $cid = $tag->tag->_characterId;
-            }
             if (isset($tag->tag->_matrix)) {
                 $matrix = $tag->tag->_matrix;
             } else {
                 $matrix = identMatrix();
             }
-            echo "$name\n";
             $multipliedMatrix = multiplyMatrix($matrix, $parentMatrix);
             dumpMatrix([$matrix, $parentMatrix, null, $multipliedMatrix], $indent+0.5);
             $target_tag = $swf->getTagByCharacterId($cid);
@@ -81,16 +88,10 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
             }
             break;
         case "Sprite":
-            if (! $tag->parseTagContent()) {
-                throw Exception("can't parse sprite tag content");
-            }
             swftreematrix($swf, $tag->tag->_controlTags, $parentMatrix,
                           $indent+1);
             break;
         case "Shape":
-            if (! $tag->parseTagContent()) {
-                throw Exception("can't parse sprite tag content");
-            }
             $rect = $tag->tag->_shapeBounds;
             $multipliedRect = multiplyMatrix($parentMatrix, $rect);
             dumpMatrix([$parentMatrix, $rect, null, $multipliedRect], $indent+0.5).PHP_EOL;
