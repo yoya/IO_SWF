@@ -58,7 +58,8 @@ $swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF_Editor();
 
-$swf->parse($swfdata);
+$opts['abcparse'] = true;
+$swf->parse($swfdata, $opts);
 
 $swf->downgrade($swfVersion, $limitSwfVersion, $opts);
 
