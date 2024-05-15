@@ -21,12 +21,13 @@ class IO_SWF_Tag_ABC extends IO_SWF_Tag_Base {
 
     function parseContent($tagCode, $content, $opts = array()) {
         $opts['abcdump'] = ! empty($opts['abcdump']);
+        $opts['abcparse'] = ! empty($opts['abcparse']);
         $reader = new IO_Bit();
     	$reader->input($content);
         $this->_Flags = $reader->getUI32LE();
         $this->_Name = IO_SWF_Type_String::parse($reader);
         $this->_ABCData = $reader->getDataUntil(false);
-        if ($opts['abcdump']) {
+        if ($opts['abcparse'] || $opts['abcdump']) {
             $abc = new IO_SWF_ABC();
             $abc->parse($this->_ABCData);
             $this->_ABC = $abc;
