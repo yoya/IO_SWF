@@ -1207,14 +1207,14 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
             if ($tagCode === 39) {  // DefineSprite
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
                 $spriteId = $tag->tag->_spriteId;
                 $spriteList[$spriteId] = $tag;
             }
             if ($tagCode === 82) {  // DoABC
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
                 $doABC = $tag;
@@ -1267,7 +1267,7 @@ class IO_SWF_Editor extends IO_SWF {
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $klass_kind = $klass . ($kind? ("_".$kind): "");
             if ($tagCode === 39) {  // DefineSprite
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
                 $this->downgradeTags($tag->tag->_controlTags, $tagsEachKrass,
@@ -1278,7 +1278,7 @@ class IO_SWF_Editor extends IO_SWF {
             if ($tagVersion <= $limitSwfVersion) {
                 continue;
             }
-            if ($tag->parseTagContent() === false) {
+            if ($tag->parseTagContent($opts) === false) {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
             $tag->content = null;
