@@ -9,6 +9,7 @@
 if (is_readable('vendor/autoload.php')) {
     require 'vendor/autoload.php';
 } else {
+    require_once 'IO/SWF/Exception.php';
     require_once 'IO/Bit.php';
 }
 
