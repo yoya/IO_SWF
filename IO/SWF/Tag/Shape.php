@@ -22,6 +22,11 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_offset;
     var $_morphFillStyles, $_morphLineStyles;
     var $_startEdge, $_endEdges;
+    //
+    var $_edgeBounds;
+    var $_reserved;
+    var $_usesNonScalingStrokes;
+    var $_UsesScalingStrokes;
 
    function parseContent($tagCode, $content, $opts = array()) {
        // DefineMorphShape, DefineMorphShape2
