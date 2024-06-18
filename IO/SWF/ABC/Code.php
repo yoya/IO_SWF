@@ -38,6 +38,7 @@ class IO_SWF_ABC_Code {
         0x2A => ["dup"           , []           ],  // 42
         0x2B => ["swap"          , []           ],  // 43
         0x2C => ["pushstring"    , ["u30"]      , ["string"]   ],  // 44
+        0x2F => ["pushdouble"    , ["u30"]      ],  // 47
         0x30 => ["pushscope"     , []           ],  // 48
         0x41 => ["call"          , ["u30"]      ],  // 65
         0x46 => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 70
@@ -162,13 +163,16 @@ class IO_SWF_ABC_Code {
                 case "ubyte":
                     $v = $bit->getUI8();
                     break;
+                case "d64":
+                    $v = $bit->get_d64();
+                    break;
                 case "s24...":
                     foreach (range(0, $v) as $i) {
                         $bit->get_s24();
                     }
                     break;
                 default:
-                    throw new IO_SWF_Exception("unknown type$argType");
+                    throw new IO_SWF_Exception("unknown type:$argType");
                     break;
                 }
             }
@@ -265,6 +269,10 @@ class IO_SWF_ABC_Code {
                 $v = $bit->get_u30();
                 $code["value"] = $this->abc->getString_name($v);
                 $code["valuetype"] = "string";
+                break;
+            case 0x2F:  // pushdouble
+                $code["value"] = $bit->get_u30();
+                $code["valuetype"] = "double";
                 break;
             case 0x46:  // callproperty
                 $index = $bit->get_u30();
@@ -567,6 +575,7 @@ class IO_SWF_ABC_Code {
             case 0x24:  // pushbyte
             case 0x25:  // pushshort
             case 0x2C:  // pushstring
+            case 0x2F:  // pushdouble
                 $data = (string) $code["value"];
                 $actions []= ["Code" => 0x96, // Push
                           "Length" => 1 + strlen($data) + 1,
