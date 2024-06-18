@@ -53,6 +53,6 @@ class IO_SWF_ABC_Bit extends IO_Bit {
     }
     function get_d64() {
         $d = $this->getData(8);
-        return unpack("E", $d)[0];  // double (big-endian)
+        return unpack("E", $d)[1];  // double (big-endian)
     }
 }
