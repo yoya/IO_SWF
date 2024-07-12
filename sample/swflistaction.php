@@ -22,11 +22,15 @@ $swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF_Editor();
 
-$swf->parse($swfdata);
+$opts = [
+    'abcparse' => true
+];
+$swf->parse($swfdata, $opts);
 
 swflistaction($swf->_tags, null);
 
 function swflistaction($swftags, $spriteId) {
+    $opts = [ 'abcparse' => true ];
     $abc = null;
     $currentFrame = 1;
     foreach ($swftags as $idx => $tag) {
@@ -37,7 +41,7 @@ function swflistaction($swftags, $spriteId) {
         }
         if (($tag_code == 12) || ($tag_code == 59)) { // DoAction, DoInitAction
             try {
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     echo "Unknown Action Tag\n";
                     exit(1);
                 }
@@ -60,7 +64,7 @@ function swflistaction($swftags, $spriteId) {
         }
         if ($tag_code == 82) { // DoABC
             try {
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     echo "Unknown ABC Tag\n";
                     exit(1);
                 }
@@ -84,7 +88,7 @@ function swflistaction($swftags, $spriteId) {
         }
         if ($tag_code == 76) { // SymbolClass
             try {
-                if ($tag->parseTagContent() === false) {
+                if ($tag->parseTagContent($opts) === false) {
                     echo "Unknown ABC Tag\n";
                     exit(1);
                 }
@@ -110,7 +114,7 @@ function swflistaction($swftags, $spriteId) {
             $abc = null;
         }
         if ($tag_code == 39) { // DefineSprite
-            if ($tag->parseTagContent() === false) {
+            if ($tag->parseTagContent($opts) === false) {
                 echo "Unknown DefineSprite!!!\n";
                 exit(1);
             }
