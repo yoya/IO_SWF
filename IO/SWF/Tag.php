@@ -12,6 +12,11 @@ class IO_SWF_Tag {
     var $tag = null;
     var $byte_offset, $byte_size;
     var $byte_offset_content;
+    // Editor 用
+    var $placeFlag;
+    var $referenceId;
+    var $characterId;
+    //
     static $tagMap = array(
         // code => array(name , klass)
         0 => array('name' => 'End', 'version' => 1),
