@@ -58,7 +58,9 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
         echo $indentStr;
         echo "$code $name($klass)";
         if (! $tag->parseTagContent()) {
-            throw Exception("can't parse $name tag content");
+            echo "\n";
+            fprintf(STDERR, "can't parse %s(%s) tag content\n", $name, $klass);
+            continue;
         }
         if (isset($tag->tag->_characterId)) {
             $cid = $tag->tag->_characterId;
@@ -82,7 +84,7 @@ function swftreematrix($swf, $tags, $parentMatrix, $indent) {
             dumpMatrix([$matrix, $parentMatrix, null, $multipliedMatrix], $indent+0.5);
             $target_tag = $swf->getTagByCharacterId($cid);
             if (is_null($target_tag)) {
-                throw Exception("not found object cid:cid:$cid\n");
+                throw new Exception("not found object cid:cid:$cid\n");
             } else {
                 swftreematrix($swf, [$target_tag], $multipliedMatrix, $indent+1);
             }
