@@ -763,6 +763,7 @@ class IO_SWF_ABC {
     }
     //
     function getInstanceByName($ns, $name) {
+        $name_match = null;
         foreach ($this->instance as $inst) {
             $multiname = $this->_constant_pool["multiname"][$inst["name"]];
             $multiname_ns = $this->getString_name($multiname["ns"]);
@@ -770,7 +771,11 @@ class IO_SWF_ABC {
             if (($ns === $multiname_ns) && ($name === $multiname_name)) {
                 return $inst;
             }
+            if ($name === $multiname_name) {
+                $name_match = $inst;
+            }
         }
+        return $inst;
     }
     function getFrameAndCodeByInstance($inst) {
         $frameMethodArray = [];
