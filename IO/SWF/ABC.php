@@ -774,6 +774,7 @@ class IO_SWF_ABC {
     }
     function getFrameAndCodeByInstance($inst) {
         $frameMethodArray = [];
+        assert(! is_null($inst));
         foreach ($inst["trait"] as $trait) {
             $kind = $trait["kind"];
             switch ($kind & 0x0F) {
