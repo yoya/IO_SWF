@@ -493,7 +493,16 @@ class IO_SWF_ABC_Code {
                                         "valuetype" => $code["valuetype"],
                                         "name"      => $name];
                 break;
+            case 0x75:  // convert_d
+                // do nothing
+                // (double に変換する命令だが、AS1/2 には型がない)
+                break;
+            case 0x93:  // decrement
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $actions []= ["Code" => 0x50]; // Decrement
+                break;
             case 0xc0:  // increment_i
+                // TODO: ActionIncrement で良いかも？
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 /*
                   AS3: i++;
