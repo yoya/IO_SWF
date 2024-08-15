@@ -56,8 +56,8 @@ class IO_SWF_ABC_Code {
         0x62 => ["getlocal"      , ["u30"]      ],  // 98
         0x63 => ["setlocal"      , ["u30"]      ],  // 99
         0x65 => ["getscopeobject", ["u30"]      ],  // 101 (u30?)
-        0x66 => ["getproperty"   , ["u30"]      ],  // 102
-        0x68 => ["initproperty"  , ["u30"]      ],  // 104
+        0x66 => ["getproperty"   , ["u30"]      , ["multiname"]],  // 102
+        0x68 => ["initproperty"  , ["u30"]      , ["multiname"]],  // 104
         0x6d => ["setslot"       , ["u30"]      ],  // 109
         0x75 => ["convert_d"     , []           ],  // 117
         0x76 => ["convert_b"     , []           ],  // 118
