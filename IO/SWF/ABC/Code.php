@@ -286,6 +286,7 @@ class IO_SWF_ABC_Code {
                 $name = $this->abc->getString_name($info["name"]);
                 $code["name"] = $name;
                 break;
+            case 0x61:  // setproperty
             case 0x68:  // initproperty
                 $index = $bit->get_u30();
                 $info = $this->abc->getMultiname($index);
@@ -437,38 +438,6 @@ class IO_SWF_ABC_Code {
                 }
                 break;
             case 0x61:  // setproperty
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $index = $bit->get_u30();
-                $name = $propertyMap[$index]["name"];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $name]
-                              ]];
-                $actions []= ["Code" => 0x1D]; // SetVariable
-                // pop: value => push:(none)
-                $a = array_pop($abcStack);
-                $propertyMap[$index] = ["value"     => $a["value"],
-                                        "valuetype" => $a["valuetype"],
-                                        "name"      => $name];
-                break;
-            case 0x66:  // getproperty
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $index = $bit->get_u30();
-                $name = $propertyMap[$index]["name"];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $name]
-                              ]];
-                $actions []= ["Code" => 0x1C]; // GetVariable
-                // pop:(none) => push:value
-                $p = $propertyMap[$index];
-                array_push($abcStack, ["value" => $p["value"],
-                                       "valuetype" => $p["valuetype"]]);
-                break;
             case 0x68:  // initproperty
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                 $index = $bit->get_u30();
@@ -492,6 +461,22 @@ class IO_SWF_ABC_Code {
                 $propertyMap[$index] = ["value"     => $code["value"],
                                         "valuetype" => $code["valuetype"],
                                         "name"      => $name];
+                break;
+            case 0x66:  // getproperty
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $index = $bit->get_u30();
+                $name = $propertyMap[$index]["name"];
+                $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                $actions []= ["Code" => 0x1C]; // GetVariable
+                // pop:(none) => push:value
+                $p = $propertyMap[$index];
+                array_push($abcStack, ["value" => $p["value"],
+                                       "valuetype" => $p["valuetype"]]);
                 break;
             case 0x75:  // convert_d
                 // do nothing
