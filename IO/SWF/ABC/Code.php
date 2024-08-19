@@ -248,7 +248,7 @@ class IO_SWF_ABC_Code {
             $bit = null;
         }
     }
-    function ABCCodetoActionTag($version) {
+    function ABCCodetoActionTag($version, $debugInfo) {
         // preprocess, set stack value & propertyMap
         $propertyMap = [];  // [name, valuetype]
         foreach ($this->codeArray as &$code) {
@@ -465,6 +465,11 @@ class IO_SWF_ABC_Code {
             case 0x66:  // getproperty
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
+                if (! isset($propertyMap[$index])) {
+                    $info = ['propertyMap' => $propertyMap,
+                             'index' => $index, 'debugInfo' => $debugInfo];
+                    throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
+                }
                 $name = $propertyMap[$index]["name"];
                 $actions []= ["Code" => 0x96, // Push
                               "Length" => 1 + strlen($name) + 1,

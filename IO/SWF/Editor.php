@@ -1312,7 +1312,8 @@ class IO_SWF_Editor extends IO_SWF {
                 list($frame, $methodId) = $methodArray;
                 // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
                 $code = $abc->getCodeByMethodId($methodId);
-                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version']);
+                $debugInfo = ['spriteId' => $spriteId, 'ns' => $ns, 'name' => $name];
+                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version'], $debugInfo);
                 $target_tags = null;
                 if ($spriteId === 0) {
                     $target_tags = & $this->_tags;
