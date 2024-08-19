@@ -102,6 +102,9 @@ function swflistaction($swftags, $spriteId) {
                 echo "  symbol: spriteId:$id name:$symbolName\n";
                 list($ns, $name) = explode(".", $symbolName);
                 $inst = $abc->getInstanceByName($ns, $name);
+                if (is_null($inst)) {
+                    throw new Exception("inst is null, symbolName:$symbolName ns:$ns name:$name");
+                }
                 $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
                 foreach ($frameMethodArray as $methodArray) {
                     list($frame, $methodId) = $methodArray;
