@@ -9,6 +9,7 @@ if (is_readable('vendor/autoload.php')) {
 } else {
     require_once 'IO/Bit.php';
 }
+require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/String.php';
 require_once dirname(__FILE__).'/Float.php';
@@ -368,6 +369,9 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                     $values_writer->putUI8($type);
                     switch ($type) {
                       case 0: // STRING
+                          if (is_null($value['String'])) {
+                              throw new IO_SWF_Exception(print_r($action, true));
+                          }
                         $str = $value['String'];
                         $pos = strpos($str, "\0");
                         if ($pos === false) {
