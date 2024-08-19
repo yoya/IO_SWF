@@ -14,7 +14,7 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     var $FontID;
     var $FontFlagsShiftJIS;
     var $FontFlagsSmallText;
-    var $FontflagsANSI;
+    var $FontFlagsANSI;
     var $FontFlagsWideOffsets;
     var $FontFlagsWideCodes;
     var $FontFlagsItalic;
