@@ -26,13 +26,13 @@ class IO_SWF_Type_KERNINGRECORD implements IO_SWF_Type {
     }
     static function build(&$writer, $kerningrecord, $opts = array()) {
         if ($opts['FontFlagsWideCodes']) {
-            $writer->getUI16LE($kerningrecord['FontKerningCode1']);
-            $writer->getUI16LE($kerningrecord['FontKerningCode2']);
+            $writer->putUI16LE($kerningrecord['FontKerningCode1']);
+            $writer->putUI16LE($kerningrecord['FontKerningCode2']);
         } else {
-            $writer->getUI8($kerningrecord['FontKerningCode1']);
-            $writer->getUI8($kerningrecord['FontKerningCode2']);
+            $writer->putUI8($kerningrecord['FontKerningCode1']);
+            $writer->putUI8($kerningrecord['FontKerningCode2']);
         }
-        $writer->getSI16LE($kerningrecord['FontKerningAdjustment']);
+        $writer->putSI16LE($kerningrecord['FontKerningAdjustment']);
     }
     static function string($kerningrecord, $opts = array()) {
         $text = "FontKerningCode1: {$kerningrecord['FontKerningCode1']}";
