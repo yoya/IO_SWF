@@ -110,8 +110,8 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
     function dumpContent($tagCode, $opts = array()) {
         echo "    FontID: {$this->FontID}".PHP_EOL;
         $fontFlagsHasLayout = is_null($this->FontAscent)?0:1;
-        echo "FontFlagsHasLayout: $fontFlagsHasLayout FontFlagsShiftJIS: {$this->FontFlagsShiftJIS} FontFlagsSmallText: {$this->FontFlagsSmallText} FontFlagsANSI: {$this->FontFlagsANSI}".PHP_EOL;
-        echo "FontFlagsWideOffsets: {$this->FontFlagsWideOffsets} FontFlagsWideCodes: {$this->FontFlagsWideCodes}".PHP_EOL;
+        echo "    FontFlagsHasLayout: $fontFlagsHasLayout FontFlagsShiftJIS: {$this->FontFlagsShiftJIS} FontFlagsSmallText: {$this->FontFlagsSmallText}".PHP_EOL;
+        echo "    FontFlagsANSI: {$this->FontFlagsANSI} FontFlagsWideOffsets: {$this->FontFlagsWideOffsets} FontFlagsWideCodes: {$this->FontFlagsWideCodes}".PHP_EOL;
         
         echo "    LanguageCode: ".IO_SWF_Type_LANGCODE::string($this->LanguageCode)."FontName: {$this->FontName}".PHP_EOL;
         echo "    OffsetTable:";
