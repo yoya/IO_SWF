@@ -610,7 +610,7 @@ class IO_SWF_ABC_Code {
                 array_push($abcStack, $c);
                 break;
             case 0x60:  // getlex
-                // do nothing
+                // findpropstict の後に getproperty を実行するのと同じ
                 break;
             default:
                 $instName = $this->getInstructionName($inst);
