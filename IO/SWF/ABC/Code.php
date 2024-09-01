@@ -334,6 +334,8 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x2A:  // dup
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $actions []= ["Code" => 0x2A]; // Dup
+                break;
                 /*
                 case 0xd0:  // getlocal_0
                 case 0xd1:  // getlocal_1
