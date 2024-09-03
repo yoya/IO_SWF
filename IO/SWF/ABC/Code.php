@@ -491,7 +491,7 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x93:  // decrement
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $actions []= ["Code" => 0x50]; // Decrement
+                $actions []= ["Code" => 0x51]; // Decrement
                 break;
             case 0xc0:  // increment_i
                 // TODO: ActionIncrement で良いかも？
