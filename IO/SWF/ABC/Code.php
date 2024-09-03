@@ -287,6 +287,7 @@ class IO_SWF_ABC_Code {
                 $code["name"] = $name;
                 break;
             case 0x61:  // setproperty
+            case 0x66:  // getproperty
             case 0x68:  // initproperty
                 $index = $bit->get_u30();
                 $info = $this->abc->getMultiname($index);
