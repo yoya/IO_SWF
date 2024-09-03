@@ -495,8 +495,12 @@ class IO_SWF_ABC_Code {
                 $actions []= ["Code" => 0x51]; // Decrement
                 break;
             case 0xc0:  // increment_i
-                // TODO: ActionIncrement で良いかも？
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if (false) {  // 後で true  を試す
+                    // TODO: ActionIncrement で良いかも？
+                    $actions []= ["Code" => 0x50];  // Increment
+                    break;
+                }
                 /*
                   AS3: i++;
                   [0] increment_i
