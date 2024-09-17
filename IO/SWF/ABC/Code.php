@@ -321,6 +321,28 @@ class IO_SWF_ABC_Code {
                               "Length" => 2,
                               "BranchOffset" => 0]; // temporary
                 break;
+            case 0x11:  // iftrue
+            case 0x12:  // iffalse
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $branchOffset = $bit->get_s24();
+                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                $actions []= ["Code" => 0x9D,  // If
+                              "Length" => 2,
+                              "Offset" => 0]; // temporary
+                // pop: a,b => push:(none)
+                array_pop($abcStack);
+                array_pop($abcStack);
+            case 0x13:  // ifeq
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $branchOffset = $bit->get_s24();
+                $actions []= ["Code" => 0x66];  // Equal
+                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                $actions []= ["Code" => 0x9D,  // If
+                              "Length" => 2,
+                              "Offset" => 0]; // temporary
+                // pop: a,b => push:(none)
+                array_pop($abcStack);
+                array_pop($abcStack);
             case 0x15:  // iflt
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
