@@ -468,4 +468,32 @@ class IO_SWF_Tag {
         }
         return false;
     }
+    function isSprite() {
+        if ($this->code === 39) {  // DefineSprite
+            return true;
+        }
+        return false;
+    }
+    function hasAction() {
+        switch ($this->code) {
+        case 7:   // DefineButton
+        case 12:  // DoAction
+        case 34:  // DefineButton2
+        case 59:  // DoInitAction
+            return true;
+        }
+        return false;
+    }
+    function hasABC() {
+        if ($this->code === 82) {  // DoABC
+            return true;
+        }
+        return false;
+    }
+    function hasSymbol() {
+        if ($this->code === 76) {  // SymbolClass
+            return true;
+        }
+        return false;
+    }
 }
