@@ -1340,4 +1340,36 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
     }
+    /*
+     * DoABC 内の method と実際に動作する Frame の対応表
+     */
+    function listABCmethodIdToActionFrame($doABC, $symbolTag) {
+        $actionFrameList = [];
+        $abc = $doABC->tag->_ABC;
+        foreach ($symbolTag->tag->_Symbols as $tagAndName) {
+            $spriteId = $tagAndName["Tag"];
+            $symbolName = $tagAndName["Name"];
+            list($ns, $name) = explode(".", $symbolName);
+            // echo "$spriteId => $ns :: $name\n";
+            $inst = $abc->getInstanceByName($ns, $name);
+            $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
+            foreach ($frameMethodArray as $methodArray) {
+                list($frame, $methodId) = $methodArray;
+                // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
+                $actionFrameList[$methodId] = [$spriteId, $frame];
+            }
+        }
+        return $actionFrameList;
+    }
+    function dump_method_body_info_by_idx($doABC, $idx) {
+        $abc = $doABC->tag->_ABC;
+        $method_body_count = count($abc->method_body);
+        echo "    method_body($idx/$method_body_count):\n";
+        $info = $abc->method_body[$idx];
+        $abc->dump_method_body_info($info);
+    }
+    function list_method_body_info($doABC) {
+        $abc = $doABC->tag->_ABC;
+        return $abc->method_body;
+    }
 }
