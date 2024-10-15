@@ -20,7 +20,9 @@ class IO_SWF {
     var $_tags = array();    // protected
     // for debug
     var $_swfdata = null;
-
+    /*
+     * parse
+     */
     function parse($swfdata, $opts = array()) {
         $reader = new IO_Bit();
         $reader->input($swfdata);
@@ -76,6 +78,9 @@ class IO_SWF {
             // keep the original binary
         }
     }
+    /*
+     * build
+     */
     function build($opts = []) {
         $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
 
@@ -111,7 +116,9 @@ class IO_SWF {
         }
         return $writer_head->output().$writer->output();
     }
-
+    /*
+     * dump
+     */
     function dump($opts = array()) {
         if (empty($opts['hexdump']) === false) {
             $bitio = new IO_Bit();
@@ -129,9 +136,8 @@ class IO_SWF {
             $bitio->hexdump(0, $this->_header_size);
             $opts['bitio'] =& $bitio; // for tag
         }
-        $opts['indent'] = 0;
         /* SWF Tags */
-        
+        $opts['indent'] = 0;
         if ($this->_headers['Version'] < 6) {
             ob_start('mb_convert_encoding_from_sjis');
         }
