@@ -70,7 +70,12 @@ class IO_SWF {
         }
         return true;
     }
-    
+    function parseAllTagContent($opts) {
+        foreach ($this->_tags as &$tag) {
+            $tag->parseTagContent($opts);
+            // keep the original binary
+        }
+    }
     function build($opts = []) {
         $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
 
