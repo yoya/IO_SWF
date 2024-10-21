@@ -468,6 +468,20 @@ class IO_SWF_Tag {
         }
         return false;
     }
+    function isControlTag() {  // 自信ないけど一旦 ShowFrame 含む
+        switch ($this->code) {
+        case 1:  // ShowFrame
+        case 4:  // PlaceObject
+        case 5:  // RemoveObject
+        case 15:  // StartSound
+        case 26:  // PlaceObject2
+        case 28:  // RemoveObject2
+        case 70:  // PlaceObject3
+        case 89:  // StartSound2
+            return true;
+        }
+        return false;
+    }
     function isSprite() {
         if ($this->code === 39) {  // DefineSprite
             return true;
