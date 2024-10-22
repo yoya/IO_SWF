@@ -41,7 +41,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         foreach ($this->_tags as &$tag) {
             if (is_null($tag->content)) {
-                throw IO_SWF_Exception("setCharacterId method must be called at next of parse");
+                throw new IO_SWF_Exception("setCharacterId method must be called at next of parse");
             }
             $content_reader = new IO_Bit();
             $content_reader->input($tag->content);
