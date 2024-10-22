@@ -80,14 +80,14 @@ foreach ($tags as $idx => $tag) {
             }
             $abcDumped = true;
         }
-        if ($tag->code === 1) {
-            $frameNum ++;
-            $abcDumped = false;
-        }
     }
     if ($tag->hasAction()) {
         echo "=== frame:$frameNum\n";
         $tag->dump($opts, $opts);
+    }
+    if ($tag->code === 1) { // ShowFrame
+        $frameNum ++;
+        $abcDumped = false;
     }
     if ($tag->isSprite()) {
         $spriteId = $tag->tag->_spriteId;
@@ -108,19 +108,18 @@ foreach ($tags as $idx => $tag) {
                     }
                     $abcDumpedInSprite = true;
                 }
-                if ($control_tag->code === 1) { // ShowFrame
-                    $spriteFrameNum++;
-                    $abcDumpedInSprite = false;
-                }
             }
             if ($control_tag->hasAction()) {
                 echo "    === frame:$spriteFrameNum\n";
                 $control_tag->dump($opts, $opts);
             }
+            if ($control_tag->code === 1) { // ShowFrame
+                $spriteFrameNum++;
+                $abcDumpedInSprite = false;
+            }
         }
     }
 }
-
 
 
 // 該当するフレームがなく、何故存在するのか分からない ABC method
