@@ -6,15 +6,21 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-$options = getopt("f:v:l:E");
+$options = getopt("f:v:l::E");
 
 function usage() {
     echo "Usage: php swfdowngrade.php -f <swf_file> -v <swf_version> [-l <limit_tag_swf_version>] [-E]\n";
-    echo "ex) php swfdowngrade.php -f test.swf -v 4\n";
+    echo "ex) php swfdowngrade.php -v 4 -f test.swf\n";
 }
 
-if (! isset($options['f']) || (! isset($options['v']))) {
-    echo "ERROR: require f,v options\n";
+// 指定したキーが全て含まれれば true。
+function array_key_contain_all($arr, $keys) {
+    $inter_keys = array_intersect_key(array_keys($arr), $keys);
+    return count($inter_keys) === count($keys);
+}
+
+if (! array_key_contain_all($options, ['f', 'v'])) {
+    echo "ERROR: require f and v option\n";
     usage();
     exit (1);
 }
@@ -26,8 +32,10 @@ if ($filename === '-') {
 }
 
 $swfVersion = $options['v'];
-$limitSwfVersion = isset($options['l'])? $options['l']: null;
-if (is_null($limitSwfVersion)) {
+
+if (isset($options['l'])) {
+    $limitSwfVersion = $options['l'];
+} else {
     $limitSwfVersion = $swfVersion;
 }
 
@@ -36,13 +44,11 @@ $opts = [
     'eliminate'          => ! isset($options['E'])
 ];
 
-
 if (is_readable($filename) === false) {
     echo "ERROR: can't open file:$filename\n";
     usage();
     exit (1);
 }
-
 if (is_numeric($swfVersion) === false) {
     echo "ERROR: swfVersion:$swfVersion is not numeric.\n";
     usage();
