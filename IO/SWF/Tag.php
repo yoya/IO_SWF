@@ -468,7 +468,7 @@ class IO_SWF_Tag {
         }
         return false;
     }
-    function isControlTag() {  // 自信ないけど一旦 ShowFrame 含む
+    function isDisplayListTag() {
         switch ($this->code) {
         case 1:  // ShowFrame
         case 4:  // PlaceObject
