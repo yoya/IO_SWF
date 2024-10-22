@@ -767,9 +767,6 @@ class IO_SWF_ABC {
         foreach ($this->instance as $inst) {
             $multiname = $this->_constant_pool["multiname"][$inst["name"]];
             $multiname_name = $this->getString_name($multiname["name"]);
-            if ($multiname_name === "main_2") {
-                var_dump([$multiname_name, $name]);
-            }
             if ($multiname_name === $name) {
                 return $inst;
             }
