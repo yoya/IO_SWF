@@ -583,6 +583,10 @@ class IO_SWF_ABC_Code {
         return $action_tag;
     }
     function flushABCQueue(&$abcQueue, &$abcStack, &$actions, &$labels, $remain = 0) {
+        if (count($abcQueue) < $remain) {
+            $c = count($abcQueue);
+            throw new Exception("not enough abcQueue:$c need $remain");
+        }
         // as FIFO
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
