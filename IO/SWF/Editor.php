@@ -1351,13 +1351,19 @@ class IO_SWF_Editor extends IO_SWF {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
             list($ns, $name) = explode(".", $symbolName);
-            // echo "$spriteId => $ns :: $name\n";
-            $inst = $abc->getInstanceByName($ns, $name);
+            // echo "### $spriteId => $ns :: $name\n";
+            $inst = $abc->getInstanceByName($name);
             $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
             foreach ($frameMethodArray as $methodArray) {
                 list($frame, $methodId) = $methodArray;
-                // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
-                $actionFrameList[$methodId] = [$spriteId, $frame];
+                // echo "### spriteId:$spriteId frame:$frame methodId:$methodId\n";
+                if (! isset($actionFrameList[$spriteId])) {
+                    $actionFrameList[$spriteId] = [];
+                }
+                if (isset($actionFrameList[$spriteId][$frame])) {
+                    throw new IO_SWF_Exception("actionFrameList duplicate spriteId:$spriteId frame:$frame");
+                }
+                $actionFrameList[$spriteId][$frame] = $methodId;
             }
         }
         return $actionFrameList;
