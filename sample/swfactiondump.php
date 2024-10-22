@@ -49,58 +49,73 @@ foreach ($tags as $tag) {
 
 $actionFrameList = [];
 if ((! is_null($abcTag)) && (! is_null($symbolTag))) {
+    // [spriteId][frameid] => methodId の対応表
     $actionFrameList = $swf->listABCmethodIdToActionFrame($abcTag, $symbolTag);
 }
-
 $actionFrameDumped = [];
 
-// var_dump($actionFrameList);
+// print_r($actionFrameList);
 
 function getABCmethodIdxBySpriteAndFrame($actionFrameList, $spriteId, $frame) {
-    foreach ($actionFrameList as $idx => $spriteIdAndFrame) {
-        if (($spriteIdAndFrame[0] === $spriteId) &&
-            ($spriteIdAndFrame[1] === $frame)) {
-            return $idx;
-        }
+    if (isset($actionFrameList[$spriteId][$frame])) {
+        return $actionFrameList[$spriteId][$frame];
     }
     return null;
 }
 
 $frameNum = 1;
+$abcDumped = false;
 echo "=== SpriteId: 0 (Main Timeline)\n";
+
 foreach ($tags as $idx => $tag) {
-    if ($tag->code === 1) {  // ShowFrame
-        $frameNum ++;
-                // dump abc method
-        $spriteId = 0;
-        $frame = $frameNum;
-        $methodIdx = getABCmethodIdxBySpriteAndFrame($actionFrameList, $spriteId, $frame);
-        if (! is_null($methodIdx)) {
-            $swf->dump_method_body_info_by_idx($abcTag, $methodIdx);
-            $actionFrameDumped[$methodIdx] = true;
+    if ($tag->isDisplayListTag() || $tag->isSprite()) {  // ShowFrame, Control
+        if (! $abcDumped) {
+            // dump abc method
+            $frame = $frameNum;
+            $methodIdx = getABCmethodIdxBySpriteAndFrame($actionFrameList, 0, $frame);
+            if (! is_null($methodIdx)) {
+                echo "=== frame:$frameNum\n";
+                $swf->dump_method_body_info_by_idx($abcTag, $methodIdx);
+                $actionFrameDumped[$methodIdx] = true;
+            }
+            $abcDumped = true;
         }
-    } else if ($tag->hasAction()) {
+        if ($tag->code === 1) {
+            $frameNum ++;
+            $abcDumped = false;
+        }
+    }
+    if ($tag->hasAction()) {
         echo "=== frame:$frameNum\n";
         $tag->dump($opts, $opts);
-    } else if ($tag->isSprite()) {
+    }
+    if ($tag->isSprite()) {
         $spriteId = $tag->tag->_spriteId;
         echo "=== SpriteId: $spriteId\n";
         $spriteFrameNum = 1;
         $opts['indent'] = 1;
+        $abcDumpedInSprite = false;
         foreach ($tag->tag->_controlTags as $control_tag) {
-            if ($control_tag->code === 1) { // ShowFrame
-                $spriteFrameNum++;
-                // dump abc method
-                $frame = $spriteFrameNum;
-                $methodIdx = getABCmethodIdxBySpriteAndFrame($actionFrameList, $spriteId, $frame);
-                if (! is_null($methodIdx)) {
-                    echo "    === frame:$spriteFrameNum\n";
-                    $swf->dump_method_body_info_by_idx($abcTag, $methodIdx);
-                    $actionFrameDumped[$methodIdx] = true;
+            if ($control_tag->isDisplayListTag()) {
+                if (! $abcDumpedInSprite) {
+                    // dump abc method
+                    $frame = $spriteFrameNum;
+                    $methodIdx = getABCmethodIdxBySpriteAndFrame($actionFrameList, $spriteId, $frame);
+                    if (! is_null($methodIdx)) {
+                        echo "    === frame:$spriteFrameNum\n";
+                        $swf->dump_method_body_info_by_idx($abcTag, $methodIdx);
+                        $actionFrameDumped[$methodIdx] = true;
+                    }
+                    $abcDumpedInSprite = true;
                 }
-            } else if ($control_tag->hasAction()) {
+                if ($control_tag->code === 1) { // ShowFrame
+                    $spriteFrameNum++;
+                    $abcDumpedInSprite = false;
+                }
+            }
+            if ($control_tag->hasAction()) {
                 echo "    === frame:$spriteFrameNum\n";
-                $$control_tag->dump($opts, $opts);
+                $control_tag->dump($opts, $opts);
             }
         }
     }
