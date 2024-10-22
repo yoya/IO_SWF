@@ -1299,14 +1299,15 @@ class IO_SWF_Editor extends IO_SWF {
 
     function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList) {
         $abc = $doABC->tag->_ABC;
-        // var_dump($abc->getMultiname_name($abc->instance->name));
-        // var_dump($symbolTag->tag->_Symbols);
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
             list($ns, $name) = explode(".", $symbolName);
             // echo "$spriteId => $ns :: $name\n";
-            $inst = $abc->getInstanceByName($ns, $name);
+            $inst = $abc->getInstanceByName($name);
+            if (is_null($inst)) {
+                throw new IO_SWF_Exception("spriteId:$spriteId instance not found by ns:$ns name:$name");
+            }
             $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);
             foreach ($frameMethodArray as $methodArray) {
                 list($frame, $methodId) = $methodArray;
