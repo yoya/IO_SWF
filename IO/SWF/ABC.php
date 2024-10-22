@@ -762,20 +762,19 @@ class IO_SWF_ABC {
         
     }
     //
-    function getInstanceByName($ns, $name) {
+    function getInstanceByName($name) {
         $name_match = null;
         foreach ($this->instance as $inst) {
             $multiname = $this->_constant_pool["multiname"][$inst["name"]];
-            $multiname_ns = $this->getString_name($multiname["ns"]);
             $multiname_name = $this->getString_name($multiname["name"]);
-            if (($ns === $multiname_ns) && ($name === $multiname_name)) {
+            if ($multiname_name === "main_2") {
+                var_dump([$multiname_name, $name]);
+            }
+            if ($multiname_name === $name) {
                 return $inst;
             }
-            if ($name === $multiname_name) {
-                $name_match = $inst;
-            }
         }
-        return $inst;
+        return null;
     }
     function getFrameAndCodeByInstance($inst) {
         $frameMethodArray = [];
@@ -783,18 +782,18 @@ class IO_SWF_ABC {
         foreach ($inst["trait"] as $trait) {
             $kind = $trait["kind"];
             switch ($kind & 0x0F) {
-            case 1:  // Trait_Method
             case 2:  // Trait_Getter
             case 3:  // Trait_Setter
+                break;
+            case 1:  // Trait_Method
                 $trait_multiname = $this->_constant_pool["multiname"][$trait["name"]];
                 $name = $this->getString_name($trait_multiname["name"]);
                 if (substr($name, 0, 5) === "frame") {
                     $frame = intval(substr($name, 5));
                     $frameMethodArray []= [$frame, $trait["method"]];
-                } else {
-                    throw new Exception("unexpected trait name:$name");
                 }
             }
+
         }
         return $frameMethodArray;
     }

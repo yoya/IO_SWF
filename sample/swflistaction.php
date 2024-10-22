@@ -101,7 +101,7 @@ function swflistaction($swftags, $spriteId) {
                 $symbolName = $symbol["Name"];
                 echo "  symbol: spriteId:$id name:$symbolName\n";
                 list($ns, $name) = explode(".", $symbolName);
-                $inst = $abc->getInstanceByName($ns, $name);
+                $inst = $abc->getInstanceByName($name);
                 if (is_null($inst)) {
                     throw new Exception("inst is null, symbolName:$symbolName ns:$ns name:$name");
                 }
