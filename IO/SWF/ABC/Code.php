@@ -302,7 +302,7 @@ class IO_SWF_ABC_Code {
         // convert code AS3 = AS1 with abc stack.
         $actions = [];   // 最終的な ABC コード
         $abcQueue = [];  // 前の命令を巻き添えにする命令があるので一旦キューに
-        $abcStack = [];
+        $abcStack = [];  // 型の整合性をとる為の情報
         $labels = [];    // 分岐命令の飛び元命令のNoとオフセット番号
         $branches = [];  // 分岐命令の跳び元命令No=>飛び先オフセット
         $skip_count = 0;
