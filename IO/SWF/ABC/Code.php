@@ -450,6 +450,27 @@ class IO_SWF_ABC_Code {
                         array_pop($abcStack);
                     }
                     break;
+                case "gotoAndStop":
+                    /*
+                      AS3:
+                      - getproperty name=A, getproperty name=B, pushbyte C,
+                      - callpropv name=gotoAndStop
+                      AS1:
+                      - Push A/B:C
+                      GotoFrame2
+                     */
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
+                    $c = array_pop($abcQueue);
+                    $b = array_pop($abcQueue);
+                    $a = array_pop($abcQueue);
+                    if (($a["inst"] !== 0x66) || ($a["inst"] !== 0x66) ||
+                        ($c["inst"] !== 0x24)) {
+                        $this->dump();
+                        throw new IO_SWF_Exception("unknown gotoAndStop pattern");
+                    }
+                    print_r(['$a' => $a, '$b' => $b, '$c' => $c]);
+                    throw new IO_SWF_Exception("gotoAndStop not implemented yet.");
+                    break;
                 case "play":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                     $actions []= ["Code" => 0x06]; // Play
