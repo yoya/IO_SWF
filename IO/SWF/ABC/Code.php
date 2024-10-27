@@ -480,6 +480,7 @@ class IO_SWF_ABC_Code {
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 default:
+                    $this->dump();
                     throw new Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
                 }
                 break;
