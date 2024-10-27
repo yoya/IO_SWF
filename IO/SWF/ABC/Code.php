@@ -496,6 +496,13 @@ class IO_SWF_ABC_Code {
                   SetVariable
                  */
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                $code = array_pop($abcQueue);
+                if ($code["inst"] != 0x2C) { // ひとつ前は pushstring のはず
+                    throw new Exception("require pushstring instrument but code:".$code["inst"]);;
+                }
+                if (! is_string($code["value"])) {
+                    throw new Exception("require pushstring instrument value type string:".$code["value"]);
+                }
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index]["name"];
                 $actions []= ["Code" => 0x96, // Push
@@ -504,12 +511,11 @@ class IO_SWF_ABC_Code {
                                   ["Type" => 0,  // String
                                    "String" => $name]
                               ]];
-                $code = array_pop($abcQueue);
                 $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
+                              "Length" => 1 + strlen($code["value"]) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
-                                   "String" => (string) $code["value"]]
+                                   "String" => $code["value"]]
                               ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
                 // pop: value, push:(none)
