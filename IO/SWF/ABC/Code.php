@@ -486,6 +486,15 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x61:  // setproperty
             case 0x68:  // initproperty
+                /*
+                  AS3:
+                  - pushstring A
+                  - setproperty/initproperty B
+                  AS1
+                  - Push B
+                  - Push A
+                  SetVariable
+                 */
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index]["name"];
