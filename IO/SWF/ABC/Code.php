@@ -542,9 +542,7 @@ class IO_SWF_ABC_Code {
                               ]];
                 $actions []= ["Code" => 0x1C]; // GetVariable
                 // pop:(none) => push:value
-                $p = $propertyMap[$index];
-                array_push($abcStack, ["value" => $p["value"],
-                                       "valuetype" => $p["valuetype"]]);
+                array_push($abcStack, $propertyMap[$index]);
                 break;
             case 0x75:  // convert_d
                 // do nothing
