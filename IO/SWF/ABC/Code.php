@@ -528,6 +528,7 @@ class IO_SWF_ABC_Code {
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 if (! isset($propertyMap[$index])) {
+                    $this->dump();
                     $info = ['propertyMap' => $propertyMap,
                              'index' => $index, 'debugInfo' => $debugInfo];
                     throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
@@ -622,6 +623,7 @@ class IO_SWF_ABC_Code {
     function flushABCQueue(&$abcQueue, &$abcStack, &$actions, &$labels, $remain = 0) {
         if (count($abcQueue) < $remain) {
             $c = count($abcQueue);
+            $this->dump();
             throw new Exception("not enough abcQueue:$c need $remain");
         }
         // as FIFO
