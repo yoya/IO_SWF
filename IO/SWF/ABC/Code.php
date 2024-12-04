@@ -7,6 +7,7 @@ class IO_SWF_ABC_Code {
     var $codeData = null;
     var $codeArray = [];
     var $abc = null;
+    var $propertyMap = null;
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -251,6 +252,7 @@ class IO_SWF_ABC_Code {
     function ABCCodetoActionTag($version, $debugInfo) {
         // preprocess, set stack value & propertyMap
         $propertyMap = [];  // [name, valuetype]
+        $this->propertyMap = $propertyMap;
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -524,26 +526,6 @@ class IO_SWF_ABC_Code {
                                         "valuetype" => $code["valuetype"],
                                         "name"      => $name];
                 break;
-            case 0x66:  // getproperty
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $index = $bit->get_u30();
-                if (! isset($propertyMap[$index])) {
-                    $this->dump();
-                    $info = ['propertyMap' => $propertyMap,
-                             'index' => $index, 'debugInfo' => $debugInfo];
-                    throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
-                }
-                $name = $propertyMap[$index]["name"];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $name]
-                              ]];
-                $actions []= ["Code" => 0x1C]; // GetVariable
-                // pop:(none) => push:value
-                array_push($abcStack, $propertyMap[$index]);
-                break;
             case 0x75:  // convert_d
                 // do nothing
                 // (double に変換する命令だが、AS1/2 には型がない)
@@ -624,6 +606,7 @@ class IO_SWF_ABC_Code {
             $this->dump();
             throw new Exception("not enough abcQueue:$c need $remain");
         }
+        $propertyMap = $this->propertyMap;
         // as FIFO
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
@@ -659,6 +642,26 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x5d:  // findpropstrict
                 // do nothing
+                break;
+            case 0x66:  // getproperty
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $index = $bit->get_u30();
+                if (! isset($propertyMap[$index])) {
+                    $this->dump();
+                    $info = ['propertyMap' => $propertyMap,
+                             'index' => $index, 'debugInfo' => $debugInfo];
+                    throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
+                }
+                $name = $propertyMap[$index]["name"];
+                $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                $actions []= ["Code" => 0x1C]; // GetVariable
+                // pop:(none) => push:value
+                array_push($abcStack, $propertyMap[$index]);
                 break;
             case 0xa0:  // add
                 $a = array_pop($abcStack);
