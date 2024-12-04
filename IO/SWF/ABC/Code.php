@@ -401,7 +401,7 @@ class IO_SWF_ABC_Code {
                                    ( is_null($vv)? ("$ii($in)"): ("$ii($in, $vv)") ):
                                    ("$ii($in, $nn)");
                         }
-                        throw new IO_SWF_Exception("unknown instruction pattern: idx distance:".$idxDistance." inst:".join(",", $tmp));
+                        throw new IO_SWF_Exception("unknown instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
                     $value_str = (string) $this->codeArray[$idx+1]["value"];
                     $actions []= ["Code" => 0x96, // Push
