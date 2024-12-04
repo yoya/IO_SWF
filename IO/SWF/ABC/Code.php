@@ -345,6 +345,7 @@ class IO_SWF_ABC_Code {
                 // pop: a,b => push:(none)
                 array_pop($abcStack);
                 array_pop($abcStack);
+            case 0x14:  // ifngt
             case 0x15:  // iflt
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
@@ -533,6 +534,10 @@ class IO_SWF_ABC_Code {
             case 0x93:  // decrement
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $actions []= ["Code" => 0x51]; // Decrement
+                break;
+            case 0xa1:  // subtract
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                $actions []= ["Code" => 0x0B]; // Subtract
                 break;
             case 0xc0:  // increment_i
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
