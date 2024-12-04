@@ -446,7 +446,7 @@ class IO_SWF_ABC_Code {
                     } else {
                         array_push($abcQueue, $c);
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                        $actions []= ["Code" => 0x9F,  // GotoFrame2
+                        $actions []= ["Code" => 0x9F,  // GotoFrame2 (play)
                                       "Length" => 1,
                                       "SceneBiasFlag" => 0, "PlayFlag" => 1];
                         // pop: frame => push:(none)
