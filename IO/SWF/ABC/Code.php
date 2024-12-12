@@ -502,9 +502,11 @@ class IO_SWF_ABC_Code {
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                 $code = array_pop($abcQueue);
                 if ($code["inst"] != 0x2C) { // ひとつ前は pushstring のはず
+                    $this->dump();
                     throw new Exception("require pushstring instrument but code:".$code["inst"]);;
                 }
                 if (! is_string($code["value"])) {
+                    $this->dump();
                     throw new Exception("require pushstring instrument value type string:".$code["value"]);
                 }
                 $index = $bit->get_u30();
