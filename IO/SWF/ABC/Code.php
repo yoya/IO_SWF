@@ -48,6 +48,7 @@ class IO_SWF_ABC_Code {
         0x49 => ["construct"     , ["u30"]      ],  // 73
         0x4a => ["constructprop" , ["u30","u30"], ["multiname"]],  // 74
         0x4f => ["callpropvoid"  , ["u30","u30"], ["multiname"]],  // 79
+        0x56 => ["newarray"      , ["u30"]      , ["multiname"]],  // 86
         0x58 => ["newclass"      , ["u30"]      ],  // 88
         0x5a => ["newcatch"      , ["u30"]      ],  // 90
         0x5d => ["findpropstrict", ["u30"]      , ["multiname"]],  // 93
