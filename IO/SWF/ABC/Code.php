@@ -8,6 +8,7 @@ class IO_SWF_ABC_Code {
     var $codeArray = [];
     var $abc = null;
     var $propertyMap = null;
+    var $debugInfo = null;
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -254,6 +255,7 @@ class IO_SWF_ABC_Code {
         // preprocess, set stack value & propertyMap
         $propertyMap = [];  // [name, valuetype]
         $this->propertyMap = $propertyMap;
+        $this->debugInfo = $debugInfo;
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -615,6 +617,7 @@ class IO_SWF_ABC_Code {
             throw new Exception("not enough abcQueue:$c need $remain");
         }
         $propertyMap = $this->propertyMap;
+        $debugInfo = $this->debugInfo;
         // as FIFO
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
