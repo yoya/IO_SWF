@@ -461,25 +461,45 @@ class IO_SWF_ABC_Code {
                     }
                     break;
                 case "gotoAndStop":
-                    /*
-                      AS3:
-                      - getproperty name=A, getproperty name=B, pushbyte C,
-                      - callpropv name=gotoAndStop
-                      AS1:
-                      - Push A/B:C
-                      GotoFrame2
-                     */
-                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
-                    $c = array_pop($abcQueue);
-                    $b = array_pop($abcQueue);
-                    $a = array_pop($abcQueue);
-                    if (($a["inst"] !== 0x66) || ($a["inst"] !== 0x66) ||
-                        ($c["inst"] !== 0x24)) {
-                        $this->dump();
-                        throw new IO_SWF_Exception("unknown gotoAndStop pattern");
+                    if (count($abcQueue) < 3) {  // XXX 未解明
+                        $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                        $c = array_pop($abcQueue);
+                        if ($c["inst"] !== 0x24) {  // pushbyte
+                            $this->dump();
+                            throw new IO_SWF_Exception("unknown gotoAndStop pattern");
+                        }
+                        $push_path = "../../:".$c["value"];
+                    } else {
+                        /*
+                          AS3:
+                          - getproperty name=A, getproperty name=B, pushbyte C,
+                          - callpropv name=gotoAndStop
+                          AS1:
+                          - Push "A/B:C"
+                          - GetVariable
+                          GotoFrame2
+                        */
+                        $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
+                        $c = array_pop($abcQueue);
+                        $b = array_pop($abcQueue);
+                        $a = array_pop($abcQueue);
+                        if (($a["inst"] !== 0x66) || ($a["inst"] !== 0x66) ||
+                            ($c["inst"] !== 0x24)) {
+                            $this->dump();
+                            throw new IO_SWF_Exception("unknown gotoAndStop pattern");
+                        }
+                        $push_path = $a["name"]."/".$b["name"].":".$c["value"];
                     }
-                    print_r(['$a' => $a, '$b' => $b, '$c' => $c]);
-                    throw new IO_SWF_Exception("gotoAndStop not implemented yet.");
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($push_path) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $push_path]
+                                  ]];
+                    $actions []= ["Code" => 0x1C]; // GetVariable
+                    $actions []= ["Code" => 0x9F,  // GotoFrame2 (stop)
+                                  "Length" => 1,
+                                  "SceneBiasFlag" => 0, "PlayFlag" => 0];
                     break;
                 case "play":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
