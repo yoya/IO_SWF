@@ -11,8 +11,8 @@ $options = getopt("f:as:l:");
 if ((isset($options['f']) === false) ||
     (is_readable($options['f']) === false)) {
     echo "Usage: php swfdeleteaction.php -f <swf_file> [-a] [-s <sprite_id>[:<frame>] -l [<length>]\n";
-    echo "ex) php swfdeleteaction.php -f test.swf -a\n";
-    echo "ex) php swfdeleteaction.php -f test.swf -s 130 -f 20\n";
+    echo "ex) php swfdeleteaction.php -f test.swf -a  # (AS1/AS3)\n";
+    echo "ex) php swfdeleteaction.php -f test.swf -s 130 -f 20 # delete only sprite:130 frame:20 (AS1 only)\n";
     exit(1);
 }
 $all = isset($options['a'])?true:false;
@@ -43,7 +43,7 @@ foreach ($swf->_tags as $idx => &$tag) {
         $currentFrame++;
         continue;
     }
-    if (($tag_code == 12) || ($tag_code == 59)) { // DoAction, DoInitAction
+    if (($tag_code == 12) || ($tag_code == 59)  || ($tag_code == 76)) { // DoAction, DoInitAction, SymbolClass
         if ($all ||
             ((is_null($spriteId) === false) && ($spriteId == 0) && (is_null($frameNum) || ($frameNum == $currentFrame))) ||
             ($length == strlen($tag->content))) {
