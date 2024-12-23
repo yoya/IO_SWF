@@ -392,11 +392,24 @@ class IO_SWF_ABC_Code {
                       [0] Push(Code:0x96) (Length:3) (String)4
                       [1] RandomNumber(Code:0x30)
                     */
-                    if (($this->codeArray[$idx+1]["inst"] !== 0x24) || // push
-                        ($this->codeArray[$idx+1]["valuetype"] !== "byte") ||
-                        ($this->codeArray[$idx+2]["inst"] !== 0xa2) || // mult
-                        ($this->codeArray[$idx+3]["inst"] !== 0x46) || // call
-                        ($this->codeArray[$idx+3]["name"] !== "floor")) {
+                    if (($this->codeArray[$idx+1]["inst"] === 0x24) || // push
+                        ($this->codeArray[$idx+1]["valuetype"] === "byte") ||
+                        ($this->codeArray[$idx+2]["inst"] === 0xa2) || // mult
+                        ($this->codeArray[$idx+3]["inst"] === 0x46) || // call
+                        ($this->codeArray[$idx+3]["name"] === "floor")) {
+                        $value_str = (string) $this->codeArray[$idx+1]["value"];
+                        $actions []= ["Code" => 0x96, // Push
+                                      "Length" => 1 + strlen($value_str) + 1,
+                                      "Values" => [
+                                          ["Type" => 0,  // String
+                                           "String" => $value_str]
+                                      ]];
+                        $actions []= ["Code" => 0x30];  // RandomNumber
+                        $skip_count = 3;  // pushbyte, multiply, callproperty
+                        // pop:(none) => push:number
+                        array_push($abcStack, ["value" => null,
+                                               "valuetype" => "short"]);
+                    } else {
                         $tmp = []; // generate error message
                         for ($i = $idx; $i <= ($idx+3); $i++)  {
                             $ii = $this->codeArray[$i]["inst"];
@@ -409,18 +422,6 @@ class IO_SWF_ABC_Code {
                         }
                         throw new IO_SWF_Exception("unknown instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
-                    $value_str = (string) $this->codeArray[$idx+1]["value"];
-                    $actions []= ["Code" => 0x96, // Push
-                                  "Length" => 1 + strlen($value_str) + 1,
-                                  "Values" => [
-                                      ["Type" => 0,  // String
-                                       "String" => $value_str]
-                              ]];
-                    $actions []= ["Code" => 0x30];  // RandomNumber
-                    $skip_count = 3;  // pushbyte, multiply, callproperty
-                    // pop:(none) => push:number
-                    array_push($abcStack, ["value" => null,
-                                           "valuetype" => "short"]);
                 } else {
                     throw new Exception("support callproperty for random only");
                 }
