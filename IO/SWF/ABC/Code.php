@@ -7,8 +7,7 @@ class IO_SWF_ABC_Code {
     var $codeData = null;
     var $codeArray = [];
     var $abc = null;
-    var $propertyMap = null;
-    var $debugInfo = null;
+    var $codeContext = null;
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -251,11 +250,10 @@ class IO_SWF_ABC_Code {
             $bit = null;
         }
     }
-    function ABCCodetoActionTag($version, $debugInfo) {
+    function ABCCodetoActionTag($version, $ctx) {
+        $this->codeContext = $ctx;
         // preprocess, set stack value & propertyMap
-        $propertyMap = [];  // [name, valuetype]
-        $this->propertyMap = $propertyMap;
-        $this->debugInfo = $debugInfo;
+        $propertyMap = $ctx->propertyMap;  // [name, valuetype]
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -616,8 +614,8 @@ class IO_SWF_ABC_Code {
             $this->dump();
             throw new Exception("not enough abcQueue:$c need $remain");
         }
-        $propertyMap = $this->propertyMap;
-        $debugInfo = $this->debugInfo;
+        $ctx = $this->codeContext;
+        $propertyMap = $ctx->propertyMap;
         // as FIFO
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
@@ -658,10 +656,16 @@ class IO_SWF_ABC_Code {
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 if (! isset($propertyMap[$index])) {
+                    /*
                     $this->dump();
-                    $info = ['propertyMap' => $propertyMap,
-                             'index' => $index, 'debugInfo' => $debugInfo];
+                    $info = ['codeContext' => $ctx,
+                             'index' => $index];
                     throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
+                    */
+                    $info = $this->abc->getMultiname($index);
+                    $name = $this->abc->getString_name($info["name"]);
+                    $propertyMap[$index] = ["name" => $name,
+                                            "valuetype" => null];
                 }
                 $name = $propertyMap[$index]["name"];
                 $actions []= ["Code" => 0x96, // Push
@@ -701,6 +705,7 @@ class IO_SWF_ABC_Code {
                 fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
             }
         }
+        $ctx->propertyMap = $propertyMap;
     }
     function typeExpantion($a, $b) {
         $atype = $a["valuetype"];

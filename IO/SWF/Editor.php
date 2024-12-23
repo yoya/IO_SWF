@@ -13,6 +13,7 @@ require_once dirname(__FILE__).'/Tag/Sound.php';
 require_once dirname(__FILE__).'/Lossless.php';
 require_once dirname(__FILE__).'/JPEG.php';
 require_once dirname(__FILE__).'/Bitmap.php';
+require_once dirname(__FILE__).'/ABC/Code/Context.php';
 
 class IO_SWF_Editor extends IO_SWF {
     // var $_headers = array(); // protected
@@ -1299,6 +1300,7 @@ class IO_SWF_Editor extends IO_SWF {
 
     function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList) {
         $abc = $doABC->tag->_ABC;
+        $codeContext = new IO_SWF_ABC_Code_Context();
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
@@ -1313,8 +1315,10 @@ class IO_SWF_Editor extends IO_SWF {
                 list($frame, $methodId) = $methodArray;
                 // echo "spriteId:$spriteId frame:$frame methodId:$methodId\n";
                 $code = $abc->getCodeByMethodId($methodId);
-                $debugInfo = ['spriteId' => $spriteId, 'ns' => $ns, 'name' => $name];
-                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version'], $debugInfo);
+                $codeContext->spriteId = $spriteId;
+                $codeContext->ns = $ns;
+                $codeContext->name = $name;
+                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version'], $codeContext);
                 $target_tags = null;
                 if ($spriteId === 0) {
                     $target_tags = & $this->_tags;
