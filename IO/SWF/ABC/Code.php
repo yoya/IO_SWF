@@ -294,10 +294,15 @@ class IO_SWF_ABC_Code {
             case 0x68:  // initproperty
                 $index = $bit->get_u30();
                 $info = $this->abc->getMultiname($index);
+                if (! isset($info["name"])) {
+                    fprintf(STDERR, "propertyMap isset name failed:".print_r($info, true));
+                    $info["name"] = "(dummy)";
+                }
                 $name = $this->abc->getString_name($info["name"]);
                 $code["name"] = $name;
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
+                fprintf(STDOUT, "generate initial propertyMap:". $index."\n");
                 break;
             }
         }
