@@ -525,35 +525,35 @@ class IO_SWF_ABC_Code {
                   - Push A
                   SetVariable
                  */
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
-                $code = array_pop($abcQueue);
-                if ($code["inst"] != 0x2C) { // ひとつ前は pushstring のはず
-                    $this->dump();
-                    throw new Exception("require pushstring instrument but code:".$code["inst"]);;
+                if ($code["inst"] == 0x2C) { // ひとつ前が pushstring
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                    $code = array_pop($abcQueue);
+                    if (! is_string($code["value"])) {
+                        $this->dump();
+                        throw new Exception("require pushstring instrument value type string:".$code["value"]);
+                    }
+                    $index = $bit->get_u30();
+                    $name = $propertyMap[$index]["name"];
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($code["value"]) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $code["value"]]
+                                  ]];
+                } else {
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($name) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $name]
+                                  ]];
                 }
-                if (! is_string($code["value"])) {
-                    $this->dump();
-                    throw new Exception("require pushstring instrument value type string:".$code["value"]);
-                }
-                $index = $bit->get_u30();
-                $name = $propertyMap[$index]["name"];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $name]
-                              ]];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($code["value"]) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $code["value"]]
-                              ]];
                 $actions []= ["Code" => 0x1d]; // SetVariable
                 // pop: value, push:(none)
                 // but skip flush push instruction.
-                $propertyMap[$index] = ["value"     => $code["value"],
-                                        "valuetype" => $code["valuetype"],
+                $propertyMap[$index] = ["value"     => $name,
+                                        "valuetype" => 0,  // String
                                         "name"      => $name];
                 break;
             case 0x75:  // convert_d
