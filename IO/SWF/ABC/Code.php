@@ -641,6 +641,7 @@ class IO_SWF_ABC_Code {
         return $action_tag;
     }
     function flushABCQueue(&$abcQueue, &$abcStack, &$actions, &$labels, $remain = 0) {
+        //print('flushABCQueue Begin: count(abcQueue)'.count($abcQueue)." remain:$remain\n");
         if (count($abcQueue) < $remain) {
             $c = count($abcQueue);
             $this->dump();
@@ -651,6 +652,7 @@ class IO_SWF_ABC_Code {
         // as FIFO
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
+            //print("flushABCQueue Loop: code:".$code["inst"]." name:".$code["inst"]."\n");
             $labels[count($actions)] = $code["offset"];
             if (! isset($code["bytes"])) {
                 fprintf(STDERR, print_r($code), true);
