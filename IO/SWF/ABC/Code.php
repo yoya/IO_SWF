@@ -423,7 +423,7 @@ class IO_SWF_ABC_Code {
                         throw new IO_SWF_Exception("unknown instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
                 } else {
-                    throw new Exception("support callproperty for random only");
+                    throw new IO_SWF_Exception("support callproperty for random only");
                 }
                 break;
             case 0x47:  // returnvoid
@@ -442,6 +442,9 @@ class IO_SWF_ABC_Code {
                      */
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                     $c = array_pop($abcQueue);
+                    if (is_null($c)) {
+                        throw new IO_SWF_Exception('gotoAndPlay: abcQueue array_pop return null');
+                    }
                     // pushbyte || pushshort
                     if (($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
                         $actions []= ["Code" => 0x81,  // GotoFrame
@@ -464,6 +467,9 @@ class IO_SWF_ABC_Code {
                     if (count($abcQueue) < 3) {  // XXX 未解明
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                         $c = array_pop($abcQueue);
+                        if (is_null($c)) {
+                            throw new IO_SWF_Exception('gotoAndStop: abcQueue array_pop return null');
+                        }
                         if ($c["inst"] !== 0x24) {  // pushbyte
                             $this->dump();
                             throw new IO_SWF_Exception("unknown gotoAndStop pattern");
@@ -511,7 +517,7 @@ class IO_SWF_ABC_Code {
                     break;
                 default:
                     $this->dump();
-                    throw new Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
+                    throw new IO_SWF_Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
                 }
                 break;
             case 0x61:  // setproperty
@@ -530,7 +536,7 @@ class IO_SWF_ABC_Code {
                     $code = array_pop($abcQueue);
                     if (! is_string($code["value"])) {
                         $this->dump();
-                        throw new Exception("require pushstring instrument value type string:".$code["value"]);
+                        throw new IO_SWF_Exception("require pushstring instrument value type string:".$code["value"]);
                     }
                     $index = $bit->get_u30();
                     $name = $propertyMap[$index]["name"];
@@ -638,7 +644,7 @@ class IO_SWF_ABC_Code {
         if (count($abcQueue) < $remain) {
             $c = count($abcQueue);
             $this->dump();
-            throw new Exception("not enough abcQueue:$c need $remain");
+            throw new IO_SWF_Exception("not enough abcQueue:$c need $remain");
         }
         $ctx = $this->codeContext;
         $propertyMap = $ctx->propertyMap;
@@ -646,6 +652,10 @@ class IO_SWF_ABC_Code {
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
             $labels[count($actions)] = $code["offset"];
+            if (! isset($code["bytes"])) {
+                fprintf(STDERR, print_r($code), true);
+                throw new IO_SWF_Exception('flushABCQueue: ! isset($code["bytes"])');
+            }
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
