@@ -689,7 +689,7 @@ class IO_SWF_ABC_Code {
                 // do nothing
                 break;
             case 0x66:  // getproperty
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                //$this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
                 if (! isset($propertyMap[$index])) {
                     /*
