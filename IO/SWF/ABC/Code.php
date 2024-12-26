@@ -424,8 +424,25 @@ class IO_SWF_ABC_Code {
                         }
                         throw new IO_SWF_Exception("unknown instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
+                } else if ($code["name"] === "MovieClip") {
+                    //
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                    $c = array_shift($abcQueue);
+                    if ($c["inst"] !== 96) {
+                        // getlex root
+                        // TODO getlex の name が root かもチェックする
+                        $code->dump();
+                        throw new IO_SWF_Exception('callproperty unknown pattern. need {getlex, callproperty MovieClip inst:'.$c["inst"]);
+                    }
+                    // root 参照なので何もしない
+                } else if ($code["name"] === "substr") {
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    // AS3: substr
+                    // AS1: StringExtract(15)
+                    $actions []= ["Code" => 0x15];  // StringExtract
                 } else {
-                    throw new IO_SWF_Exception("support callproperty for random only");
+                    $this->dump();
+                    throw new IO_SWF_Exception("support callproperty for random, substr,MovieClip(root) only =>  name:".$code["name"]);
                 }
                 break;
             case 0x47:  // returnvoid
