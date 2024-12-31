@@ -302,7 +302,9 @@ class IO_SWF_ABC_Code {
                 $code["name"] = $name;
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
-                fprintf(STDERR, "generate initial propertyMap:". $index."\n");
+                if ($opts['debug']) {
+                    fprintf(STDERR, "generate initial propertyMap: [". $index."] ".$name."\n");
+                }
                 break;
             }
         }
