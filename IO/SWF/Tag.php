@@ -116,6 +116,9 @@ class IO_SWF_Tag {
         }
         return false;
     }
+    function getTagName() {
+        return $this->getTagInfo($this->code, "name");
+    }
 
     function parse(&$reader, $opts) {
         list($this->byte_offset, $dummy) = $reader->getOffset();

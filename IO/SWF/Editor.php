@@ -1286,15 +1286,27 @@ class IO_SWF_Editor extends IO_SWF {
             foreach ($tagsEachKrass[$klass_kind] as $tagNoVer) {
                 list($no, $ver) = $tagNoVer;
                 if ($ver <= $limitSwfVersion) {
+                    if ($opts['debug'] && ($tag->code !== $no)) {
+                        $name = $tag->getTagInfo($no, "name");
+                        fprintf(STDERR, "downgrade tag %d(%s) to %d(%s)\n",
+                                $tag->code, $tag->getTagName(), $no ,$name);
+                    }
                     $tag->code = $no;
                     continue 2;
                 }
             }
+            if ($opts['debug']) {
+                $t = $tags[$idx];
+                if ($eliminate) {
+                    fprintf(STDERR, "Eliminated: %d(%s)\n", $t->code, $t->getTagName());
+                } else {
+                    fprintf(STDERR, "Not Eliminated: %d(%s)\n", $t->code, $t->getTagName());
+                }
+                fprintf(STDERR, "%s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
+            }
             if ($eliminate) {
                 unset($tags[$idx]);
-                fprintf(STDERR, "Eliminate: ");
             }
-            fprintf(STDERR, "%s(%d) tagVersion:%d > limitSwfVersion:%d\n", $tagName, $tagCode, $tagVersion, $limitSwfVersion);
         }
     }
 
