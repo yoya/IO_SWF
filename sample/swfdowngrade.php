@@ -25,7 +25,7 @@ function array_key_contain_all($arr, $keys) {
 }
 
 if (! array_key_contain_all($options, ['f', 'v'])) {
-    echo "ERROR: require f and v option\n";
+    echo "ERROR: require options f and v \n";
     usage();
     exit (1);
 }

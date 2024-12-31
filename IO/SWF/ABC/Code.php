@@ -302,7 +302,7 @@ class IO_SWF_ABC_Code {
                 $code["name"] = $name;
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
-                fprintf(STDOUT, "generate initial propertyMap:". $index."\n");
+                fprintf(STDERR, "generate initial propertyMap:". $index."\n");
                 break;
             }
         }
@@ -422,7 +422,7 @@ class IO_SWF_ABC_Code {
                                    ( is_null($vv)? ("$ii($in)"): ("$ii($in, $vv)") ):
                                    ("$ii($in, $nn)");
                         }
-                        throw new IO_SWF_Exception("unknown instruction pattern: idx:".$idx." inst:".join(",", $tmp));
+                        throw new IO_SWF_Exception("unknown random instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
                 } else if ($code["name"] === "MovieClip") {
                     //
