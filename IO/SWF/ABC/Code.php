@@ -250,7 +250,7 @@ class IO_SWF_ABC_Code {
             $bit = null;
         }
     }
-    function ABCCodetoActionTag($version, $ctx) {
+    function ABCCodetoActionTag($version, $ctx, $opts) {
         $this->codeContext = $ctx;
         // preprocess, set stack value & propertyMap
         $propertyMap = $ctx->propertyMap;  // [name, valuetype]
@@ -535,8 +535,12 @@ class IO_SWF_ABC_Code {
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 default:
-                    $this->dump();
-                    throw new IO_SWF_Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
+                    if ($opts['strict']) {
+                        $this->dump();
+                        throw new IO_SWF_Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
+                    } else {
+                        break 2;
+                    }
                 }
                 break;
             case 0x61:  // setproperty

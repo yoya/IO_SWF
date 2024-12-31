@@ -1224,7 +1224,7 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                $this->ABCtoAction($tags, $doABC, $tag, $spriteList);
+                $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $opts);
             }
         }
     }
@@ -1298,7 +1298,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
 
-    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList) {
+    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList, $opts) {
         $abc = $doABC->tag->_ABC;
         $codeContext = new IO_SWF_ABC_Code_Context();
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
@@ -1318,7 +1318,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $codeContext->spriteId = $spriteId;
                 $codeContext->ns = $ns;
                 $codeContext->name = $name;
-                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version'], $codeContext);
+                $actionTag = $code->ABCCodetoActionTag($this->_headers['Version'], $codeContext, $opts);
                 $target_tags = null;
                 if ($spriteId === 0) {
                     $target_tags = & $this->_tags;

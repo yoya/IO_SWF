@@ -6,10 +6,15 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-$options = getopt("f:v:l::Es");
+$options = getopt("f:v:l::ES");
 
 function usage() {
-    echo "Usage: php swfdowngrade.php -f <swf_file> -v <swf_version> [-l <limit_tag_swf_version>] [-E] [-s]\n";
+    echo "Usage: php swfdowngrade.php -f <swf_file> -v <swf_version> [-l <limit_tag_swf_version>] [-E] [-S]\n";
+    echo "    -f <swf_file>\n";
+    echo "    -v <swf_version>\n";
+    echo "    -l <limit_tag_swf_version>\n";
+    echo "    -E  # disable eliminate mode\n";
+    echo "    -S  # disable strict mode\n";
     echo "ex) php swfdowngrade.php -v 4 -f test.swf\n";
 }
 
@@ -41,8 +46,8 @@ if (isset($options['l'])) {
 
 $opts = [
     'preserveStyleState' => true,
-    'eliminate'          => ! isset($options['E']),
-    'strict'          => isset($options['s'])
+    'eliminate'          => ! isset($options['E']),  // 未対応タグを残すか
+    'strict'             => ! isset($options['S']),  // 続行するかどうか
 ];
 
 if (is_readable($filename) === false) {
