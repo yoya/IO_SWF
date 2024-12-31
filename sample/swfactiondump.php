@@ -28,21 +28,26 @@ $opts = [ 'hexdump'  =>      isset($options['h']),
           'abcparse' => true ];
 
 $swf->parse($swfdata, $opts);
-$swf->parseAllTagContent($opts);
 
 $tags = $swf->_tags;
-$spriteList = [];
 $abcTag = $symbolTag = null;
 
 foreach ($tags as $tag) {
     if ($tag->isSprite()) {
-        $spriteId = $tag->tag->_spriteId;
-        $spriteList[$spriteId] = $tag;
+        if (! $tag->parseTagContent($opts)) {
+            throw new IO_SWF_Excepion("parse sprite tag failed");
+        }
     }
     if ($tag->hasABC()) {
+        if (! $tag->parseTagContent($opts)) {
+            throw new IO_SWF_Excepion("parse abc tag failed");
+        }
         $abcTag = $tag;
     }
     if ($tag->hasSymbol()) {
+        if (! $tag->parseTagContent($opts)) {
+            throw new IO_SWF_Excepion("parse symbol tag failed");
+        }
         $symbolTag = $tag;
     }
 }
