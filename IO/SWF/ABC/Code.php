@@ -254,6 +254,7 @@ class IO_SWF_ABC_Code {
         $this->codeContext = $ctx;
         // preprocess, set stack value & propertyMap
         $propertyMap = $ctx->propertyMap;  // [name, valuetype]
+        $debugPropertyArray = [];
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -303,9 +304,18 @@ class IO_SWF_ABC_Code {
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
                 if ($opts['debug']) {
-                    fprintf(STDERR, "generate initial propertyMap: [". $index."] ".$name."\n");
+                    $debugPropertyArray []= "[". $index."]".$name;
                 }
                 break;
+            }
+        }
+        if ($opts['debug']) {
+            if (count($debugPropertyArray) > 0) {
+                fprintf(STDERR, "init propertyMap:");
+                foreach ($debugPropertyArray as $entry) {
+                    fprintf(STDERR, " $entry");
+                }
+                fprintf(STDERR, "=> total:".count($propertyMap)."\n");
             }
         }
         unset($code); // remove reference.
