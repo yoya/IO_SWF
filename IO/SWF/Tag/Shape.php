@@ -17,16 +17,17 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_shapeBounds;
     var $_fillStyles, $_lineStyles;
     var $_shapeRecords;
-    // DefineMorphShape
+    // DefineMorphShape, DefineMorphShape2
     var $_startBounds, $_endBounds;
     var $_offset;
     var $_morphFillStyles, $_morphLineStyles;
     var $_startEdge, $_endEdges;
-    //
+    // DefineShape4
     var $_edgeBounds;
     var $_reserved;
+    var $_usesFillWindingRule;
     var $_usesNonScalingStrokes;
-    var $_UsesScalingStrokes;
+    var $_usesScalingStrokes;
 
    function parseContent($tagCode, $content, $opts = array()) {
        // DefineMorphShape, DefineMorphShape2
@@ -43,9 +44,10 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
             $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
             if ($tagCode == 83) { // DefineShape4
                 $this->_edgeBounds = IO_SWF_TYPE_RECT::parse($reader);
-                $this->_reserved = $reader->getUIBits(6);
+                $this->_reserved = $reader->getUIBits(5);
+                $this->_usesFillWindingRule = $reader->getUIBit();
                 $this->_usesNonScalingStrokes = $reader->getUIBit();
-                $this->_UsesScalingStrokes = $reader->getUIBit();
+                $this->_usesScalingStrokes = $reader->getUIBit();
             }
             $this->_fillStyles = IO_SWF_TYPE_FILLSTYLEARRAY::parse($reader, $opts);
         	$this->_lineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
@@ -79,6 +81,10 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
 
         if ($isMorph === false) {
             echo "    ShapeBounds: ". IO_SWF_Type_RECT::string($this->_shapeBounds)."\n";
+            if ($tagCode == 83) { // DefineShape4
+                echo "    EdgeBounds: ".IO_SWF_TYPE_RECT::string($this->_edgeBounds)."\n";
+                echo "    UsesFillWindingRule:".$this->_usesFillWindingRule." UsesNonScalingStrokes:".$this->_usesNonScalingStrokes." UsesScalingStrokes:".$this->_usesScalingStrokes."\n";
+            }
             echo "    FillStyles:\n";
             echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_fillStyles, $opts);
             echo "    LineStyles:\n";
@@ -103,6 +109,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     }
 
     function buildContent($tagCode, $opts = array()) {
+        // DefineMorphShape(46) or DefineMorphShape2(84)
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
         $writer = new IO_Bit();
         if (empty($opts['noShapeId'])) {
@@ -111,6 +118,13 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         $opts['tagCode'] = $tagCode;
         if ($isMorph === false) {
             IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
+            if ($tagCode == 83) { // DefineShape4
+                IO_SWF_TYPE_RECT::build($writer, $this->_edgeBounds);
+                $writer->putUIBits($this->_reserved, 5);
+                $writer->putUIBit($this->_usesFillWindingRule);
+                $writer->putUIBit($this->_usesNonScalingStrokes);
+                $writer->putUIBit($this->_usesScalingStrokes);
+            }
             // 描画スタイル
             IO_SWF_Type_FILLSTYLEARRAY::build($writer, $this->_fillStyles, $opts);
             IO_SWF_Type_LINESTYLEARRAY::build($writer, $this->_lineStyles, $opts);
