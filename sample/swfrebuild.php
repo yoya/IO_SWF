@@ -7,8 +7,8 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 if ($argc != 2) {
-    echo "Usage: php swfrebuild.php <swf_file>\n";
-    echo "ex) php swfrebuild.php test.swf\n";
+    fprintf(STDERR, "Usage: php swfrebuild.php <swf_file>\n");
+    fprintf(STDERR, "ex) php swfrebuild.php test.swf\n");
     exit(1);
 }
 
