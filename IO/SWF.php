@@ -24,6 +24,19 @@ class IO_SWF {
      * parse
      */
     function parse($swfdata, $opts = array()) {
+        $signature = substr($swfdata, 0, 3);
+        switch ($signature) {
+        case 'FWS':
+        case 'CWS':
+        case 'ZWS':
+            $this->parseSWF($swfdata, $opts);
+            break;
+        default:
+            $this->parseTag($swfdata, $opts);
+            break;
+        }
+    }
+    function parseSWF($swfdata, $opts = array()) {
         $reader = new IO_Bit();
         $reader->input($swfdata);
         $this->_swfdata  = $swfdata;
@@ -62,8 +75,8 @@ class IO_SWF {
         
         /* SWF Tags */
         while (true) {
-	    $swfInfo = array('Version' => $this->_headers['Version']);
-      	    $tag = new IO_SWF_Tag($swfInfo);
+            $swfInfo = array('Version' => $this->_headers['Version']);
+            $tag = new IO_SWF_Tag($swfInfo);
             $tag->parse($reader, $opts);
             $this->_tags[] = $tag;
             if ($tag->code == 0) { // END Tag
@@ -71,6 +84,14 @@ class IO_SWF {
             }
         }
         return true;
+    }
+    function parseTag($tagdata, $opts = array()) {
+        $reader = new IO_Bit();
+        $reader->input($tagdata);
+        $swfInfo = array('Version' => 99999);
+        $tag = new IO_SWF_Tag($swfInfo);
+        $tag->parse($reader, $opts);
+        $this->_tags[] = $tag;
     }
     function parseAllTagContent($opts) {
         foreach ($this->_tags as &$tag) {
@@ -120,6 +141,13 @@ class IO_SWF {
      * dump
      */
     function dump($opts = array()) {
+        if (isset($this->_headers['Signature'])) {
+            $this->dumpSWF($opts);
+        } else {
+            $this->dumpTag($opts);
+        }
+    }
+    function dumpSWF($opts = array()) {
         if (empty($opts['hexdump']) === false) {
             $bitio = new IO_Bit();
             $bitio->input($this->_swfdata);
@@ -143,6 +171,9 @@ class IO_SWF {
         }
         echo 'Tags:'.PHP_EOL;
         $opts['FrameNum'] = 0;
+        $this->dumpTag($opts);
+    }
+    function dumpTag($opts = array()) {
         foreach ($this->_tags as $tag) {
             try {
                 $tag->dump($opts);
@@ -155,7 +186,7 @@ class IO_SWF {
             } catch (IO_Bit_Exception $e) {
                 echo "(tag dump failed) $e\n";
             }
-            if ($this->_headers['Version'] < 6) {
+            if (isset($this->_headers['Version']) && ($this->_headers['Version'] < 6)) {
                 ob_flush();
             }
         }
