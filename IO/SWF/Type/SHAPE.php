@@ -55,7 +55,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
 
                     $stateMoveTo = $reader->getUIBit();
                     if ($stateMoveTo) {
-                    $moveBits = $reader->getUIBits(5);
+                        $moveBits = $reader->getUIBits(5);
 //                        $shapeRecord['(MoveBits)'] = $moveBits;
                         $moveDeltaX = $reader->getSIBits($moveBits);
                         $moveDeltaY = $reader->getSIBits($moveBits);
