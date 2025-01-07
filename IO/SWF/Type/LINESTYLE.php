@@ -35,7 +35,7 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
                     $lineStyle['MiterLimitFactor'] = $reader->getUI16LE();
                 }
             }
-            if ($tagCode < 32 ) { // DefineShape1,2
+            if ($tagCode < 32) { // DefineShape1,2
                 $lineStyle['Color'] = IO_SWF_Type_RGB::parse($reader);
             } else if ($tagCode == 32) { // DefineShape3
                 $lineStyle['Color'] = IO_SWF_Type_RGBA::parse($reader);
