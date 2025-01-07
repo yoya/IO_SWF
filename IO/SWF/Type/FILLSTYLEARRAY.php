@@ -24,7 +24,13 @@ class IO_SWF_Type_FILLSTYLEARRAY implements IO_SWF_Type {
            $fillStyleCount = $reader->getUI16LE();
         }
         for ($i = 0 ; $i < $fillStyleCount ; $i++) {
-            $fillStyles[] = IO_SWF_Type_FILLSTYLE::parse($reader, $opts);
+            $fillStyle = IO_SWF_Type_FILLSTYLE::parse($reader, $opts);
+            $fillStyles[] = $fillStyle;
+            $fillStyleTypeList = [  0x00, 0x10, 0x12, 0x13,
+                                    0x40, 0x41, 0x42, 0x43 ];
+            if (! in_array($fillStyle["FillStyleType"], $fillStyleTypeList)) {
+                break;
+            }
         }
         return $fillStyles;
     }
