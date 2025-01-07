@@ -88,7 +88,15 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
             }
             break;
           default:
-            throw new IO_SWF_Exception("Unknown FillStyleType=$fillStyleType tagCode=$tagCode");
+              $fillStyleTypeHex = dechex($fillStyleType);
+              $errmsg = "Unknown FillStyleType=0x$fillStyleTypeHex($fillStyleType) tagCode=$tagCode";
+            if ($opts['strict']) {
+                throw new IO_SWF_Exception($errmsg);
+            } else {
+                fprintf(STDERR, $errmsg);
+                fprintf(STDERR, print_r($opts, true));
+                return $fillStyle;
+            }
         }
         return $fillStyle;
     }

@@ -37,8 +37,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     	$reader->input($content);
         $this->_shapeId = $reader->getUI16LE();
 
-        $opts = array('tagCode' => $tagCode, 'isMorph' => $isMorph);
-
+        $opts = $opts + [ 'tagCode' => $tagCode, 'isMorph' => $isMorph,
+                          'shapeId' => $this->_shapeId ];
         if ($isMorph === false) {
         	// 描画スタイル
             $this->_shapeBounds = IO_SWF_TYPE_RECT::parse($reader);
