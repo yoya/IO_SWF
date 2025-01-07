@@ -200,6 +200,7 @@ class IO_SWF_Editor extends IO_SWF {
                 }
             }
         }
+        return null;
     }
     function getTagsByReferenceId($referenceId) {
         return $this->_getTagsByReferenceId($referenceId, $this->_tags);
