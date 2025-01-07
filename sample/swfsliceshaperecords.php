@@ -7,9 +7,9 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 if ($argc < 2) {
-    echo "Usage: php swfcountshapeedges.php <swf_file> [<shape_id> <start> <end>]\n";
-    echo "ex) php swfcountshapeedges.php test.swf\n";
-    echo "ex) php swfcountshapeedges.php test.swf 1 0 32\n";
+    echo "Usage: php swfsliceshapeedges.php <swf_file> [<shape_id> <start> <end>]\n";
+    echo "ex) php swfsliceshapeedges.php test.swf\n";
+    echo "ex) php swfsliceshapeedges.php test.swf 1 0 32\n";
     exit(1);
 }
 
