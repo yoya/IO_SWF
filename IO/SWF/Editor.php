@@ -1180,7 +1180,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
         $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
 
-        $origVersion = $this->_headers['Version'];
+        $origVersion = isset($this->_headers['Version'])? $this->_headers['Version']: 43;
         $this->_headers['Version'] = $swfVersion;
         $tagInfoList = $this->_tags[0]->getTagInfoList();
         $tagsEachKrass = []; // desc sort by tagNo (version as a result)
