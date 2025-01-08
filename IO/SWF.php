@@ -104,6 +104,13 @@ class IO_SWF {
      */
     function build($opts = []) {
         $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
+        if (isset($this->_headers['Signature'])) {
+            return $this->buildSWF($opts);
+        } else {
+            return $this->buildTags($opts);
+        }
+    }
+    function buildSWF($opts = []) {
 
         $writer_head = new IO_Bit();
         $writer = new IO_Bit();
@@ -118,7 +125,7 @@ class IO_SWF {
         $writer->byteAlign();
         $writer->putUI16LE($this->_headers['FrameRate']);
         $writer->putUI16LE($this->_headers['FrameCount']);
-        
+
         /* SWF Tags */
         foreach ($this->_tags as $idx => $tag) {
             $tagData = $tag->build($opts);
@@ -136,6 +143,19 @@ class IO_SWF {
             return $writer_head->output() . gzcompress($writer->output());
         }
         return $writer_head->output().$writer->output();
+    }
+    function buildTags($opts = []) {
+        $writer = new IO_Bit();
+        /* SWF Tags */
+        foreach ($this->_tags as $idx => $tag) {
+            $tagData = $tag->build($opts);
+            if ($tagData != false) {
+                $writer->putData($tagData);
+            } else {
+                throw new IO_SWF_Exception("tag build failed (tag idx=$idx)");
+            }
+        }
+        return $writer->output();
     }
     /*
      * dump
