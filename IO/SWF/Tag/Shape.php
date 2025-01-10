@@ -77,8 +77,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if (is_null($this->_shapeId) === false) {
             echo "    ShapeId: {$this->_shapeId}\n";
         }
-        $opts = array('tagCode' => $tagCode, 'isMorph' => $isMorph);
-
+        $opts = $opts + [ 'tagCode' => $tagCode, 'isMorph' => $isMorph,
+                          'shapeId' => $this->_shapeId ];
         if ($isMorph === false) {
             echo "    ShapeBounds: ". IO_SWF_Type_RECT::string($this->_shapeBounds)."\n";
             if ($tagCode == 83) { // DefineShape4
@@ -115,7 +115,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         if (empty($opts['noShapeId'])) {
             $writer->putUI16LE($this->_shapeId);
         }
-        $opts['tagCode'] = $tagCode;
+        $opts = $opts + [ 'tagCode' => $tagCode,
+                          'shapeId' => $this->_shapeId ];
         if ($isMorph === false) {
             IO_SWF_Type_RECT::build($writer, $this->_shapeBounds);
             if ($tagCode == 83) { // DefineShape4

@@ -24,6 +24,8 @@ class IO_SWF {
      * parse
      */
     function parse($swfdata, $opts = array()) {
+        // default parameter
+        $opts['debug'] = ! empty($opts['debug']);
         $signature = substr($swfdata, 0, 3);
         switch ($signature) {
         case 'FWS':
@@ -103,6 +105,8 @@ class IO_SWF {
      * build
      */
     function build($opts = []) {
+        // default parameter
+        $opts['debug'] = ! empty($opts['debug']);
         $opts['preserveStyleState'] = ! empty($opts['preserveStyleState']);
         if (isset($this->_headers['Signature'])) {
             return $this->buildSWF($opts);
@@ -161,6 +165,8 @@ class IO_SWF {
      * dump
      */
     function dump($opts = array()) {
+        // default parameter
+        $opts['debug'] = ! empty($opts['debug']);
         if (isset($this->_headers['Signature'])) {
             $this->dumpSWF($opts);
         } else {

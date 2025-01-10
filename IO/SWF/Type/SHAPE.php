@@ -16,8 +16,12 @@ require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
+        if ($opts['debug']) {
+            $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
+            printf("Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
+                   $opts['shapeId'], $tagCode, $tagName);
+        }
         $shapeRecords = array();
-
     	$reader->byteAlign();
     	// 描画スタイルを参照するインデックスのビット幅
     	$numFillBits = $reader->getUIBits(4);
@@ -139,6 +143,12 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         $tagCode = $opts['tagCode'];
         $fillStyleCount = $opts['fillStyleCount'];
         $lineStyleCount = $opts['lineStyleCount'];
+
+        if ($opts['debug']) {
+            $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
+            printf("Type_SHAPE::build: shapeId:%d tagCode:%d(%s)\n",
+                   $opts['shapeId'], $tagCode, $tagName);
+        }
         if ($fillStyleCount == 0) {
             $numFillBits = 0;
         } else {

@@ -29,8 +29,9 @@ class IO_SWF_Editor extends IO_SWF {
     var $setReferenceIdDone = false;
 
     function rebuild() {
+        $opts['debug'] = ! empty($opts['debug']);
         foreach ($this->_tags as &$tag) {
-            if ($tag->parseTagContent()) {
+            if ($tag->parseTagContent($opts)) {
                 $tag->content = null;
             }
         }

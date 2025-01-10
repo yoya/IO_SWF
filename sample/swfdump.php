@@ -6,10 +6,10 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF.php';
 }
 
-$options = getopt("f:hlAS");
+$options = getopt("f:hlASd");
 
 if (! isset($options['f']))  {
-    echo "Usage: php swfdump.php -f <swf_file> [-h] [-l] [-A] [-S]\n";
+    echo "Usage: php swfdump.php -f <swf_file> [-h] [-l] [-A] [-S] [-d]\n";
     echo "ex) php swfdump.php -f test.swf -h -l\n";
     exit(1);
 }
@@ -27,6 +27,7 @@ $opts = [
     'addlabel' =>   isset($options['l']),
     'abcdump'  => ! isset($options['A']),
     'strict'   => ! isset($options['S']),
+    'debug'    =>   isset($options['d']),
 ];
 
 $swf->parse($swfdata, $opts);
