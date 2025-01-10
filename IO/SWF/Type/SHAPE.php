@@ -33,7 +33,6 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     	$currentFillStyle1 = 0;
     	$currentLineStyle = 0;
     	$done = false;
-
     	// ShapeRecords
     	while ($done === false) {
     	    $shapeRecord = array();
@@ -56,8 +55,16 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['StateLineStyle']  = $stateLineStyle;
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
-
                     $stateMoveTo = $reader->getUIBit();
+                    if ($opts['debug']) {
+                        printf("%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
+                               $stateNewStyles, $stateLineStyle,
+                               $stateFillStyle1, $stateFillStyle0,
+                               $stateMoveTo,
+                               $stateNewStyles, $stateLineStyle,
+                               $stateFillStyle1, $stateFillStyle0,
+                               $stateMoveTo);
+                    }
                     if ($stateMoveTo) {
                         $moveBits = $reader->getUIBits(5);
 //                        $shapeRecord['(MoveBits)'] = $moveBits;
