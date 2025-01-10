@@ -106,11 +106,11 @@ class IO_SWF_Tag {
         $this->swfInfo = $swfInfo;
     }
 
-    function getTagInfoList() {
+    static function getTagInfoList() {
         return self::$tagMap;
     }
 
-    function getTagInfo($tagCode, $label) {
+    static function getTagInfo($tagCode, $label) {
         if (isset(self::$tagMap[$tagCode][$label])) {
            return self::$tagMap[$tagCode][$label];
         }
