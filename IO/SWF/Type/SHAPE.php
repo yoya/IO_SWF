@@ -222,7 +222,9 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     } else {
                         $stateMoveTo = false;
                     }
-                    if (($stateNewStyles + $stateNewStyles +
+                    // 全部 0 だと End of Shape なので、skip する。
+                    // Shape Records を編集した時に備えての処理
+                    if (($stateNewStyles + $stateLineStyle +
                          $stateFillStyle1 + $stateFillStyle0 + $stateMoveTo)
                         == 0) {
                         $stateMoveTo = 1;
