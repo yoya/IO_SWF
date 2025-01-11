@@ -180,7 +180,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         foreach ($shapeRecords as $shapeRecordIndex => $shapeRecord) {
             $typeFlag = $shapeRecord['TypeFlag'];
             $writer->putUIBit($typeFlag);
-            if($typeFlag == 0) {
+            if ($typeFlag == 0) {
                 if (isset($shapeRecord['EndOfShape']) && ($shapeRecord['EndOfShape']) == 0) {
                     // EndShapeRecord
                     $writer->putUIBits(0, 5);

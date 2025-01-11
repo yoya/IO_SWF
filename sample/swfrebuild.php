@@ -6,15 +6,23 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-if ($argc != 2) {
-    fprintf(STDERR, "Usage: php swfrebuild.php <swf_file>\n");
+$options = getopt("f:p");
+
+if (! isset($options['f']))  {
+    fprintf(STDERR, "Usage: php swfrebuild.php -f <swf_file> [-p]\n");
+    echo "    -f <swf_file>\n";
+    echo "    -p  # disable eliminate mode\n";
     fprintf(STDERR, "ex) php swfrebuild.php test.swf\n");
     exit(1);
 }
+$filename = $options['f'];
+assert(is_readable($filename));
 
-assert(is_readable($argv[1]));
+$opts = [
+    'preserveStyleState' => isset($options['p'])
+];
 
-$swfdata = file_get_contents($argv[1]);
+$swfdata = file_get_contents($filename);
 
 $swf = new IO_SWF_Editor();
 
@@ -22,6 +30,6 @@ $swf->parse($swfdata);
 
 $swf->rebuild();
 
-echo $swf->build();
+echo $swf->build($opts);
 
 exit(0);
