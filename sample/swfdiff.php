@@ -3,6 +3,7 @@
 /*
  * $ brew install libxdiff
  * $ pecl install xdiff
+ * libxdiff library installation dir? [autodetect] : /opt/homebrew/Cellar/libxdiff/0.23/
  */
 
 if (is_readable('vendor/autoload.php')) {
@@ -17,23 +18,24 @@ if ($argc !== 3)  {
     exit(1);
 }
 
-$a = get_swfdumpdata($argv[1]);
-$b = get_swfdumpdata($argv[2]);
+$opts = [ 'hexdump'  => false,
+          'addlabel' => true,
+          'abcdump'  => true];
+
+$a = get_swfdumpdata($argv[1], $opts);
+$b = get_swfdumpdata($argv[2], $opts);
 
 echo xdiff_string_diff($a, $b);
 
 exit(0);
 
-function get_swfdumpdata($filename) {
+function get_swfdumpdata($filename, $opts) {
     if ($filename === "-") {
         $filename = "php://stdin";
     }
     $swfdata = file_get_contents($filename);
     $swf = new IO_SWF();
     $swf->parse($swfdata);
-    $opts = [ 'hexdump'  => false,
-              'addlabel' => true,
-              'abcdump'  => true];
     ob_start();
     $swf->dump($opts);
     $data = ob_get_contents(); 
