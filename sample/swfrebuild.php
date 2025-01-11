@@ -11,7 +11,7 @@ $options = getopt("f:p");
 if (! isset($options['f']))  {
     fprintf(STDERR, "Usage: php swfrebuild.php -f <swf_file> [-p]\n");
     echo "    -f <swf_file>\n";
-    echo "    -p  # disable eliminate mode\n";
+    echo "    -p  # enable preserveStyleState\n";
     fprintf(STDERR, "ex) php swfrebuild.php test.swf\n");
     exit(1);
 }
