@@ -51,11 +51,12 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $stateLineStyle = $reader->getUIBit();
                     $stateFillStyle1 = $reader->getUIBit();
                     $stateFillStyle0 = $reader->getUIBit();
+                    $stateMoveTo = $reader->getUIBit();
                     $shapeRecord['StateNewStyles']  = $stateNewStyles;
                     $shapeRecord['StateLineStyle']  = $stateLineStyle;
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
-                    $stateMoveTo = $reader->getUIBit();
+                    $shapeRecord['StateMoveTo'] = $stateMoveTo;
                     if ($opts['debug']) {
                         printf("%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
                                $stateNewStyles, $stateLineStyle,
@@ -161,12 +162,18 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         } else {
             // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
             $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
+            if (15 < $numFillBits) {
+                throw new Exception("too many numFillBits:$numFillBits");
+            }
         }
         if ($lineStyleCount == 0) {
             $numLineBits = 0;
         } else {
             // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
             $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
+            if (15 < $numLineBits) {
+                throw new Exception("too many numLineBits:$numLineBits");
+            }
         }
 
         $writer->byteAlign();
@@ -212,22 +219,20 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         $stateLineStyle  = $shapeRecord['StateLineStyle'];
                         $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
                         $stateFillStyle0 = $shapeRecord['StateFillStyle0'];
+                        $stateMoveTo = $shapeRecord['StateMoveTo'];
                     } else {
                         $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
                         $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                         $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
-                    }
-                    if (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY)) {
-                        $stateMoveTo = true;
-                    } else {
-                        $stateMoveTo = false;
+                        $stateMoveTo = ($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY);
                     }
                     // 全部 0 だと End of Shape なので、skip する。
                     // Shape Records を編集した時に備えての処理
                     if (($stateNewStyles + $stateLineStyle +
                          $stateFillStyle1 + $stateFillStyle0 + $stateMoveTo)
                         == 0) {
-                        $stateMoveTo = 1;
+                        fprintf(STDERR, "warning: skip shape records all flags off but no end shape.\n");
+                        continue;
                     }
                     $writer->putUIBit($stateNewStyles);
                     $writer->putUIBit($stateLineStyle);
@@ -272,7 +277,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         $writer->putUIBits($numLineBits, 4);
                     }
                 }
-            } else {
+            } else {  // maybe $typeFlag == 1
                 $straightFlag = $shapeRecord['StraightFlag'];
                 $writer->putUIBit($straightFlag);
                 if ($straightFlag) {
@@ -354,7 +359,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                    $moveX = $shapeRecord['MoveX'] / 20;
                    $moveY = $shapeRecord['MoveY'] / 20;
                    $text .= "ChangeStyle: MoveTo: ($moveX, $moveY)";
-                   $state_list = array('StateNewStyles', 'StateLineStyle', 'StateFillStyle1', 'StateFillStyle0');
+                   $state_list = array('StateNewStyles', 'StateLineStyle', 'StateFillStyle1', 'StateFillStyle0', 'StateMoveTo');
                    $text .= " State:";
                    foreach ($state_list as $stateKey) {
                        $text .= " " . ($shapeRecord[$stateKey]? "1": "0");

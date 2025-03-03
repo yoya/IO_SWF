@@ -356,7 +356,8 @@ class IO_SWF_ABC_Code {
             case 0x13:  // ifeq
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $branchOffset = $bit->get_s24();
-                $actions []= ["Code" => 0x66];  // Equal
+                // $actions []= ["Code" => 0x66];  // StrictEqual
+                $actions []= ["Code" => 0x0E];  // Equal
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
                 $actions []= ["Code" => 0x9D,  // If
                               "Length" => 2,
