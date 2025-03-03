@@ -1206,6 +1206,7 @@ class IO_SWF_Editor extends IO_SWF {
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion, $opts) {
         $doABC = null;
         $spriteList = [];
+        $codeContext = new IO_SWF_ABC_Code_Context();
         // downgrade DoABC tag
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
@@ -1226,7 +1227,7 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $opts);
+                $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $codeContext, $opts);
             }
         }
     }
@@ -1312,9 +1313,8 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
 
-    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList, $opts) {
+    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList, &$codeContext, $opts) {
         $abc = $doABC->tag->_ABC;
-        $codeContext = new IO_SWF_ABC_Code_Context();
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
