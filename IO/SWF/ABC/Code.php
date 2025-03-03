@@ -435,6 +435,7 @@ class IO_SWF_ABC_Code {
                                    ( is_null($vv)? ("$ii($in)"): ("$ii($in, $vv)") ):
                                    ("$ii($in, $nn)");
                         }
+                        $this->dump();
                         throw new IO_SWF_Exception("unknown random instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
                 } else if ($code["name"] === "MovieClip") {
