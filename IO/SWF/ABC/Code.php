@@ -383,16 +383,6 @@ class IO_SWF_ABC_Code {
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $actions []= ["Code" => 0x2A]; // Dup
                 break;
-                /*
-                case 0xd0:  // getlocal_0
-                case 0xd1:  // getlocal_1
-                case 0xd2:  // getlocal_2
-                case 0xd3:  // getlocal_3
-                    break;
-                default:
-                }
-                */
-                break;
             case 0x46:  // callproperty
                 if ($code["name"] === "random") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
