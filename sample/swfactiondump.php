@@ -115,7 +115,7 @@ foreach ($tags as $idx => $tag) {
                 }
             }
             if ($control_tag->hasAction()) {
-                echo "    === frame:$spriteFrameNum\n";
+                echo "=== frame:$spriteFrameNum\n";
                 $control_tag->dump($opts, $opts);
             }
             if ($control_tag->code === 1) { // ShowFrame
