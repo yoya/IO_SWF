@@ -465,21 +465,36 @@ class IO_SWF_ABC_Code {
                      * AS3:
                      * callpropv name=gotoAndPlay or name=gotoAndStop
                      * AS1:
-                     * => (Push A/B:C) GoToFrame2 SceneBiasFlag=0 PlayFlag=1
-                     * => (Push A/B:C) GoToFrame2 SceneBiasFlag=0 PlayFlag=0
+                     * => Push (/A/)B:C GoToFrame2 SceneBiasFlag=0 PlayFlag=1
+                     * => Push (/A/)B:C GoToFrame2 SceneBiasFlag=0 PlayFlag=0
+                     * => GoToFrame C ; Play | Stop
+                     * => GoToLabel C ; Play | Stop
                     */
                     $push_path = null;
+                    $gotofunc = "GotoFrame2";
                     if (count($abcQueue) >= 3) {
                         /*
-                         *  getproperty name=A, getproperty name=B, pushbyte C
-                         * => Push A/B:C
+                         *  getproperty name=A
+                         *  getproperty name=B
+                         *  pushbyte C
+                         *  callpropvoid random
+                         * => Push /A/B:
+                         * => GotoFrame2C
                          */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
                         $a = $abcQueue[0];  // getproperty
                         $b = $abcQueue[1];  // getproperty
                         $c = $abcQueue[2];  // pushbyte || pushshort
                         if (($a["inst"] == 0x66) &&($b["inst"] == 0x66) && ($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
-                            $push_path = $a["name"]."/".$b["name"].":".$c["value"];
+                            if (isset($a['name']) && ($a['name'] !== "") &&
+                                isset($b['name']) && ($b['name'] !== "") &&
+                                isset($c['value'])) {
+                                // OK
+                            } else {
+                                $this->dump();
+                                throw new IO_SWF_Exception("a b c parameter ".print_r([$a, $b, $c], true));
+                            }
+                            $push_path = "/".$a["name"]."/".$b["name"].":".$c["value"];
                             array_pop($abcQueue);
                             array_pop($abcQueue);
                             array_pop($abcQueue);
@@ -488,14 +503,24 @@ class IO_SWF_ABC_Code {
                     }
                     if (is_null($push_path) && (count($abcQueue) >= 2)) {
                         /*
-                         *  getproperty name=B, pushbyte C
-                         * => Push ./B:C
+                         *  getproperty name=B
+                         *  pushbyte C
+                         *  callpropvoid random
+                         * => Push B:C
+                         * => GotoFrame2
                          */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 2);
                         $b = $abcQueue[0];  // getproperty
                         $c = $abcQueue[1];  // pushbyte || pushshort
-                        if (($b["inst"] == 0x66) && ($b["inst"] === 0x24) || ($c["inst"] === 0x25)) {
-                            $push_path = "./".$b["name"].":".$c["value"];
+                        if (($b["inst"] == 0x66) && ($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
+                            if (isset($b['name']) && ($b['name'] !== "") &&
+                                isset($c['value'])) {
+                                // OK
+                            } else {
+                                $this->dump();
+                                throw new IO_SWF_Exception("b c parameter ".print_r([$b, $c], true));
+                            }
+                            $push_path = $b["name"].":".$c["value"];
                             // stackNum: -1 + 1
                             array_pop($abcQueue);
                             array_pop($abcQueue);
@@ -505,18 +530,29 @@ class IO_SWF_ABC_Code {
                     if (is_null($push_path) && (count($abcQueue) >= 1)) {
                         /*
                          *  pushbyte C
-                         * => Push .:C
+                         *  callpropvoid random
+                         => GoToLabel C (string)
+                         => GoToFrame C (short)
                          */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                         $c = $abcQueue[0];
-                        // pushbyte || pushshort || pushstring
                         if (($c["inst"] === 0x24) || ($c["inst"] === 0x25) || ($c["inst"] === 0x2C)) {
-                            $push_path = "/:".$c["value"];
-                            // $push_path = "../../:".$c["value"];
+                            if (! isset($c['value'])) {
+                                $this->dump();
+                                throw new IO_SWF_Exception("c parameter ".print_r([$b, $c], true));
+                            }
+                            // pushbyte || pushshort || pushstring
+                            //                            $push_path = ".:".$c["value"];
+                            $push_path = $c["value"];
                             array_pop($abcQueue);
                             // この後、pop されるので dummy を入れておく
                             array_push($abcStack, []); // stackNum: +1
                             $trackbackDone = true;
+                            if ($c["inst"] === 0x2C) {  // string
+                                $gotofunc = "GotoLabel";
+                            } else {
+                                $gotofunc = "GotoFrame";
+                            }
                         }
                     }
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
@@ -527,20 +563,50 @@ class IO_SWF_ABC_Code {
                         }
                         fprintf(STDERR, "unknown pattern $name bytecode\n");
                         // TODO: pop した path 文字を整形して push し直す処理
-                    } else {
+                    }
+                    $playFlag = ($name === "gotoAndPlay")? 1: 0;
+                    switch ($gotofunc) {
+                    case "GotoFrame2":
                         $actions []= ["Code" => 0x96, // Push
                                       "Length" => 1 + strlen($push_path) + 1,
                                       "Values" => [
                                           ["Type" => 0,  // String
                                            "String" => $push_path]
                                       ]];
+                        $actions []= ["Code" => 0x9F,  // GotoFrame2 (play)
+                                      "Length" => 1, "SceneBiasFlag" => 0,
+                                      "PlayFlag" => $playFlag];
+                        // pop: frame => push:(none)
+                        array_pop($abcStack);
+                        break;
+                    case "GotoLabel":
+                        $actions []= ["Code" => 0x8C,  // GotoLabel
+                                      "Length" => strlen($push_path) + 1,
+                                      "Label"=> $push_path];
+                        if ($playFlag) {
+                            $actions []= ["Code" => 0x06]; // Play
+                        } else {
+                            $actions []= ["Code" => 0x07]; // Stop
+                        }
+                        // pop: frame => push:(none)
+                        array_pop($abcStack);
+                        break;
+                    case "GotoFrame":
+                        $actions []= ["Code" => 0x81,  // GotoFrame
+                                      "Length" => 2,
+                                      "Frame"=> $push_path];
+                        if ($playFlag) {
+                            $actions []= ["Code" => 0x06]; // Play
+                        } else {
+                            $actions []= ["Code" => 0x07]; // Stop
+                        }
+                        // pop: frame => push:(none)
+                        array_pop($abcStack);
+                        break;
+                    default:
+                        $this->dump();
+                        throw new IO_SWF_Exception("illegal gotoFunc type:".$gotofunc);
                     }
-                    $playFlag = ($name === "gotoAndPlay")? 1: 0;
-                    $actions []= ["Code" => 0x9F,  // GotoFrame2 (play)
-                                  "Length" => 1, "SceneBiasFlag" => 0,
-                                  "PlayFlag" => $playFlag];
-                    // pop: frame => push:(none)
-                    array_pop($abcStack);
                     break;
                 case "play":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
@@ -549,6 +615,9 @@ class IO_SWF_ABC_Code {
                 case "stop":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                     $actions []= ["Code" => 0x07]; // Stop
+                    break;
+                case "addEventListener":
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 6);
                     break;
                 default:
                     if ($opts['strict']) {
