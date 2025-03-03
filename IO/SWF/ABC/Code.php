@@ -640,8 +640,8 @@ class IO_SWF_ABC_Code {
             case 0xd1:  // getlocal_1
             case 0xd2:  // getlocal_2
             case 0xd3:  // getlocal_3
-                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 // register(local_x) to stack
+                array_push($abcQueue, $code);
                 break;
             case 0xd4:  // setlocal_0
             case 0xd5:  // setlocal_1
@@ -776,6 +776,12 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x60:  // getlex
                 // findpropstict の後に getproperty を実行するのと同じ
+                break;
+            case 0xd0:  // getlocal_0
+            case 0xd1:  // getlocal_1
+            case 0xd2:  // getlocal_2
+            case 0xd3:  // getlocal_3
+                // local scope なので一旦無視
                 break;
             default:
                 $instName = $this->getInstructionName($inst);
