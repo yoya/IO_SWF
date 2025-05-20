@@ -8,6 +8,7 @@ class IO_SWF_ABC_Code {
     var $codeArray = [];
     var $abc = null;
     var $codeContext = null;
+    var $opts = [];
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -252,6 +253,7 @@ class IO_SWF_ABC_Code {
     }
     function ABCCodetoActionTag($version, $ctx, $opts) {
         $this->codeContext = $ctx;
+        $this->opts = $opts;
         // preprocess, set stack value & propertyMap
         $propertyMap = $ctx->propertyMap;  // [name, valuetype]
         $debugPropertyArray = [];
@@ -750,6 +752,7 @@ class IO_SWF_ABC_Code {
     }
     function flushABCQueue(&$abcQueue, &$abcStack, &$actions, &$labels, $remain = 0) {
         //print('flushABCQueue Begin: count(abcQueue)'.count($abcQueue)." remain:$remain\n");
+        $opts = $this->opts;
         if (count($abcQueue) < $remain) {
             $c = count($abcQueue);
             $this->dump();
