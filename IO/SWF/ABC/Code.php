@@ -334,6 +334,9 @@ class IO_SWF_ABC_Code {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
+            if ($opts['debug']) {
+                echo "DEBUG: ABCCodetoActionTag[$idx]: $inst(".$this->getInstructionName($inst).")\n";
+            }
             switch ($inst) {
             case 0x10:  // jump
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
@@ -802,6 +805,9 @@ class IO_SWF_ABC_Code {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
+            if ($opts['debug']) {
+                echo "DEBUG: flushABCQueue: $inst(".$this->getInstructionName($inst).")\n";
+            }
             switch ($inst) {
             case 0x08:  // kill
                 // do nothing
