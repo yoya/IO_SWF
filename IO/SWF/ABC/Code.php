@@ -638,32 +638,68 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x61:  // setproperty
             case 0x68:  // initproperty
+                $setpropertyDone = false;
                 /*
                   AS3:
-                  - pushstring A
+                  - (???)
                   - setproperty/initproperty B
                   AS1
                   - Push B
                   - Push A
                   SetVariable
                  */
-                if ($code["inst"] == 0x2C) { // ひとつ前が pushstring
+                $index = $bit->get_u30();
+                $name = $propertyMap[$index]["name"];
+                if (count($abcQueue) > 1) {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
-                    $code = array_pop($abcQueue);
-                    if (! is_string($code["value"])) {
-                        $this->dump();
-                        throw new IO_SWF_Exception("require pushstring instrument value type string:".$code["value"]);
+                    $prevCode = array_pop($abcQueue);
+                    if ($prevCode["inst"] == 0x2C) { // ひとつ前が pushstring
+                        /*
+                          AS3:
+                          - pushstring A
+                          - setproperty/initproperty B
+                          AS1
+                          - Push B
+                          - Push A
+                          SetVariable
+                        */
+                        if (! is_string($prevCode["value"])) {
+                            $this->dump();
+                            throw new IO_SWF_Exception("require pushstring instrument value type string:".$prevCode["value"]);
+                        }
+                        $actions []= ["Code" => 0x96, // Push
+                                      "Length" => 1 + strlen($prevCode["value"]) + 1,
+                                      "Values" => [
+                                          ["Type" => 0,  //String
+                                           "String" => $prevCode["value"]."\0"]
+                                      ]];
+                        $setpropertyDone = true;
+                    } else if ($prevCode["inst"] == 0x24) {  // ひとつ前が pushbyte
+                        /*
+                          AS3:
+                          - pushbyte A
+                          - setproperty/initproperty B
+                          AS1
+                          - Push B
+                          - Push A
+                          SetVariable
+                        */
+                        if (! is_int($prevCode["value"])) {
+                            $this->dump();
+                            throw new IO_SWF_Exception("require pushstring instrument value type string:".$prevCode["value"]);
+                        }
+                        $actions []= ["Code" => 0x96, // Push
+                                      "Length" => 1 + 4,
+                                      "Values" => [
+                                          ["Type" => 7,  // Integer
+                                           "Integer" => $prevCode["value"]]
+                                      ]];
+                        $setpropertyDone = true;
                     }
-                    $index = $bit->get_u30();
-                    $name = $propertyMap[$index]["name"];
-                    $actions []= ["Code" => 0x96, // Push
-                                  "Length" => 1 + strlen($code["value"]) + 1,
-                                  "Values" => [
-                                      ["Type" => 0,  // String
-                                       "String" => $code["value"]]
-                                  ]];
-                } else {
+                }
+                if (! $setpropertyDone) {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    // 後で直す。
                     $actions []= ["Code" => 0x96, // Push
                                   "Length" => 1 + strlen($name) + 1,
                                   "Values" => [
