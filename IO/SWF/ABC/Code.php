@@ -311,6 +311,7 @@ class IO_SWF_ABC_Code {
                 break;
             }
         }
+        unset($code); // remove reference.
         if ($opts['debug']) {
             if (count($debugPropertyArray) > 0) {
                 fprintf(STDERR, "init propertyMap:");
@@ -320,7 +321,6 @@ class IO_SWF_ABC_Code {
                 fprintf(STDERR, "=> total:".count($propertyMap)."\n");
             }
         }
-        unset($code); // remove reference.
         // convert code AS3 = AS1 with abc stack.
         $actions = [];   // 最終的な ABC コード
         $abcQueue = [];  // 前の命令を巻き添えにする命令があるので一旦キューに
