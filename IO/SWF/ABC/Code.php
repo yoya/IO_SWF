@@ -344,7 +344,7 @@ class IO_SWF_ABC_Code {
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
                 $actions []= ["Code" => 0x99,  // Jump
                               "Length" => 2,
-                              "BranchOffset" => 0]; // temporary
+                              "BranchOffset" => 0x7777]; // temporary
                 break;
             case 0x11:  // iftrue
             case 0x12:  // iffalse
@@ -356,7 +356,7 @@ class IO_SWF_ABC_Code {
                 $branches[count($actions)] = $code["offset"] + $branchOffset;
                 $actions []= ["Code" => 0x9D,  // If
                               "Length" => 2,
-                              "Offset" => 0]; // temporary
+                              "Offset" => 0x7777]; // temporary
                 // pop: a,b => push:(none)
                 array_pop($abcStack);
                 array_pop($abcStack);
