@@ -21,6 +21,9 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
     var $_byteSizeTable = array();
 
     static function actionLength($action) {
+        if (is_null($action)) {
+            throw new IO_SWF_Exception("actionLength action is null");
+        }
         $length = 1;
         $code = $action['Code'];
         if ($code >= 0x80) {
