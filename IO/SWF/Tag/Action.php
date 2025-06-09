@@ -95,11 +95,11 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             }
             $action_str = IO_SWF_Type_Action::string($action);
             if (isset($opts['addlabel']) && $opts['addlabel']
+                echo "    [$i] $action_str";
                 && isset($this->_branches[$i])) {
-                echo "    [$i] $action_str (LABEL: " . $this->_branches[$i] . ")\n";
-            } else {
-                echo "    [$i] $action_str\n";
+                echo " (LABEL: " . $this->_branches[$i] . ")\n";
             }
+            echo "\n";
         }
         if (count($this->_actions) > 0) {
             if (isset($opts['addlabel']) && $opts['addlabel']
