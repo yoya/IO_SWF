@@ -16,7 +16,8 @@ require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
-        if ($opts['debug']) {
+        $debug = ! empty($opts['debug']);
+        if ($debug) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
             printf("Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
                    $opts['shapeId'], $tagCode, $tagName);
@@ -57,7 +58,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
                     $shapeRecord['StateMoveTo'] = $stateMoveTo;
-                    if ($opts['debug'] && false) {
+                    if ($debug && false) {
                         printf("%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
                                $stateNewStyles, $stateLineStyle,
                                $stateFillStyle1, $stateFillStyle0,
