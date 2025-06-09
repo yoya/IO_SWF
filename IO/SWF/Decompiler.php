@@ -148,7 +148,7 @@ class IO_SWF_Decompiler extends IO_SWF {
         return $actions;
     }
 
-    function makeActionTree($index, &$actions) {
+    static function makeActionTree($index, &$actions) {
         // echo "makeActionTree: $index\n";
 
         $idx = $index;
