@@ -141,7 +141,7 @@ class IO_SWF_Tag {
         $this->byte_size = $byte_offset - $this->byte_offset;
     }
 
-    function dump(&$opts) {
+    function dump(&$opts = []) {
         $code = $this->code;
         $name = $this->getTagInfo($code, 'name');
         if ($name === false) {
