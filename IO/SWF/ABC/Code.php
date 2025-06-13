@@ -9,6 +9,8 @@ class IO_SWF_ABC_Code {
     var $abc = null;
     var $codeContext = null;
     var $opts = [];
+    var $labels = [];    // 飛び先につけるラベル。自分自身の idx
+    var $branches = [];  // 飛び元(分岐命令)につける。飛び先 idx
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -186,6 +188,18 @@ class IO_SWF_ABC_Code {
                                   "offset" => $offset,
                                   "size" => $size];
         }
+        // 分岐命令の飛び先をラベル化
+        foreach ($this->codeArray as $idx => $code) {
+            $bit = new IO_SWF_ABC_Bit();
+            $bit->input($code["bytes"]);
+            $inst = $bit->getUI8();
+            if ($this->isBranchInstruction($inst)) {
+                $v = $bit->get_s24();  // 分岐命令は 24 のはず
+                $branchIdx = $this->getCodeArrayIndexByBranchOffset($idx, $v);
+                $this->labels[$branchIdx] = $branchIdx;
+                $this->branches[$idx] = $branchIdx;
+            }
+        }
     }
     function dump() {
         $codeLength = strlen($this->codeData);
@@ -199,6 +213,9 @@ class IO_SWF_ABC_Code {
             $instName = $this->getInstructionName($inst);
             $argsType = $this->getInstructionArgsType($inst);
             $argsPool = $this->getInstructionArgsPool($inst);
+            if (isset($this->labels[$idx])) {
+                echo "    LABEL:[".$this->labels[$idx]."]\n";
+            }
             echo "        [$idx] $instName";
             foreach ($argsType as $i => $argType) {
                 switch ($argType) {
@@ -240,12 +257,8 @@ class IO_SWF_ABC_Code {
                     }
                 }
             }
-            if ($this->isBranchInstruction($inst)) {
-                $branchIdx = $this->getCodeArrayIndexByBranchOffset($idx, $v);
-                if (is_null($branchIdx)) {
-                    $branchIdx = "(no match)";
-                }
-                echo "=> [$branchIdx]";
+            if (isset($this->branches[$idx])) {
+                echo " (Branchs:[".$this->branches[$idx]."])";
             }
             echo "\n";
             $bit = null;
