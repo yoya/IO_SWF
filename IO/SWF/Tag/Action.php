@@ -87,26 +87,23 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             echo " SpriteID=".$this->_spriteId;
         }
         echo "\n";
-
+        $offset = 0;
         foreach ($this->_actions as $i => $action) {
             if (isset($opts['addlabel']) && $opts['addlabel']
                 && isset($this->_labels[$i])) {
                 echo "    (LABEL: " . $this->_labels[$i] . "):\n";
             }
+            printf("  %04d ", $offset);
             $action_str = IO_SWF_Type_Action::string($action);
+            echo "[$i] $action_str";
             if (isset($opts['addlabel']) && $opts['addlabel']
-                echo "    [$i] $action_str";
                 && isset($this->_branches[$i])) {
-                echo " (LABEL: " . $this->_branches[$i] . ")\n";
+                echo "  (Branche: " . $this->_branches[$i] . ")";
             }
             echo "\n";
+            $offset += $this->actionLength($action);
         }
-        if (count($this->_actions) > 0) {
-            if (isset($opts['addlabel']) && $opts['addlabel']
-                && isset($this->_labels[$i])) {
-                echo "    (LABEL" . $this->_labels[$i] . "):\n";
-            }
-        }
+        printf("  %04d\n", $offset);
     }
 
     function buildContent($tagCode, $opts = array()) {
