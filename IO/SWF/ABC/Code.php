@@ -338,11 +338,19 @@ class IO_SWF_ABC_Code {
         $actions = [];   // 最終的な ABC コード
         $abcQueue = [];  // 前の命令を巻き添えにする命令があるので一旦キューに
         $abcStack = [];  // 型の整合性をとる為の情報
-        $labels = [];    // 分岐命令の飛び元命令のNoとオフセット番号
+        // AS1 の方の labels, branches. AS3 の this-> とは別。
+        $labels = [];    // 分岐命令の飛び先命令のNo
         $branches = [];  // 分岐命令の跳び元命令No=>飛び先オフセット
         $skip_count = 0;
+        $nextLabel = null;
+        $nextBranche = null;
         foreach ($this->codeArray as $idx => $code) {
-            $labels[count($actions)] = $code["offset"];
+            if (isset($this->labels[$idx])) {
+                $nextLabel = $this->labels[$idx];
+            }
+            if (isset($this->branches[$idx])) {
+                $nextBranche = $this->branches[$idx];
+            }
             if ($skip_count > 0) { $skip_count--; continue; }
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -353,8 +361,14 @@ class IO_SWF_ABC_Code {
             switch ($inst) {
             case 0x10:  // jump
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $branchOffset = $bit->get_s24();
-                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
+                if ($nextBranche) {
+                    $branches[count($actions)] = $nextBranche;
+                    $nextBranche = null;
+                }
                 $actions []= ["Code" => 0x99,  // Jump
                               "Length" => 2,
                               "BranchOffset" => 0xDEAD]; // temporary
@@ -362,11 +376,20 @@ class IO_SWF_ABC_Code {
             case 0x11:  // iftrue
             case 0x12:  // iffalse
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
+                $actions []= ["Code" => 0x99,  // Jump
+                              "Length" => 2,
+                              "BranchOffset" => 0xDEAD]; // temporary
                 if ($inst === 0x12) {
                     $actions []= ["Code" => 0x12];  // Not
                 }
-                $branchOffset = $bit->get_s24();
-                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                if ($nextBranche) {
+                    $branches[count($actions)] = $nextBranche;
+                    $nextBranche = null;
+                }
                 $actions []= ["Code" => 0x9D,  // If
                               "Length" => 2,
                               "Offset" => 0xDEAD]; // temporary
@@ -376,10 +399,16 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x13:  // ifeq
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $branchOffset = $bit->get_s24();
-                // $actions []= ["Code" => 0x66];  // StrictEqual
-                $actions []= ["Code" => 0x0E];  // Equal
-                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
+                $actions []= ["Code" => 0x66];  // StrictEqual
+                // $actions []= ["Code" => 0x0E];  // Equal
+                if ($nextBranche) {
+                    $branches[count($actions)] = $nextBranche;
+                    $nextBranche = null;
+                }
                 $actions []= ["Code" => 0x9D,  // If
                               "Length" => 2,
                               "Offset" => 0xDEAD]; // temporary
@@ -390,9 +419,15 @@ class IO_SWF_ABC_Code {
             case 0x14:  // ifngt
             case 0x15:  // iflt
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                $branchOffset = $bit->get_s24();
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $actions []= ["Code" => 0x0F];  // Less
-                $branches[count($actions)] = $code["offset"] + $branchOffset;
+                if ($nextBranche) {
+                    $branches[count($actions)] = $nextBranche;
+                    $nextBranche = null;
+                }
                 $actions []= ["Code" => 0x9D,  // If
                               "Length" => 2,
                               "Offset" => 0xDEAD]; // temporary
@@ -402,11 +437,19 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x2A:  // dup
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $actions []= ["Code" => 0x2A]; // Dup
                 break;
             case 0x46:  // callproperty
                 if ($code["name"] === "random") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     assert($code["arg_count"] === 0);
                     /*
                       <== AS3: floor(Math.random() * 4)
@@ -453,6 +496,10 @@ class IO_SWF_ABC_Code {
                     //
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                     $c = array_shift($abcQueue);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     if ($c["inst"] !== 96) {
                         // getlex root
                         // TODO getlex の name が root かもチェックする
@@ -460,8 +507,16 @@ class IO_SWF_ABC_Code {
                         throw new IO_SWF_Exception('callproperty unknown pattern. need {getlex, callproperty MovieClip inst:'.$c["inst"]);
                     }
                     // root 参照なので何もしない
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                 } else if ($code["name"] === "substr") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     // AS3: substr
                     // AS1: StringExtract(15)
                     $actions []= ["Code" => 0x15];  // StringExtract
@@ -471,7 +526,15 @@ class IO_SWF_ABC_Code {
                 }
                 break;
             case 0x47:  // returnvoid
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $actions []= ["Code" => 0x00]; // End
                 break;
             case 0x4f:  // callpropvoid
@@ -577,6 +640,10 @@ class IO_SWF_ABC_Code {
                         }
                     }
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     if (is_null($push_path)) {
                         if ($opts['strict']) {
                             $this->dump();
@@ -631,14 +698,26 @@ class IO_SWF_ABC_Code {
                     break;
                 case "play":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     $actions []= ["Code" => 0x06]; // Play
                     break;
                 case "stop":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
                 case "addEventListener":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 6);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     break;
                 default:
                     if ($opts['strict']) {
@@ -666,6 +745,10 @@ class IO_SWF_ABC_Code {
                 if (count($abcQueue) > 1) {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                     $prevCode = array_pop($abcQueue);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     if ($prevCode["inst"] == 0x2C) { // ひとつ前が pushstring
                         /*
                           AS3:
@@ -712,7 +795,10 @@ class IO_SWF_ABC_Code {
                 }
                 if (! $setpropertyDone) {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                    // 後で直す。
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
                     $actions []= ["Code" => 0x96, // Push
                                   "Length" => 1 + strlen($name) + 1,
                                   "Values" => [
@@ -733,14 +819,26 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x93:  // decrement
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $actions []= ["Code" => 0x51]; // Decrement
                 break;
             case 0xa1:  // subtract
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 $actions []= ["Code" => 0x0B]; // Subtract
                 break;
             case 0xc0:  // increment_i
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 if (false) {  // 後で true  を試す
                     // TODO: ActionIncrement で良いかも？
                     $actions []= ["Code" => 0x50];  // Increment
@@ -827,7 +925,6 @@ class IO_SWF_ABC_Code {
         while (count($abcQueue) > $remain) {
             $code = array_shift($abcQueue);
             //print("flushABCQueue Loop: code:".$code["inst"]." name:".$code["inst"]."\n");
-            $labels[count($actions)] = $code["offset"];
             if (! isset($code["bytes"])) {
                 fprintf(STDERR, print_r($code), true);
                 throw new IO_SWF_Exception('flushABCQueue: ! isset($code["bytes"])');
