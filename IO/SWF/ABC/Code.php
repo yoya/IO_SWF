@@ -774,50 +774,31 @@ class IO_SWF_ABC_Code {
             case 0xd6:  // setlocal_2
             case 0xd7:  // setlocal_3
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
                 // stack to register (local_x)
                 break;
             default:
                 array_push($abcQueue, $code);
             }
         }
-        // The AS3 code byteoffset
-        $offset = 0;
-        foreach ($actions as $idx => $act) {
-	        $act["_byteoffset"] = $offset;
-            $w = new IO_SWF_ABC_Bit();
-            IO_SWF_Type_Action::build($w, $act);
-            $b = $w->output();
-            $offset += strlen($b);
-        }
-        // The branch fitting to the label.
-        // Because some AS3 instructions do not convert to AS1 action.
-        foreach ($actions as $idx => &$act) {
-            $code = $act["Code"];
-            if (isset($branches[$idx])) {
-                $branchOffset = $branches[$idx];
-                foreach ($actions as $i => $a) {
-                    if (isset($labels[$i])) {
-                        if ($branchOffset == $labels[$i]) {
-                            break;
-                        }
-                    }
-                }
-                if ($branchOffset == $labels[$i]) {
-                    $branches[$idx] = $labels[$i];
-                    switch ($code) { // Branch Instrument
-                    case 0x99:  // Jump
-                        $actions[$idx]['BranchOffset'] = $branchOffset;
-                        break;
-                    case 0x9D: // If
-                        $actions[$idx]['Offset'] = $branchOffset;
-                        break;
-                    default:
-                        $this->dump();
-                        throw new IO_SWF_Exception("no branch instrument($code). action idx:$idx");
-                    }
-                } else {
-                    $this->dump();
-                    throw new IO_SWF_Exception("branch unmatching. instrument($$code) action idx:$idx");
+        if (count($labels) || count($branches)) {
+            // labels と branches の renumbering
+            // 例) label 2=>4, branch 7=>4  (2,7 は AS1 idx, 4 は AS3 idx)
+            //   =変換後> label 2=>2, branch 7=>2
+            $labelsTrans = [];  // label の移動テーブル
+            // 移動テーブルを作る。上記でいうと 4 => 2
+            foreach ($labels as $idx => $label) {
+                $labelsTrans[$label] = $idx;
+            }
+            foreach ($labels as $idx => $label) {
+                $labels[$idx] = $idx;
+            }
+            foreach ($actions as $idx => $_action) {
+                if (isset($branches[$idx])) {
+                    $branches[$idx] = $labelsTrans[$branches[$idx]];
                 }
             }
         }
