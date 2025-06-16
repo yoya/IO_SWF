@@ -117,17 +117,21 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             // Jump or If
             if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {
                 // Find label to jump
+                if (! isset($this->_branches[$i])) {
+                    throw new Exception("Branch Instruction(idx:$d) not link to exist Branches indices:".join(",", array_keys($this->_branches)));
+                }
                 for ($j = 0; $j <= count($this->_actions); $j++) {
                     if (isset($this->_labels[$j])) {
-                        if (! isset($this->_branches[$i])) {
-                            throw new Exception("not found branchs idx:$i. exist idx:".join(",", array_keys($this->_branches)));
-                        }
                         if ($this->_labels[$j] == $this->_branches[$i]) {
                             break;
                         }
                     }
                 }
-
+                if ($j >= count($this->_actions)) {
+                    $opts2 = [ 'addlabel' => true ];
+                    $this->dumpContent($tagCode, array_merge($opts, $opts2));
+                    throw new Exception("jump label not found branches:".join(",", array_values($this->_branches))." label:".join(",", array_values($this->_labels)));
+                }
                 // Calculate new offset
                 $branch_offset = 0;
                 if ($i < $j) {
