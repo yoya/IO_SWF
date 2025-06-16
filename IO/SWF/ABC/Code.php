@@ -951,7 +951,7 @@ class IO_SWF_ABC_Code {
             case 0x2F:  // pushdouble
                 $data = (string) $code["value"];
                 $actions []= ["Code" => 0x96, // Push
-                          "Length" => 1 + strlen($data) + 1,
+                              "Length" => 1 + strlen($data) + 1,
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $data]
