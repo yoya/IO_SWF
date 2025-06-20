@@ -561,9 +561,9 @@ class IO_SWF_ABC_Code {
                          *  getproperty name=A
                          *  getproperty name=B
                          *  pushbyte C
-                         *  callpropvoid random
-                         * => Push /A/B:
-                         * => GotoFrame2C
+                         *  callpropvoid (GotoAnd*)
+                         * => Push /A/B:C
+                         * => GotoFrame2
                          */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
                         $a = $abcQueue[0];  // getproperty
@@ -589,7 +589,7 @@ class IO_SWF_ABC_Code {
                         /*
                          *  getproperty name=B
                          *  pushbyte C
-                         *  callpropvoid random
+                         *  callpropvoid (GotoAnd*)
                          * => Push B:C
                          * => GotoFrame2
                          */
@@ -614,7 +614,7 @@ class IO_SWF_ABC_Code {
                     if (is_null($push_path) && (count($abcQueue) >= 1)) {
                         /*
                          *  pushbyte C
-                         *  callpropvoid random
+                         *  callpropvoid (GotoAnd*)
                          => GoToLabel C (string)
                          => GoToFrame C (short)
                          */
@@ -626,7 +626,7 @@ class IO_SWF_ABC_Code {
                                 throw new IO_SWF_Exception("c parameter ".print_r([$b, $c], true));
                             }
                             // pushbyte || pushshort || pushstring
-                            //                            $push_path = ".:".$c["value"];
+                            // $push_path = ".:".$c["value"];
                             $push_path = $c["value"];
                             array_pop($abcQueue);
                             // この後、pop されるので dummy を入れておく
