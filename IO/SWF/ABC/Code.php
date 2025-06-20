@@ -712,6 +712,30 @@ class IO_SWF_ABC_Code {
                     }
                     $actions []= ["Code" => 0x07]; // Stop
                     break;
+                case "navigateToURL":
+                    /*
+                     * AS3:
+                     constructprop  URLRequest
+                     callpropvoid   navitateToURL
+                     * AS1:
+                     GetURL2 (0,0,0)
+                     */
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                    if ($nextLabel) {
+                        $labels[count($actions)] = $nextLabel;
+                        $nextLabel = null;
+                    }
+                    $c = array_shift($abcQueue);  // constructprop
+                    if ($c["inst"] !== 0x4a) {  // TODO: URLRequest チェックも
+                        $code->dump();
+                        throw new IO_SWF_Exception('callproperty navigateToURL unknown pattern. need constructpropd URLRequest inst:'.$c["inst"]);
+                    }
+                    $actions []= ["Code" => 0x9A, // GetURL2
+                                  'LoadVariablesFlag' => 0,
+                                  'LoadTargetFlag' => 0,
+                                  'SendVarsMethod' => 0
+                    ];
+                    break;
                 case "addEventListener":
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 6);
                     if ($nextLabel) {
