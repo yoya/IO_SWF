@@ -855,6 +855,14 @@ class IO_SWF_ABC_Code {
                 }
                 $actions []= ["Code" => 0x51]; // Decrement
                 break;
+            case 0x91:  // increment
+                $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
+                $actions []= ["Code" => 0x50];  // Increment
+                break;
             case 0xa1:  // subtract
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 if ($nextLabel) {
@@ -1034,6 +1042,13 @@ class IO_SWF_ABC_Code {
                 break;
             case 0xa2:  // multiply
                 $actions []= ["Code" => 0x0C];  // Multiply
+                $a = array_pop($abcStack);
+                $b = array_pop($abcStack);
+                $c = $this->typeExpantion($a, $b);
+                array_push($abcStack, $c);
+                break;
+            case 0xa4:  // modulo
+                $actions []= ["Code" => 0x3F];  // Modulo
                 $a = array_pop($abcStack);
                 $b = array_pop($abcStack);
                 $c = $this->typeExpantion($a, $b);
