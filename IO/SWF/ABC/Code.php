@@ -398,13 +398,18 @@ class IO_SWF_ABC_Code {
                 array_pop($abcStack);
                 break;
             case 0x13:  // ifeq
+            case 0x14:  // ifne
+            case 0x1a:  // ifstrictne
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                if (($inst == 0x14) || ($inst == 0x1a)) {
+                    $actions []= ["Code" => 0x12];  // Not
+                }
+                $actions []= ["Code" => 0x66];  // StrictEqual
+                // $actions []= ["Code" => 0x0E];  // Equal
                 if ($nextLabel) {
                     $labels[count($actions)] = $nextLabel;
                     $nextLabel = null;
                 }
-                $actions []= ["Code" => 0x66];  // StrictEqual
-                // $actions []= ["Code" => 0x0E];  // Equal
                 if ($nextBranche) {
                     $branches[count($actions)] = $nextBranche;
                     $nextBranche = null;
