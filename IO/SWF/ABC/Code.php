@@ -877,7 +877,7 @@ class IO_SWF_ABC_Code {
                     $labels[count($actions)] = $nextLabel;
                     $nextLabel = null;
                 }
-                if (false) {  // 後で true  を試す
+                if (true) {  // ダメなら false にする
                     // TODO: ActionIncrement で良いかも？
                     $actions []= ["Code" => 0x50];  // Increment
                     break;
