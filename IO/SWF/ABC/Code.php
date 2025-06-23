@@ -416,7 +416,7 @@ class IO_SWF_ABC_Code {
                 array_pop($abcStack);
                 array_pop($abcStack);
                 break;
-            case 0x14:  // ifngt
+            case 0x0e:  // ifngt
             case 0x15:  // iflt
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 if ($nextLabel) {
