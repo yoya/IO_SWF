@@ -777,13 +777,23 @@ class IO_SWF_ABC_Code {
                  */
                 $index = $bit->get_u30();
                 $name = $propertyMap[$index]["name"];
-                if (count($abcQueue) > 1) {
+                if (count($abcQueue) >= 1) {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                }
+                if ($nextLabel) {
+                    $labels[count($actions)] = $nextLabel;
+                    $nextLabel = null;
+                }
+                $actions []= ["Code" => 0x96, // Push
+                              "Length" => 1 + strlen($name) + 1,
+                              "Values" => [
+                                  ["Type" => 0,  // String
+                                   "String" => $name]
+                              ]];
+                if (count($abcQueue) < 1) {
+                    $actions []= ["Code" => 0x4D]; // StackSwap
+                } else {
                     $prevCode = array_pop($abcQueue);
-                    if ($nextLabel) {
-                        $labels[count($actions)] = $nextLabel;
-                        $nextLabel = null;
-                    }
                     if ($prevCode["inst"] == 0x2C) { // ひとつ前が pushstring
                         /*
                           AS3:
@@ -804,7 +814,6 @@ class IO_SWF_ABC_Code {
                                           ["Type" => 0,  //String
                                            "String" => $prevCode["value"]."\0"]
                                       ]];
-                        $setpropertyDone = true;
                     } else if ($prevCode["inst"] == 0x24) {  // ひとつ前が pushbyte
                         /*
                           AS3:
@@ -825,21 +834,7 @@ class IO_SWF_ABC_Code {
                                           ["Type" => 7,  // Integer
                                            "Integer" => $prevCode["value"]]
                                       ]];
-                        $setpropertyDone = true;
                     }
-                }
-                if (! $setpropertyDone) {
-                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
-                    if ($nextLabel) {
-                        $labels[count($actions)] = $nextLabel;
-                        $nextLabel = null;
-                    }
-                    $actions []= ["Code" => 0x96, // Push
-                                  "Length" => 1 + strlen($name) + 1,
-                                  "Values" => [
-                                      ["Type" => 0,  // String
-                                       "String" => $name]
-                                  ]];
                 }
                 $actions []= ["Code" => 0x1d]; // SetVariable
                 // pop: value, push:(none)
