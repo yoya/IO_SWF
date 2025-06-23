@@ -645,11 +645,16 @@ class IO_SWF_ABC_Code {
                         }
                     }
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    if (is_null($push_path) && (count($abcQueue) === 0)) {
+                        $push_path = "";
+                    }
                     if ($nextLabel) {
                         $labels[count($actions)] = $nextLabel;
                         $nextLabel = null;
                     }
-                    if (is_null($push_path)) {
+                    // GotoFrame2 の場合、stack から読み込むので、
+                    // $push_path が空の時もある
+                    if ($gotofunc !== "GotoFrame2" && is_null($push_path)) {
                         if ($opts['strict']) {
                             $this->dump();
                             throw new IO_SWF_Exception("unknown pattern [$idx] callpropvoid $name bytecode");
