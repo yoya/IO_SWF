@@ -665,13 +665,15 @@ class IO_SWF_ABC_Code {
                     $playFlag = ($name === "gotoAndPlay")? 1: 0;
                     switch ($gotofunc) {
                     case "GotoFrame2":
-                        $actions []= ["Code" => 0x96, // Push
-                                      "Length" => 1 + strlen($push_path) + 1,
-                                      "Values" => [
+                        if ($push_path !== "") {
+                            $actions []= ["Code" => 0x96, // Push
+                                          "Length" => 1 + strlen($push_path) + 1,
+                                          "Values" => [
                                           ["Type" => 0,  // String
                                            "String" => $push_path]
-                                      ]];
-                        $actions []= ["Code" => 0x9F,  // GotoFrame2 (play)
+                                          ]];
+                        }
+                        $actions []= ["Code" => 0x9F,  // GotoFrame2
                                       "Length" => 1, "SceneBiasFlag" => 0,
                                       "PlayFlag" => $playFlag];
                         // pop: frame => push:(none)
@@ -764,7 +766,6 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x61:  // setproperty
             case 0x68:  // initproperty
-                $setpropertyDone = false;
                 /*
                   AS3:
                   - (???)
