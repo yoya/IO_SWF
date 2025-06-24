@@ -118,7 +118,8 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {
                 // Find label to jump
                 if (! isset($this->_branches[$i])) {
-                    throw new Exception("Branch Instruction(idx:$d) not link to exist Branches indices:".join(",", array_keys($this->_branches)));
+                    $this->dumpContent($tagCode, $opts);
+                    throw new Exception("Branch Instruction(idx:$i) not link to exist Branches indices:".join(",", array_keys($this->_branches)));
                 }
                 for ($j = 0; $j <= count($this->_actions); $j++) {
                     if (isset($this->_labels[$j])) {
