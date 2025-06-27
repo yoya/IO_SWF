@@ -105,7 +105,7 @@ class IO_SWF_ABC_Code {
         0xd7 => ["setlocal_3"    , []           ],  // 215
     ];
     function isBranchInstruction($code) {
-        if ((0x0c <= $code) && ($code < 0x1a)) {
+        if ((0x0c <= $code) && ($code <= 0x1a)) {
             return true; // jump or if... instruction
         }
         return false; // others
