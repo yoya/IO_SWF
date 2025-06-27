@@ -380,9 +380,6 @@ class IO_SWF_ABC_Code {
                     $labels[count($actions)] = $nextLabel;
                     $nextLabel = null;
                 }
-                $actions []= ["Code" => 0x99,  // Jump
-                              "Length" => 2,
-                              "BranchOffset" => 0xDEAD]; // temporary
                 if ($inst === 0x12) {
                     $actions []= ["Code" => 0x12];  // Not
                 }
