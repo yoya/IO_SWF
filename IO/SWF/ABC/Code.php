@@ -739,6 +739,13 @@ class IO_SWF_ABC_Code {
                         $code->dump();
                         throw new IO_SWF_Exception('callproperty navigateToURL unknown pattern. need constructpropd URLRequest inst:'.$c["inst"]);
                     }
+                    $target = "/";
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($target) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $target]
+                                  ]];
                     $actions []= ["Code" => 0x9A, // GetURL2
                                   'LoadVariablesFlag' => 0,
                                   'LoadTargetFlag' => 0,
