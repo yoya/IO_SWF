@@ -443,7 +443,7 @@ class IO_SWF_ABC_Code {
                     $labels[count($actions)] = $nextLabel;
                     $nextLabel = null;
                 }
-                $actions []= ["Code" => 0x2A]; // Dup
+                $actions []= ["Code" => 0x4C]; // PushDuplicate
                 break;
             case 0x46:  // callproperty
                 if ($code["name"] === "random") {
