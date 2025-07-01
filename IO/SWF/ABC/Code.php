@@ -362,7 +362,9 @@ class IO_SWF_ABC_Code {
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
             if ($opts['debug']) {
-                echo "DEBUG: ABCCodetoActionTag[$idx]: $inst(".$this->getInstructionName($inst).")\n";
+                $instName = $this->getInstructionName($inst);
+                echo "DEBUG: ABCCodetoActionTag[$idx]: $inst($instName)\n";
+                $code["instName"] = $instName;
             }
             switch ($inst) {
             case 0x10:  // jump
