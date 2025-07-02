@@ -562,19 +562,19 @@ class IO_SWF_ABC_Code {
                     $push_path = null;
                     $gotofunc = "GotoFrame2";
                     if (count($abcQueue) >= 3) {
-                        /*
-                         *  getproperty name=A
-                         *  getproperty name=B
-                         *  pushbyte C
-                         *  callpropvoid (GotoAnd*)
-                         * => Push /A/B:C
-                         * => GotoFrame2
-                         */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
-                        $a = $abcQueue[0];  // getproperty
-                        $b = $abcQueue[1];  // getproperty
-                        $c = $abcQueue[2];  // pushbyte || pushshort
+                        $a = $abcQueue[0];
+                        $b = $abcQueue[1];
+                        $c = $abcQueue[2];
                         if (($a["inst"] == 0x66) &&($b["inst"] == 0x66) && ($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
+                            /*
+                             *  getproperty name=A
+                             *  getproperty name=B
+                             *  pushbyte || pushshort C
+                             *  callpropvoid (GotoAnd*)
+                             * => Push /A/B:C
+                             * => GotoFrame2
+                             */
                             if (isset($a['name']) && ($a['name'] !== "") &&
                                 isset($b['name']) && ($b['name'] !== "") &&
                                 isset($c['value'])) {
@@ -584,6 +584,33 @@ class IO_SWF_ABC_Code {
                                 throw new IO_SWF_Exception("a b c parameter ".print_r([$a, $b, $c], true));
                             }
                             $push_path = "/".$a["name"]."/".$b["name"].":".$c["value"];
+                            array_pop($abcQueue);
+                            array_pop($abcQueue);
+                            array_pop($abcQueue);
+                            array_pop($abcStack);  // stackNum: -2 + 1
+                        } else if (($a["inst"] == 0x60) &&
+                                   ($b["inst"] == 0x46) &&
+                                   ( ($c["inst"] === 0x24) ||
+                                     ($c["inst"] === 0x25) )) {
+                            /*
+                             *  getlex root|parent
+                             *  callproperty MovieClip
+                             *  pushbyte || pushshort C
+                             *  callpropvoid (GotoAnd*)
+                             * => Push /:C ..:C
+                             * => GotoFrame2
+                             */
+                            if ((($a["name"] != "root") &&
+                                 ($a["name"] != "parent")) ||
+                                ($b["name"] != "MovieClip")) {
+                                $this->dump();
+                                throw new IO_SWF_Exception("unknown pattern a b c parameter ".print_r([$a, $b, $c], true));
+                            }
+                            if ($a["name"] == "parent") {
+                                $push_path = "..:".$c['value'];
+                            } else {
+                                $push_path = "/:".$c['value'];
+                            }
                             array_pop($abcQueue);
                             array_pop($abcQueue);
                             array_pop($abcQueue);
