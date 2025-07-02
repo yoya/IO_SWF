@@ -1009,6 +1009,9 @@ class IO_SWF_ABC_Code {
             case 0x5d:  // findpropstrict
                 // do nothing
                 break;
+            case 0x60:  // getlex
+                // findpropstict の後に getproperty を実行するのと同じ
+                break;
             case 0x66:  // getproperty
                 //$this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 $index = $bit->get_u30();
@@ -1060,9 +1063,6 @@ class IO_SWF_ABC_Code {
                 $b = array_pop($abcStack);
                 $c = $this->typeExpantion($a, $b);
                 array_push($abcStack, $c);
-                break;
-            case 0x60:  // getlex
-                // findpropstict の後に getproperty を実行するのと同じ
                 break;
             case 0xd0:  // getlocal_0
             case 0xd1:  // getlocal_1
