@@ -1099,7 +1099,7 @@ class IO_SWF_ABC_Code {
                 break;
             default:
                 $instName = $this->getInstructionName($inst);
-                fprintf(STDERR, "unsupported instruction:$instName($inst)\n");
+                fprintf(STDERR, "flushABCQueue: unsupported instruction:$instName($inst)".json_encode($code)."\n");
             }
         }
         $ctx->propertyMap = $propertyMap;
