@@ -506,21 +506,16 @@ class IO_SWF_ABC_Code {
                     //
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
                     $c = array_shift($abcQueue);
-                    if ($nextLabel) {
-                        $labels[count($actions)] = $nextLabel;
-                        $nextLabel = null;
-                    }
-                    if ($c["inst"] !== 96) {
+                    if ($c["inst"] !== 96) { // getlex
                         // getlex root
                         // TODO getlex の name が root かもチェックする
                         $code->dump();
                         throw new IO_SWF_Exception('callproperty unknown pattern. need {getlex, callproperty MovieClip inst:'.$c["inst"]);
                     }
-                    // root 参照なので何もしない
-                    if ($nextLabel) {
-                        $labels[count($actions)] = $nextLabel;
-                        $nextLabel = null;
-                    }
+                    // getlex callpropery pushbytecall callpropvoid
+                    // のパターンもあるので、queue に詰める
+                    array_unshift($abcQueue, $code); // callproperty MovieClip
+                    array_unshift($abcQueue, $c); // getlex
                 } else if ($code["name"] === "substr") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                     if ($nextLabel) {
