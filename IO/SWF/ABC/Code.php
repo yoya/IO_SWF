@@ -361,11 +361,11 @@ class IO_SWF_ABC_Code {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
+            $instName = $this->getInstructionName($inst);
             if ($opts['debug']) {
-                $instName = $this->getInstructionName($inst);
                 echo "DEBUG: ABCCodetoActionTag[$idx]: $inst($instName)\n";
-                $code["instName"] = $instName;
             }
+            $code["instName"] = $instName;
             switch ($inst) {
             case 0x10:  // jump
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
