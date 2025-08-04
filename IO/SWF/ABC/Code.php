@@ -754,22 +754,33 @@ class IO_SWF_ABC_Code {
                 case "navigateToURL":
                     /*
                      * AS3:
+                     getproperty (変数)
                      constructprop  URLRequest
                      callpropvoid   navitateToURL
                      * AS1:
                      GetURL2 (0,0,0)
                      */
-                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 2);
                     if ($nextLabel) {
                         $labels[count($actions)] = $nextLabel;
                         $nextLabel = null;
                     }
+                    $g = array_shift($abcQueue);  // getproperty
                     $c = array_shift($abcQueue);  // constructprop
-                    if ($c["inst"] !== 0x4a) {  // TODO: URLRequest チェックも
-                        $code->dump();
+                    $name = $g["name"];
+                    $name = "/:$name";
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($name) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $name]
+                                  ]];
+                    $actions []= ["Code" => 0x1C]; // GetVariable
+                    if (($g["inst"] !== 0x66) || ($c["inst"] !== 0x4a)) {  // TODO: URLRequest チェックも
+                        $this->dump();
                         throw new IO_SWF_Exception('callproperty navigateToURL unknown pattern. need constructpropd URLRequest inst:'.$c["inst"]);
                     }
-                    $target = "/";
+                    $target = "_blank";
                     $actions []= ["Code" => 0x96, // Push
                                   "Length" => 1 + strlen($target) + 1,
                                   "Values" => [
