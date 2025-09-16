@@ -513,18 +513,7 @@ class IO_SWF_ABC_Code {
                     }
                 } else if ($code["name"] === "MovieClip") {
                     //
-                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 1);
-                    $c = array_shift($abcQueue);
-                    if ($c["inst"] !== 96) { // getlex
-                        // getlex root
-                        // TODO getlex の name が root かもチェックする
-                        $code->dump();
-                        throw new IO_SWF_Exception('callproperty unknown pattern. need {getlex, callproperty MovieClip inst:'.$c["inst"]);
-                    }
-                    // getlex callpropery pushbytecall callpropvoid
-                    // のパターンもあるので、queue に詰める
-                    array_unshift($abcQueue, $code); // callproperty MovieClip
-                    array_unshift($abcQueue, $c); // getlex
+                    $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 } else if ($code["name"] === "substr") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                     if ($nextLabel) {
