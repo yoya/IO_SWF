@@ -426,14 +426,22 @@ class IO_SWF_ABC_Code {
                 array_pop($abcStack);
                 array_pop($abcStack);
                 break;
+            case 0x0c:  // ifnlt
             case 0x0e:  // ifngt
             case 0x15:  // iflt
+                $is_greater = false;
+                if ($inst == 0x0c/*ifnlt*/) {
+                    $is_greater = false;
+                }
                 $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                 if ($nextLabel) {
                     $labels[count($actions)] = $nextLabel;
                     $nextLabel = null;
                 }
                 $actions []= ["Code" => 0x0F];  // Less
+                if ($is_greater) {  // Greater 演算子は v6 から
+                    $actions []= ["Code" => 0x12];  // Not
+                }
                 if ($nextBranche) {
                     $branches[count($actions)] = $nextBranche;
                     $nextBranche = null;
