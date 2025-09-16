@@ -315,13 +315,14 @@ class IO_SWF_ABC_Code {
             case 0x66:  // getproperty
             case 0x68:  // initproperty
                 $index = $bit->get_u30();
+                $code["index"] = $index;
                 $info = $this->abc->getMultiname($index);
-                if (! isset($info["name"])) {
-                    fprintf(STDERR, "propertyMap isset name failed:".print_r($info, true));
-                    $info["name"] = "(dummy)";
+                if (isset($info["name"])) { // MultilineL だと name 無し
+                    $name = $this->abc->getString_name($info["name"]);
+                    $code["name"] = $name;
+                } else {
+                    $code["name"] = "(MultilineL dummy)";
                 }
-                $name = $this->abc->getString_name($info["name"]);
-                $code["name"] = $name;
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
                 if ($opts['debug']) {
@@ -632,19 +633,30 @@ class IO_SWF_ABC_Code {
                          *  callpropvoid (GotoAnd*)
                          * => Push B:C
                          * => GotoFrame2
+                         ---
+                         *  getproperty (name 無し)
+                         *  stringadd ":"
+                         --*  stringadd C  => stack "B:C"
+                         *  callpropvoid (GotoAnd*)
+                         * => Push B:C
+                         * => GotoFrame2
                          */
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 2);
                         $b = $abcQueue[0];  // getproperty
                         $c = $abcQueue[1];  // pushbyte || pushshort
                         if (($b["inst"] == 0x66) && ($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
-                            if (isset($b['name']) && ($b['name'] !== "") &&
-                                isset($c['value'])) {
+                            if (isset($c['value'])) {
                                 // OK
                             } else {
                                 $this->dump();
                                 throw new IO_SWF_Exception("b c parameter ".print_r([$b, $c], true));
                             }
-                            $push_path = $b["name"].":".$c["value"];
+                            if (isset($b['name']) && ($b['name'] !== "")) {
+                                $push_path = $b["name"].":".$c["value"];
+                            } else {
+                                // TODO GetVariables + StringAdd ":"
+                                $push_path = $c["value"];
+                            }
                             // stackNum: -1 + 1
                             array_pop($abcQueue);
                             array_pop($abcQueue);
@@ -1073,13 +1085,17 @@ class IO_SWF_ABC_Code {
                     $propertyMap[$index] = ["name" => $name,
                                             "valuetype" => null];
                 }
-                $name = $propertyMap[$index]["name"];
-                $actions []= ["Code" => 0x96, // Push
-                              "Length" => 1 + strlen($name) + 1,
-                              "Values" => [
-                                  ["Type" => 0,  // String
-                                   "String" => $name]
-                              ]];
+                if (isset($propertyMap[$index]["name"])) {
+                    $name = $propertyMap[$index]["name"];
+                    $actions []= ["Code" => 0x96, // Push
+                                  "Length" => 1 + strlen($name) + 1,
+                                  "Values" => [
+                                      ["Type" => 0,  // String
+                                       "String" => $name]
+                                  ], "__" => __FILE__.":".__LINE__];
+                } else {
+                    // TODO: MultilineL の対応
+                }
                 $actions []= ["Code" => 0x1C]; // GetVariable
                 // pop:(none) => push:value
                 array_push($abcStack, $propertyMap[$index]);
