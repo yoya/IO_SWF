@@ -490,7 +490,7 @@ class IO_SWF_ABC_Code {
                                       "Values" => [
                                           ["Type" => 0,  // String
                                            "String" => $value_str]
-                                      ]];
+                                      ], "__" => __FILE__.":".__LINE__];
                         $actions []= ["Code" => 0x30];  // RandomNumber
                         $skip_count = 3;  // pushbyte, multiply, callproperty
                         // pop:(none) => push:number
@@ -706,7 +706,7 @@ class IO_SWF_ABC_Code {
                                           "Values" => [
                                           ["Type" => 0,  // String
                                            "String" => $push_path]
-                                          ]];
+                                          ], "__" => __FILE__.":".__LINE__];
                         }
                         $actions []= ["Code" => 0x9F,  // GotoFrame2
                                       "Length" => 1, "SceneBiasFlag" => 0,
@@ -782,7 +782,7 @@ class IO_SWF_ABC_Code {
                                   "Values" => [
                                       ["Type" => 0,  // String
                                        "String" => $name]
-                                  ]];
+                                  ], "__" => __FILE__.":".__LINE__];
                     $actions []= ["Code" => 0x1C]; // GetVariable
                     if (($g["inst"] !== 0x66) || ($c["inst"] !== 0x4a)) {  // TODO: URLRequest チェックも
                         $this->dump();
@@ -794,7 +794,7 @@ class IO_SWF_ABC_Code {
                                   "Values" => [
                                       ["Type" => 0,  // String
                                        "String" => $target]
-                                  ]];
+                                  ], "__" => __FILE__.":".__LINE__];
                     $actions []= ["Code" => 0x9A, // GetURL2
                                   'LoadVariablesFlag' => 0,
                                   'LoadTargetFlag' => 0,
@@ -842,7 +842,7 @@ class IO_SWF_ABC_Code {
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $name]
-                              ]];
+                              ], "__" => __FILE__.":".__LINE__];
                 if (count($abcQueue) < 1) {
                     $actions []= ["Code" => 0x4D]; // StackSwap
                 } else {
@@ -866,7 +866,7 @@ class IO_SWF_ABC_Code {
                                       "Values" => [
                                           ["Type" => 0,  //String
                                            "String" => $prevCode["value"]."\0"]
-                                      ]];
+                                      ], "__" => __FILE__.":".__LINE__];
                     } else if ($prevCode["inst"] == 0x24) {  // ひとつ前が pushbyte
                         /*
                           AS3:
@@ -886,7 +886,7 @@ class IO_SWF_ABC_Code {
                                       "Values" => [
                                           ["Type" => 7,  // Integer
                                            "Integer" => $prevCode["value"]]
-                                      ]];
+                                      ], "__" => __FILE__.":".__LINE__];
                     }
                 }
                 $actions []= ["Code" => 0x1d]; // SetVariable
@@ -948,7 +948,7 @@ class IO_SWF_ABC_Code {
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $data]
-                              ]];
+                              ], "__" => __FILE__.":".__LINE__];
                 $actions []= ["Code" => 0x0A];  // Add
                 break;
             case 0xd0:  // getlocal_0
@@ -1046,7 +1046,7 @@ class IO_SWF_ABC_Code {
                               "Values" => [
                                   ["Type" => 0,  // String
                                    "String" => $data]
-                              ]];
+                              ], "__" => __FILE__.":".__LINE__];
                 array_push($abcStack, $code);
                 break;
             case 0x30:  // pushscope
