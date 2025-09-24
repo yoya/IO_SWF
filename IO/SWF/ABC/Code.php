@@ -270,6 +270,7 @@ class IO_SWF_ABC_Code {
         // preprocess, set stack value & propertyMap
         $propertyMap = $ctx->propertyMap;  // [name, valuetype]
         $debugPropertyArray = [];
+        $lex_name = "";
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -1058,6 +1059,8 @@ class IO_SWF_ABC_Code {
                 break;
             case 0x60:  // getlex
                 // findpropstict の後に getproperty を実行するのと同じ
+                // 今のところ MovieClip の root/parent にしか使わないので、それ前提で動かす
+                $lex_name = $code["name"];
                 break;
             case 0x66:  // getproperty
                 //$this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
