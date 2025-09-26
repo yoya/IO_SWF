@@ -11,6 +11,7 @@ class IO_SWF_ABC_Code {
     var $opts = [];
     var $labels = [];    // 飛び先につけるラベル。自分自身の idx
     var $branches = [];  // 飛び元(分岐命令)につける。飛び先 idx
+    var $lex_name = "";
     var $instructionTable = [
         //         name             Arg type    Arg to pool
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
@@ -270,7 +271,7 @@ class IO_SWF_ABC_Code {
         // preprocess, set stack value & propertyMap
         $propertyMap = $ctx->propertyMap;  // [name, valuetype]
         $debugPropertyArray = [];
-        $lex_name = "";
+        $this->lex_name = "";
         foreach ($this->codeArray as &$code) {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
@@ -513,8 +514,9 @@ class IO_SWF_ABC_Code {
                         throw new IO_SWF_Exception("unknown random instruction pattern: idx:".$idx." inst:".join(",", $tmp));
                     }
                 } else if ($code["name"] === "MovieClip") {
-                    //
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
+                    // 一つ前が getlex の場合、
+                    // root か parent が lex_name に保存される
                 } else if ($code["name"] === "substr") {
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
                     if ($nextLabel) {
@@ -582,7 +584,17 @@ class IO_SWF_ABC_Code {
                                 $this->dump();
                                 throw new IO_SWF_Exception("a b c parameter ".print_r([$a, $b, $c], true));
                             }
-                            $push_path = "/".$a["name"]."/".$b["name"].":".$c["value"];
+                            if ($this->lex_name) {
+                                if ($this->lex_name == "root") {
+                                    $push_path = "/";
+                                } elseif ($this->lex_name == "parent") {
+                                    $push_path = "../";
+                                } else {
+                                    $push_path = "";
+                                }
+                                $this->lex_name = "";
+                            }
+                            $push_path .= $a["name"]."/".$b["name"].":".$c["value"];
                             array_pop($abcQueue);
                             array_pop($abcQueue);
                             array_pop($abcQueue);
@@ -599,6 +611,7 @@ class IO_SWF_ABC_Code {
                              * => Push /:C ..:C
                              * => GotoFrame2
                              */
+                            fprintf(STDERR, "illegal pattern: getlex, movieclip, puth, callprop\n");
                             if ((($a["name"] != "root") &&
                                  ($a["name"] != "parent")) ||
                                 ($b["name"] != "MovieClip")) {
@@ -641,11 +654,21 @@ class IO_SWF_ABC_Code {
                                 $this->dump();
                                 throw new IO_SWF_Exception("b c parameter ".print_r([$b, $c], true));
                             }
+                            if ($this->lex_name) {
+                                if ($this->lex_name == "root") {
+                                    $push_path = "/";
+                                } elseif ($this->lex_name == "parent") {
+                                    $push_path = "../";
+                                } else {
+                                    $push_path = "";
+                                }
+                                $this->lex_name = "";
+                            }
                             if (isset($b['name']) && ($b['name'] !== "")) {
-                                $push_path = $b["name"].":".$c["value"];
+                                $push_path .= $b["name"].":".$c["value"];
                             } else {
                                 // TODO GetVariables + StringAdd ":"
-                                $push_path = $c["value"];
+                                $push_path .= $c["value"];
                             }
                             // stackNum: -1 + 1
                             array_pop($abcQueue);
@@ -667,18 +690,32 @@ class IO_SWF_ABC_Code {
                                 $this->dump();
                                 throw new IO_SWF_Exception("c parameter ".print_r([$b, $c], true));
                             }
+                            if ($this->lex_name) {
+                                if ($this->lex_name == "root") {
+                                    $push_path = "/:";
+                                } elseif ($this->lex_name == "parent") {
+                                    $push_path = "../:";
+                                } else {
+                                    // 今は GotoLabel/GotoFrame を使うが、
+                                    // lex_name がない時も GotoFrame2 を
+                                    // 使う場合は、.:  をつける必要がありそう。
+                                }
+                            }
                             // pushbyte || pushshort || pushstring
                             // $push_path = ".:".$c["value"];
-                            $push_path = $c["value"];
+                            $push_path .= $c["value"];
                             array_pop($abcQueue);
                             // この後、pop されるので dummy を入れておく
                             array_push($abcStack, []); // stackNum: +1
                             $trackbackDone = true;
-                            if ($c["inst"] === 0x2C) {  // string
-                                $gotofunc = "GotoLabel";
-                            } else {
-                                $gotofunc = "GotoFrame";
+                            if ($this->lex_name === "") {
+                                if ($c["inst"] === 0x2C) {  // string
+                                    $gotofunc = "GotoLabel";
+                                } else {
+                                    $gotofunc = "GotoFrame";
+                                }
                             }
+                            $this->lex_name = "";
                         }
                     }
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
@@ -1060,7 +1097,12 @@ class IO_SWF_ABC_Code {
             case 0x60:  // getlex
                 // findpropstict の後に getproperty を実行するのと同じ
                 // 今のところ MovieClip の root/parent にしか使わないので、それ前提で動かす
-                $lex_name = $code["name"];
+                $this->lex_name = $code["name"];
+                if ($this->lex_name !== "root" && $this->lex_name !== "parent") {
+                    // getlex の name が今のところ root と parent だけ対応
+                    // $code->dump();
+                    fprintf(STDERR, "ignore name:".$this->lex_name);
+                }
                 break;
             case 0x66:  // getproperty
                 //$this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
