@@ -1115,7 +1115,11 @@ class IO_SWF_ABC_Code {
                     throw new IO_SWF_Exception('! isset($propertyMap[$index]'.print_r($info, true));
                     */
                     $info = $this->abc->getMultiname($index);
-                    $name = $this->abc->getString_name($info["name"]);
+                    if (isset($info["name"])) {
+                        $name = $this->abc->getString_name($info["name"]);
+                    } else {
+                        $name = null;  // name がない種別もある
+                    }
                     $propertyMap[$index] = ["name" => $name,
                                             "valuetype" => null];
                 }
