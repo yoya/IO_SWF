@@ -215,9 +215,9 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                             $stateNewStyles = 1;
                         }
                     }
+                    $stateNewStyles  = $shapeRecord['StateNewStyles'];
                     if ($opts['preserveStyleState']) {
-                        $stateNewStyles  = $shapeRecord['StateNewStyles'];
-                        $stateLineStyle  = $shapeRecord['StateLineStyle'];
+                        $stateLineStyle = $shapeRecord['StateLineStyle'];
                         $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
                         $stateFillStyle0 = $shapeRecord['StateFillStyle0'];
                         $stateMoveTo = $shapeRecord['StateMoveTo'];
@@ -225,7 +225,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
                         $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                         $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
-                        $stateMoveTo = ($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY);
+                        $stateMoveTo = (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY))?1:0;
                     }
                     // 全部 0 だと End of Shape なので、skip する。
                     // Shape Records を編集した時に備えての処理
