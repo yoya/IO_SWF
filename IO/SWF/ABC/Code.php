@@ -323,7 +323,8 @@ class IO_SWF_ABC_Code {
                     $name = $this->abc->getString_name($info["name"]);
                     $code["name"] = $name;
                 } else {
-                    $code["name"] = "(MultilineL dummy)";
+                    //$code["name"] = "(MultilineL dummy)";
+                    $code["name"] = null;
                 }
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
