@@ -6,12 +6,13 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-$options = getopt("f:p");
+$options = getopt("f:pd");
 
 if (! isset($options['f']))  {
     fprintf(STDERR, "Usage: php swfrebuild.php -f <swf_file> [-p]\n");
     echo "    -f <swf_file>\n";
     echo "    -p  # enable preserveStyleState\n";
+    echo "    -d  # debug mode \n";
     fprintf(STDERR, "ex) php swfrebuild.php test.swf\n");
     exit(1);
 }
@@ -19,7 +20,8 @@ $filename = $options['f'];
 assert(is_readable($filename));
 
 $opts = [
-    'preserveStyleState' => isset($options['p'])
+    'preserveStyleState' => isset($options['p']),
+    'debug' => isset($options['d']),
 ];
 
 $swfdata = file_get_contents($filename);
