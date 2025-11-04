@@ -59,8 +59,8 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
         if ($opts['debug']) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
-            printf("Type_LINESTYLE::build: shapeId:%d tagCode:%d(%s)\n",
-                   $opts['shapeId'], $tagCode, $tagName);
+            fprintf(STDERR, "Type_LINESTYLE::build: shapeId:%d tagCode:%d(%s)\n",
+                    $opts['shapeId'], $tagCode, $tagName);
         }
         if ($isMorph === false) {
             $writer->putUI16LE($lineStyle['Width']);
