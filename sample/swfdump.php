@@ -30,8 +30,11 @@ $opts = [
     'debug'    =>   isset($options['d']),
 ];
 
-$swf->parse($swfdata, $opts);
-
-$swf->dump($opts);
+try {
+    $swf->parse($swfdata, $opts);
+    $swf->dump($opts);
+} catch (IO_SWF_Exception $e) {
+    print_r($e);
+}
 
 exit(0);
