@@ -3,6 +3,19 @@
 require_once dirname(__FILE__).'/Bit.php';  // IO_SWF_ABC_Bit
 require_once dirname(__FILE__).'/../Exception.php';
 
+function abcQueueDump($abcQueue) {
+    foreach ($abcQueue as $a) {
+        echo $a['instName'];
+        if (isset($a["value"])) {
+            echo " value:".$a["value"];
+        }
+        if (isset($a["name"])) {
+            echo " name:".$a["name"];
+        }
+        echo "\n";
+    }
+}
+
 class IO_SWF_ABC_Code {
     var $codeData = null;
     var $codeArray = [];
@@ -319,6 +332,8 @@ class IO_SWF_ABC_Code {
                 $index = $bit->get_u30();
                 $code["index"] = $index;
                 $info = $this->abc->getMultiname($index);
+                // QName(7) や Multiname(9) の区別
+                $code["kind"] = $info["kind"];
                 if (isset($info["name"])) { // MultilineL だと name 無し
                     $name = $this->abc->getString_name($info["name"]);
                     $code["name"] = $name;
@@ -554,6 +569,7 @@ class IO_SWF_ABC_Code {
                 case "gotoAndStop":
                     /*
                      * AS3:
+                     * (...)
                      * callpropv name=gotoAndPlay or name=gotoAndStop
                      * AS1:
                      * => Push (/A/)B:C GoToFrame2 SceneBiasFlag=0 PlayFlag=1
@@ -564,6 +580,31 @@ class IO_SWF_ABC_Code {
                     $push_path = null;
                     $gotofunc = "GotoFrame2";
                     if (count($abcQueue) >= 3) {
+                        $QnamePath = null;
+                        $qNameIndex = null;
+                        foreach ($abcQueue as $i => $a) {
+                            // gerproperty Qname
+                            if (($a['inst'] === 0x66) && ($a["kind"] === 7)) {
+                                $qNameIndex = $i;
+                            }
+                        }
+                        if (! is_null($qNameIndex) && ((count($abcQueue) - $qNameIndex) > 3)) {
+                            $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, count($abcQueue) - $qNameIndex);
+                            $pathArray = [];
+                            // echo "while ".count($abcQueue)."\n";
+                            while (count($abcQueue) > 3) {
+                                $aa = array_shift($abcQueue);
+                                if (isset($aa['name'])) {
+                                    $pathArray []= $aa['name'];
+                                } elseif (isset($aa['value'])) {
+                                    // $pathArray []= $aa['value'];
+                                } else {
+                                    ;
+                                }
+                            }
+                            $QnamePath = implode('/', $pathArray);
+                        }
+                        // ここから既存の処理
                         $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 3);
                         $a = $abcQueue[0];
                         $b = $abcQueue[1];
@@ -595,6 +636,9 @@ class IO_SWF_ABC_Code {
                                 }
                                 $this->lex_name = "";
                             }
+                            if (! is_null($QnamePath)) {
+                                $push_path .= $QnamePath."/";
+                            }
                             $push_path .= $a["name"]."/".$b["name"].":".$c["value"];
                             array_pop($abcQueue);
                             array_pop($abcQueue);
@@ -623,6 +667,9 @@ class IO_SWF_ABC_Code {
                                 $push_path = "..:".$c['value'];
                             } else {
                                 $push_path = "/:".$c['value'];
+                            }
+                            if (! is_null($QnamePath)) {
+                                $push_path .= $QnamePath."/";
                             }
                             array_pop($abcQueue);
                             array_pop($abcQueue);
