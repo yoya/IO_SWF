@@ -609,11 +609,11 @@ class IO_SWF_ABC_Code {
                         $a = $abcQueue[0];
                         $b = $abcQueue[1];
                         $c = $abcQueue[2];
-                        if (($a["inst"] == 0x66) &&($b["inst"] == 0x66) && ($c["inst"] === 0x24) || ($c["inst"] === 0x25)) {
+                        if (($a["inst"] == 0x66) && ($b["inst"] == 0x66) && (($c["inst"] === 0x24) || ($c["inst"] === 0x25) ||  ($c["inst"] === 0x2C))) {
                             /*
                              *  getproperty name=A
                              *  getproperty name=B
-                             *  pushbyte || pushshort C
+                             *  pushbyte || pushshort | pushstring C
                              *  callpropvoid (GotoAnd*)
                              * => Push /A/B:C
                              * => GotoFrame2
