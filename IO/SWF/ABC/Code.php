@@ -579,8 +579,8 @@ class IO_SWF_ABC_Code {
                     */
                     $push_path = null;
                     $gotofunc = "GotoFrame2";
+                    $QnamePath = null;
                     if (count($abcQueue) >= 3) {
-                        $QnamePath = null;
                         $qNameIndex = null;
                         foreach ($abcQueue as $i => $a) {
                             // gerproperty Qname
