@@ -16,7 +16,7 @@ function usage() {
     fprintf(STDERR, "    -E  # disable eliminate mode\n");
     fprintf(STDERR, "    -S  # disable strict mode\n");
     fprintf(STDERR, "    -d  # debub mode\n");
-    fprintf(STDERR, "    -p  # enable preserveStyleState\n");
+    fprintf(STDERR, "    -P  # disable preserveStyleState\n");
     fprintf(STDERR, "ex) php swfdowngrade.php -v 4 -f test.swf\n");
 }
 
@@ -57,7 +57,7 @@ $opts = [
     'eliminate'          => ! isset($options['E']),  // 未対応タグを残すか
     'strict'             => ! isset($options['S']),  // 続行するかどうか
     'debug'              => isset($options['d']),    // debug mode
-    'preserveStyleState' => isset($options['p']),
+    'preserveStyleState' => ! isset($options['P']),  // Shape 構築不具合あるのでデフォルト off
 ];
 
 if (is_readable($filename) === false) {
