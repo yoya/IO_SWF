@@ -764,6 +764,10 @@ class IO_SWF_ABC_Code {
                                 }
                             }
                             $this->lex_name = "";
+                            if ($QnamePath !== null) {
+                                $gotofunc = "GotoFrame2";
+                                $push_path = $QnamePath."/".$push_path;
+                            }
                         }
                     }
                     $this->flushABCQueue($abcQueue, $abcStack, $actions, $labels, 0);
