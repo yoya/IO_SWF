@@ -16,11 +16,11 @@ require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
-        $debug = ! empty($opts['debug']);
-        if ($debug) {
+        $opts['debug'] = ! empty($opts['debug']);
+        if ($opts['debug']) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
-            printf("Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
-                   $opts['shapeId'], $tagCode, $tagName);
+            fprintf(STDERR, "Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
+                    $opts['shapeId'], $tagCode, $tagName);
         }
         $shapeRecords = array();
     	$reader->byteAlign();
@@ -58,14 +58,14 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
                     $shapeRecord['StateMoveTo'] = $stateMoveTo;
-                    if ($debug && false) {
-                        printf("%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
-                               $stateNewStyles, $stateLineStyle,
-                               $stateFillStyle1, $stateFillStyle0,
-                               $stateMoveTo,
-                               $stateNewStyles, $stateLineStyle,
-                               $stateFillStyle1, $stateFillStyle0,
-                               $stateMoveTo);
+                    if ($opts['debug']) {
+                        fprintf(STDERR, "%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
+                                $stateNewStyles, $stateLineStyle,
+                                $stateFillStyle1, $stateFillStyle0,
+                                $stateMoveTo,
+                                $stateNewStyles, $stateLineStyle,
+                                $stateFillStyle1, $stateFillStyle0,
+                                $stateMoveTo);
                     }
                     if ($stateMoveTo) {
                         $moveBits = $reader->getUIBits(5);
@@ -155,8 +155,8 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
 
         if ($opts['debug']) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
-            printf("Type_SHAPE::build: shapeId:%d tagCode:%d(%s)\n",
-                   $opts['shapeId'], $tagCode, $tagName);
+            fprintf(STDERR, "Type_SHAPE::build: shapeId:%d tagCode:%d(%s) fillStyleCount:%d lineStyleCount:%d\n",
+                    $opts['shapeId'], $tagCode, $tagName, $fillStyleCount, $lineStyleCount);
         }
         if ($fillStyleCount == 0) {
             $numFillBits = 0;
