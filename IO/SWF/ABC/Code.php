@@ -879,7 +879,7 @@ class IO_SWF_ABC_Code {
                         $this->dump();
                         throw new IO_SWF_Exception('callproperty navigateToURL unknown pattern. need constructpropd URLRequest inst:'.$c["inst"]);
                     }
-                    $target = "_blank";
+                    $target = "";  // 一旦、決め打ち。_blank の可能性もある
                     $actions []= ["Code" => 0x96, // Push
                                   "Length" => 1 + strlen($target) + 1,
                                   "Values" => [
