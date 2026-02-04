@@ -6,10 +6,10 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-$options = getopt("f:v:l:ESdp");
+$options = getopt("f:v:l:ESdP");
 
 function usage() {
-    fprintf(STDERR, "Usage: php swfdowngrade.php -f <swf_file> [-v <swf_version>] [-l <limit_tag_swf_version>] [-E] [-S]\n");
+    fprintf(STDERR, "Usage: php swfdowngrade.php -f <swf_file> [-v <swf_version>] [-l <limit_tag_swf_version>] [-E] [-S] [-P] \n");
     fprintf(STDERR, "    -f <swf_file>\n");
     fprintf(STDERR, "    -v <swf_version> # default 4\n");
     fprintf(STDERR, "    -l <limit_tag_swf_version>\n");
