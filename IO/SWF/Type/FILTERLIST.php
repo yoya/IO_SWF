@@ -34,7 +34,7 @@ class IO_SWF_Type_FILTERLIST implements IO_SWF_Type {
     static function string($filterlist, $opts = array()) {
         $text = "    NumberOfFilters:{$filterlist['NumberOfFilters']}\n";
         foreach ($filterlist['Filter'] as $filter_entry) {
-            $text .= "        ".IO_SWF_Type_FILTER::string($$filter_entry, $opts);
+            $text .= "        ".IO_SWF_Type_FILTER::string($filter_entry, $opts);
         }
     	return $text;
     }

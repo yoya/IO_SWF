@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/Base.php';
 
 class IO_SWF_Tag_Sound extends IO_SWF_Tag_Base {
    var $SoundId;
-   var $SoundFormat, $SoundRate, $SoundSize;
+   var $SoundFormat, $SoundRate, $SoundSize, $SoundType;
    var $SoundSampleCount;
    var $SoundData;
    function parseContent($tagCode, $content, $opts = array()) {
@@ -62,6 +62,7 @@ class IO_SWF_Tag_Sound extends IO_SWF_Tag_Base {
         $writer->putUIBits($this->SoundFormat, 4);
         $writer->putUIBits($this->SoundRate, 2);
         $writer->putUIBit($this->SoundSize);
+        $writer->putUIBit($this->SoundType);
         // ---
         $writer->putUI32LE($this->SoundSampleCount);
         $writer->putData($this->SoundData);

@@ -198,11 +198,11 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
         $writer = new IO_Bit();
         switch ($tagCode) {
           case 4: // PlaceObject
-            $this->_characterId = $writer->getUI16LE();
-            $this->_depth = $writer->getUI16LE();
-            $this->_matrix = IO_SWF_Type_MATRIX::parse($writer);
-            if ($writer->hasNextData()) { // optional
-                $this->_colorTransform = IO_SWF_Type_CXFORM::parse($writer);
+            $writer->putUI16LE($this->_characterId);
+            $writer->putUI16LE($this->_depth);
+            IO_SWF_Type_MATRIX::build($writer, $this->_matrix);
+            if (is_null($this->_colorTransform) === false) { // optional
+                IO_SWF_Type_CXFORM::build($writer, $this->_colorTransform);
             }
             break;
           case 26: // PlaceObject2
@@ -270,7 +270,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                     $writer->putUI8($this->_blendMode);
                 }
                 if ($this->_placeFlagHasCacheAsBitmap) {
-                    $writer->putUI8($his->_bitmapCache);
+                    $writer->putUI8($this->_bitmapCache);
                 }
             }
             if ($this->_placeFlagHasClipActions) {

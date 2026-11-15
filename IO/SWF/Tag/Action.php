@@ -116,41 +116,45 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
             $action = $this->_actions[$i];
             // Jump or If
             if ($action['Code'] == 0x99 || $action['Code'] == 0x9D) {
-                // Find label to jump
-                if (! isset($this->_branches[$i])) {
-                    $this->dumpContent($tagCode, $opts + ["addlabel" => true]);
-                    throw new Exception("Branch Instruction(idx:$i) not link to exist Branches indices:".join(",", array_keys($this->_branches)));
-                }
-                for ($j = 0; $j <= count($this->_actions); $j++) {
-                    if (isset($this->_labels[$j])) {
-                        if ($this->_labels[$j] == $this->_branches[$i]) {
-                            break;
+                // Find label to jump.
+                // _branches[$i] is set only when parse could resolve the
+                // branch target onto an action-record boundary. When it is
+                // unset (target out of range or mid-instruction), keep the
+                // original offset that parse stored into $action as-is, so
+                // that an action stream which parses still round-trips on
+                // build instead of throwing.
+                if (isset($this->_branches[$i])) {
+                    for ($j = 0; $j <= count($this->_actions); $j++) {
+                        if (isset($this->_labels[$j])) {
+                            if ($this->_labels[$j] == $this->_branches[$i]) {
+                                break;
+                            }
                         }
                     }
-                }
-                if ($j >= count($this->_actions)) {
-                    $opts2 = [ 'addlabel' => true ];
-                    $this->dumpContent($tagCode, array_merge($opts, $opts2));
-                    throw new Exception("jump label not found branches:".join(",", array_values($this->_branches))." label:".join(",", array_values($this->_labels)));
-                }
-                // Calculate new offset
-                $branch_offset = 0;
-                if ($i < $j) {
-                    for ($k = $i + 1; $k < $j; $k++) {
-                        $branch_offset += IO_SWF_Tag_Action::actionLength(
-                            $this->_actions[$k]);
+                    if ($j > count($this->_actions)) {
+                        $opts2 = [ 'addlabel' => true ];
+                        $this->dumpContent($tagCode, array_merge($opts, $opts2));
+                        throw new Exception("jump label not found branches:".join(",", array_values($this->_branches))." label:".join(",", array_values($this->_labels)));
                     }
-                } else {
-                    for ($k = $i; $k >= $j; $k--) {
-                        $branch_offset -= IO_SWF_Tag_Action::actionLength(
-                            $this->_actions[$k]);
+                    // Calculate new offset
+                    $branch_offset = 0;
+                    if ($i < $j) {
+                        for ($k = $i + 1; $k < $j; $k++) {
+                            $branch_offset += IO_SWF_Tag_Action::actionLength(
+                                $this->_actions[$k]);
+                        }
+                    } else {
+                        for ($k = $i; $k >= $j; $k--) {
+                            $branch_offset -= IO_SWF_Tag_Action::actionLength(
+                                $this->_actions[$k]);
+                        }
                     }
-                }
-                if ($action['Code'] == 0x99) {  // Jump
-                    $action['BranchOffset'] = $branch_offset;
-                }
-                if ($action['Code'] == 0x9D) {  // If
-                    $action['Offset'] = $branch_offset;
+                    if ($action['Code'] == 0x99) {  // Jump
+                        $action['BranchOffset'] = $branch_offset;
+                    }
+                    if ($action['Code'] == 0x9D) {  // If
+                        $action['Offset'] = $branch_offset;
+                    }
                 }
             }
             IO_SWF_Type_Action::build($writer, $action);

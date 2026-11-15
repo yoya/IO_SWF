@@ -72,7 +72,7 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
                 $fillStyle['GradientRecords'] []= $gradientRecord;
             }
             if ($fillStyleType == 0x13) { // focal gradient fill // 8 and later
-                $gradientRecord['FocalPoint'] = $reader->getUI8();
+                $fillStyle['FocalPoint'] = $reader->getSI16LE(); // FIXED8 (8.8)
             }
             break;
           case 0x40: // repeating bitmap fill
@@ -154,7 +154,7 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
                 }
             }
             if ($fillStyleType == 0x13) { // focal gradient fill // 8 and later
-                $writer->putUI8($gradientRecord['FocalPoint']);
+                $writer->putSI16LE($fillStyle['FocalPoint']); // FIXED8 (8.8)
             }
           break;
           // case 0x13: // focal gradient fill // 8 and later

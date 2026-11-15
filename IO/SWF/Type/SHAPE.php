@@ -16,11 +16,11 @@ require_once dirname(__FILE__).'/../Type/LINESTYLEARRAY.php';
 class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
-        $debug = ! empty($opts['debug']);
-        if ($debug) {
+        $opts['debug'] = ! empty($opts['debug']);
+        if ($opts['debug']) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
-            printf("Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
-                   $opts['shapeId'], $tagCode, $tagName);
+            fprintf(STDERR, "Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
+                    $opts['shapeId'], $tagCode, $tagName);
         }
         $shapeRecords = array();
     	$reader->byteAlign();
@@ -58,14 +58,14 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
                     $shapeRecord['StateMoveTo'] = $stateMoveTo;
-                    if ($debug && false) {
-                        printf("%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
-                               $stateNewStyles, $stateLineStyle,
-                               $stateFillStyle1, $stateFillStyle0,
-                               $stateMoveTo,
-                               $stateNewStyles, $stateLineStyle,
-                               $stateFillStyle1, $stateFillStyle0,
-                               $stateMoveTo);
+                    if ($opts['debug']) {
+                        fprintf(STDERR, "%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
+                                $stateNewStyles, $stateLineStyle,
+                                $stateFillStyle1, $stateFillStyle0,
+                                $stateMoveTo,
+                                $stateNewStyles, $stateLineStyle,
+                                $stateFillStyle1, $stateFillStyle0,
+                                $stateMoveTo);
                     }
                     if ($stateMoveTo) {
                         $moveBits = $reader->getUIBits(5);
@@ -76,8 +76,8 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
 //                        $currentDrawingPositionY += $moveDeltaY;
                         $currentDrawingPositionX = $moveDeltaX;
                         $currentDrawingPositionY = $moveDeltaY;
-                        $shapeRecord['MoveX'] = $currentDrawingPositionX;
-                        $shapeRecord['MoveY'] = $currentDrawingPositionY;
+                        //$shapeRecord['MoveX'] = $currentDrawingPositionX;
+                        //$shapeRecord['MoveY'] = $currentDrawingPositionY;
                     }
                     $shapeRecord['MoveX'] = $currentDrawingPositionX;
                     $shapeRecord['MoveY'] = $currentDrawingPositionY;
@@ -152,11 +152,10 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         $tagCode = $opts['tagCode'];
         $fillStyleCount = $opts['fillStyleCount'];
         $lineStyleCount = $opts['lineStyleCount'];
-
         if ($opts['debug']) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
-            printf("Type_SHAPE::build: shapeId:%d tagCode:%d(%s)\n",
-                   $opts['shapeId'], $tagCode, $tagName);
+            fprintf(STDERR, "Type_SHAPE::build: shapeId:%d tagCode:%d(%s) fillStyleCount:%d lineStyleCount:%d\n",
+                    $opts['shapeId'], $tagCode, $tagName, $fillStyleCount, $lineStyleCount);
         }
         if ($fillStyleCount == 0) {
             $numFillBits = 0;
@@ -195,34 +194,44 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                 } else {
                     // StyleChangeRecord
                     $stateNewStyles = 0;
+                    // The FillStyle0/1/LineStyle index fields below must be
+                    // written with the CURRENT numFillBits/numLineBits, because
+                    // parse reads those indices *before* it reads the new style
+                    // arrays and updates the widths. So compute the new widths
+                    // into separate vars and only switch after the new styles.
+                    $newNumFillBits = $numFillBits;
+                    $newNumLineBits = $numLineBits;
                     if (isset($shapeRecord['FillStyles'])) {
                         $fillStyleCount = count($shapeRecord['FillStyles']);
                         if ($fillStyleCount == 0) {
-                            $numFillBits = 0;
+                            $newNumFillBits = 0;
                         } else {
                             // $fillStyleCount == fillStyle MaxValue because 'undefined' use 0
-                            $numFillBits = $writer->need_bits_unsigned($fillStyleCount);
+                            $newNumFillBits = $writer->need_bits_unsigned($fillStyleCount);
                             $stateNewStyles = 1;
                         }
                     }
                     if (isset($shapeRecord['LineStyles'])) {
                         $lineStyleCount = count($shapeRecord['LineStyles']);
                         if ($lineStyleCount == 0) {
-                            $numLineBits = 0;
+                            $newNumLineBits = 0;
                         } else {
                             // $lineStyleCount == lineStyle MaxValue because 'undefined' use 0
-                            $numLineBits = $writer->need_bits_unsigned($lineStyleCount);
+                            $newNumLineBits = $writer->need_bits_unsigned($lineStyleCount);
                             $stateNewStyles = 1;
                         }
                     }
-                    $stateNewStyles  = $shapeRecord['StateNewStyles'];
                     if ($opts['preserveStyleState']) {
+                        $stateNewStyles  = $shapeRecord['StateNewStyles'];
                         $stateLineStyle = $shapeRecord['StateLineStyle'];
                         $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
                         $stateFillStyle0 = $shapeRecord['StateFillStyle0'];
                         $stateMoveTo = $shapeRecord['StateMoveTo'];
                     } else {
                         $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
+                        if ($opts['debug']) {
+                            
+                        }
                         $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                         $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
                         $stateMoveTo = (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY))?1:0;
@@ -274,8 +283,11 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         IO_SWF_Type_FILLSTYLEARRAY::build($writer, $shapeRecord['FillStyles'], $opts);
                         IO_SWF_Type_LINESTYLEARRAY::build($writer, $shapeRecord['LineStyles'], $opts);
                         $writer->byteAlign();
-                        $writer->putUIBits($numFillBits, 4);
-                        $writer->putUIBits($numLineBits, 4);
+                        $writer->putUIBits($newNumFillBits, 4);
+                        $writer->putUIBits($newNumLineBits, 4);
+                        // new styles take effect for subsequent records
+                        $numFillBits = $newNumFillBits;
+                        $numLineBits = $newNumLineBits;
                     }
                 }
             } else {  // maybe $typeFlag == 1
