@@ -1201,6 +1201,27 @@ class IO_SWF_Editor extends IO_SWF {
             $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $opts);
         }
         $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts);
+        // addEventListener を検知して DefineButton2 にアクションを付与する機能。
+        // 既定では無効。$opts['addEventListenerButton'] が真のときだけ動作する。
+        if (! empty($opts['addEventListenerButton'])) {
+            // DefineButton2 を探す
+            $buttonTags = [];
+            foreach ($this->_tags as &$tag) {
+                if ($tag->code == 34) {  // DefineButton2
+                    if ($tag->parseTagContent($opts)) {
+                        $tag->content = null;
+                        $buttonTags []= $tag;
+                    } else {
+                        fprintf(STDERR, "failed parseTagContent buttontag\n");
+                    }
+                }
+            }
+            unset($tag);
+            if (false) { // ボタンが存在しない場合
+                $this->convertButtonTags($buttonTags);
+            }
+            $this->addActionToButtonTags($buttonTags);
+        }
     }
 
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion, $opts) {
@@ -1358,6 +1379,126 @@ class IO_SWF_Editor extends IO_SWF {
                 unset($target_tags);  // remove reference
             }
         }
+    }
+
+    function convertButtonTags(&$tags) {
+        foreach ($tags as &$tag) {
+            // $this->convertButtonTag($tag)
+        }
+    }
+    function addActionToButtonTags($buttonTags) {
+        foreach ($buttonTags as &$tag) {
+            $this->addActionToButtonTag($tag);
+        }
+    }
+    function addActionToButtonTag(&$buttonTag) {
+        //$variableName = "/:url";
+        //$variableName = "/url";
+        $variableName = "url";
+        $target = "";
+        $buttonrecord = [];
+        $buttonrecord['ButtonReserved'] = 0;
+        $buttonrecord['ButtonHasBlandMode'] = 0;
+        $buttonrecord['ButtonHasFilterList'] = 0;
+        $buttonrecord['ButtonStateHitTest'] = 1;
+        $buttonrecord['ButtonStateDown'] = 1;
+        $buttonrecord['ButtonStateOver'] = 1;
+        $buttonrecord['ButtonStateUp'] = 1;
+        $buttonrecord['CharacterID'] = 56; // TODO 56?
+        $buttonrecord['PlaceDepth'] = 1;
+        $buttonrecord['PlaceMatrix'] = [
+            'ScaleX' => 0x10000,
+            'ScaleY' => 0x10000,
+            'RotateSkew0' => 0,
+            'RotateSkew1' => 0,
+            'TranslateX' => 0,
+            'TranslateY' => 0,
+        ];
+        $buttonrecord['ColorTransform'] = null;
+        $buttonTag->tag->_characters = [ $buttonrecord ];
+        $actions = [];
+        /*
+          // 0000 [0] Stop(Code:0x07)
+            0001 [1] Push(Code:0x96) (Length:8) (String)/:url
+            0012 [2] GetVariable(Code:0x1C)
+            0013 [3] Push(Code:0x96) (Length:8) (String)_blank
+            0024 [4] GetURL2(Code:0x9A) (Length:1) LoadVariablesFlag=0 LoadTargetFlag=0 (Reserved)=0 SendVarsMethod=0
+            0028 [5] End(Code:0x00)
+            pushbyte 1
+            setproperty 7(kind:7(QName),ns=1(),name=12(flag))
+         */
+        $actions []= ["Code" => 0x07]; // Stop
+         //         $actions []= ["Code" => 0x06]; // Play
+        $actions []= ["Code" => 0x96, // Push
+                      "Length" => 1 + strlen($variableName) + 1,
+                      "Values" => [
+                          ["Type" => 0,  // String
+                           "String" => $variableName."\0"]
+                      ], "__" => __FILE__.":".__LINE__];
+        $actions []= ["Code" => 0x1C]; // GetVariable
+        $actions []= ["Code" => 0x96, // Push
+                      "Length" => 1 + strlen($target) + 1,
+                      "Values" => [
+                          ["Type" => 0,  // String
+                           "String" => $target."\0"]
+                      ], "__" => __FILE__.":".__LINE__];
+        $actions []= ["Code" => 0x9A, // GetURL2
+                      'LoadVariablesFlag' => 0,
+                      'LoadTargetFlag' => 0,
+                      'SendVarsMethod' => 0
+        ];
+        // pushbyte 1
+        // setproperty flag
+        $actions []= ["Code" => 0x96, // Push
+                      "Length" => 1 + 4,
+                      "Values" => [
+                          ["Type" => 7,  // Integer
+                           "Integer" => 1 ],
+                      ], "__" => __FILE__.":".__LINE__];
+        $data = "flag";
+        $actions []= ["Code" => 0x96, // Push
+                      "Length" => 1 + strlen($data) + 1,
+                      "Values" => [
+                          ["Type" => 0,  // String
+                           "String" => $data]
+                      ], "__" => __FILE__.":".__LINE__];
+        $actions []= ["Code" => 0x1d]; // SetVariable
+        $actions []= ["Code" => 0x00]; // End
+        $condaction1 = [
+            'CondActionSize' => 0, // Last action
+            //
+            'CondIdleToOverDown' => 0,
+            'CondOutDownToIdle' => 0,
+            'CondOutDownToOverDown' => 0,
+            'CondOverDownToOutDown' => 0,
+            'CondOverDownToOverUp' => 0,
+            'CondOverUpToOverDown' => 1,
+            'CondOverUpToIdle' => 0,
+            'CondIdleToOverUp' => 0,
+            //
+            'CondKeyPress' => 13,
+            'CondOverDownToIdle' => 0,
+            //
+            'Actions' => $actions
+        ];
+        $condaction2 = [
+            'CondActionSize' => 0, // Last action
+            //
+            'CondIdleToOverDown' => 0,
+            'CondOutDownToIdle' => 0,
+            'CondOutDownToOverDown' => 0,
+            'CondOverDownToOutDown' => 0,
+            'CondOverDownToOverUp' => 0,
+            'CondOverUpToOverDown' => 0,
+            'CondOverUpToIdle' => 0,
+            'CondIdleToOverUp' => 0,
+            //
+            'CondKeyPress' => 53,
+            'CondOverDownToIdle' => 0,
+            //
+            'Actions' => $actions
+        ];
+        $buttonTag->tag->_actions = [ $condaction1, $condaction2 ];
     }
     /*
      * DoABC 内の method と実際に動作する Frame の対応表
