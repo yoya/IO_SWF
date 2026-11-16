@@ -42,6 +42,7 @@ class IO_SWF_Tag {
         20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless', 'version' => 2),
         21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg', 'version' => 2),
         22 => array('name' => 'DefineShape2', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 2),
+        23 => array('name' => 'DefineButtonCxform', 'version' => 2),
         24 => array('name' => 'Protect', 'version' => 2),
         // 25 missing
         26 => array('name' => 'PlaceObject2', 'klass' => 'Place', 'version' => 3),
@@ -63,8 +64,8 @@ class IO_SWF_Tag {
         46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape', 'kind' => 'MorphShape', 'version' => 3),
         48 => array('name' => 'DefineFont2', 'klass' => 'Font', 'version' => 3),
         56 => array('name' => 'ExportAssets', 'version' => 5),
-        57 => array('name' => '', 'version' => null),
-        58 => array('name' => '', 'version' => null),
+        57 => array('name' => 'ImportAssets', 'version' => 5),
+        58 => array('name' => 'EnableDebugger', 'version' => 5),
         59 => array('name' => 'DoInitAction', 'klass' => 'Action', 'version' => 6),
         //
         60 => array('name' => 'DefineVideoStream', 'klass' => 'VideoStream','version' => 6),
@@ -88,7 +89,7 @@ class IO_SWF_Tag {
         // 79,80,81 missing
         82 => array('name' => 'DoABC', 'klass' => 'ABC', 'version' => 9),
         83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 8),
-        84 => array('name' => 'DefineMorphShape2', 'kind' => 'MorphShape', 'version' => 8),
+        84 => array('name' => 'DefineMorphShape2', 'klass' => 'Shape', 'kind' => 'MorphShape', 'version' => 8),
         // 85 missing
         // 86:DefineSceneAndFrameLabelData added in SWFv9,
         // but sometimes included in SWFv4 publish,

@@ -12,6 +12,7 @@ if (is_readable('vendor/autoload.php')) {
 require_once dirname(__FILE__).'/../Type.php';
 require_once dirname(__FILE__).'/../Type/RGB.php';
 require_once dirname(__FILE__).'/../Type/RGBA.php';
+require_once dirname(__FILE__).'/../Type/FILLSTYLE.php';
 
 class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
@@ -49,8 +50,30 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
         } else {
             $lineStyle['StartWidth'] = $reader->getUI16LE();
             $lineStyle['EndWidth']   = $reader->getUI16LE();
-            $lineStyle['StartColor'] = IO_SWF_Type_RGBA::parse($reader);
-            $lineStyle['EndColor']   = IO_SWF_Type_RGBA::parse($reader);
+            if ($tagCode == 84) { // DefineMorphShape2 : MORPHLINESTYLE2
+                $lineStyle['StartCapStyle'] = $reader->getUIBits(2);
+                $lineStyle['JoinStyle'] = $reader->getUIBits(2);
+                $lineStyle['HasFillFlag'] = $reader->getUIBit();
+                $lineStyle['NoHScaleFlag'] = $reader->getUIBit();
+                $lineStyle['NoVScaleFlag'] = $reader->getUIBit();
+                $lineStyle['PixelHintingFlag'] = $reader->getUIBit();
+                // ----
+                $lineStyle['(Reserved)'] = $reader->getUIBits(5);
+                $lineStyle['NoClose'] = $reader->getUIBit();
+                $lineStyle['EndCapStyle'] = $reader->getUIBits(2);
+                if ($lineStyle['JoinStyle'] == 2) {
+                    $lineStyle['MiterLimitFactor'] = $reader->getUI16LE();
+                }
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    $lineStyle['StartColor'] = IO_SWF_Type_RGBA::parse($reader);
+                    $lineStyle['EndColor']   = IO_SWF_Type_RGBA::parse($reader);
+                } else {
+                    $lineStyle['FillType'] = IO_SWF_Type_FILLSTYLE::parse($reader, $opts);
+                }
+            } else { // DefineMorphShape : MORPHLINESTYLE
+                $lineStyle['StartColor'] = IO_SWF_Type_RGBA::parse($reader);
+                $lineStyle['EndColor']   = IO_SWF_Type_RGBA::parse($reader);
+            }
         }
         return  $lineStyle;
     }
@@ -93,8 +116,30 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
         } else {
             $writer->putUI16LE($lineStyle['StartWidth']);
             $writer->putUI16LE($lineStyle['EndWidth']);
-            IO_SWF_Type_RGBA::build($writer, $lineStyle['StartColor']);
-            IO_SWF_Type_RGBA::build($writer, $lineStyle['EndColor']);
+            if ($tagCode == 84) { // DefineMorphShape2 : MORPHLINESTYLE2
+                $writer->putUIBits($lineStyle['StartCapStyle'], 2);
+                $writer->putUIBits($lineStyle['JoinStyle'], 2);
+                $writer->putUIBit($lineStyle['HasFillFlag']);
+                $writer->putUIBit($lineStyle['NoHScaleFlag']);
+                $writer->putUIBit($lineStyle['NoVScaleFlag']);
+                $writer->putUIBit($lineStyle['PixelHintingFlag']);
+                // ----
+                $writer->putUIBits(0, 5); // Reserved
+                $writer->putUIBit($lineStyle['NoClose']);
+                $writer->putUIBits($lineStyle['EndCapStyle'], 2);
+                if ($lineStyle['JoinStyle'] == 2) {
+                    $writer->putUI16LE($lineStyle['MiterLimitFactor']);
+                }
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    IO_SWF_Type_RGBA::build($writer, $lineStyle['StartColor']);
+                    IO_SWF_Type_RGBA::build($writer, $lineStyle['EndColor']);
+                } else {
+                    IO_SWF_Type_FILLSTYLE::build($writer, $lineStyle['FillType'], $opts);
+                }
+            } else { // DefineMorphShape : MORPHLINESTYLE
+                IO_SWF_Type_RGBA::build($writer, $lineStyle['StartColor']);
+                IO_SWF_Type_RGBA::build($writer, $lineStyle['EndColor']);
+            }
         }
         return true;
     }
@@ -127,9 +172,26 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
         } else {
             $startWidth = $lineStyle['StartWidth'];
             $endWidth = $lineStyle['EndWidth'];
-            $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
-            $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
-            $text .= "Width: $startWidth => $endWidth Color: $startColorStr => $endColorStr  ";
+            $text .= "Width: $startWidth => $endWidth  ";
+            if ($tagCode == 84) { // DefineMorphShape2 : MORPHLINESTYLE2
+                $text .= "StartCapStyle:{$lineStyle['StartCapStyle']} JoinStyle:{$lineStyle['JoinStyle']}  ";
+                $text .= "HasFillFlag:{$lineStyle['HasFillFlag']} NoHScaleFlag:{$lineStyle['NoHScaleFlag']} NoVScaleFlag:{$lineStyle['NoVScaleFlag']} PixelHintingFlag:{$lineStyle['PixelHintingFlag']}  ";
+                $text .= "NoClose:{$lineStyle['NoClose']} EndCapStyle:{$lineStyle['EndCapStyle']}  ";
+                if ($lineStyle['JoinStyle'] == 2) {
+                    $text .= "MiterLimitFactor:{$lineStyle['MiterLimitFactor']}  ";
+                }
+                if ($lineStyle['HasFillFlag'] == 0) {
+                    $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
+                    $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
+                    $text .= "Color: $startColorStr => $endColorStr  ";
+                } else {
+                    $text .= "FillType: ".IO_SWF_Type_FILLSTYLE::string($lineStyle['FillType'], $opts);
+                }
+            } else { // DefineMorphShape : MORPHLINESTYLE
+                $startColorStr = IO_SWF_Type_RGBA::string($lineStyle['StartColor']);
+                $endColorStr = IO_SWF_Type_RGBA::string($lineStyle['EndColor']);
+                $text .= "Color: $startColorStr => $endColorStr  ";
+            }
         }
         return $text.PHP_EOL;
     }

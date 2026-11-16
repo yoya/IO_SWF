@@ -22,6 +22,8 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_offset;
     var $_morphFillStyles, $_morphLineStyles;
     var $_startEdge, $_endEdges;
+    // DefineMorphShape2 only
+    var $_startEdgeBounds, $_endEdgeBounds;
     // DefineShape4
     var $_edgeBounds;
     var $_reserved;
@@ -56,6 +58,14 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             $this->_startBounds = IO_SWF_TYPE_RECT::parse($reader);
             $this->_endBounds = IO_SWF_TYPE_RECT::parse($reader);
+            if ($tagCode == 84) { // DefineMorphShape2
+                $this->_startEdgeBounds = IO_SWF_TYPE_RECT::parse($reader);
+                $this->_endEdgeBounds = IO_SWF_TYPE_RECT::parse($reader);
+                $this->_reserved = $reader->getUIBits(6);
+                $this->_usesNonScalingStrokes = $reader->getUIBit();
+                $this->_usesScalingStrokes = $reader->getUIBit();
+            }
+            $reader->byteAlign(); // Offset(UI32) is byte-aligned
             list($offset_offset, $dummy) = $reader->getOffset();
             $this->_offset = $reader->getUI32LE();
         	// 描画スタイル
@@ -63,6 +73,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         	$this->_morphLineStyles = IO_SWF_TYPE_LINESTYLEARRAY::parse($reader, $opts);
         	// 描画枠
             $this->_startEdge = IO_SWF_Type_SHAPE::parse($reader, $opts);
+            $reader->byteAlign(); // EndEdges is byte-aligned (Offset points to it)
             list($end_edge_offset, $dummy) = $reader->getOffset();
             if ($offset_offset + $this->_offset + 4 != $end_edge_offset) {
                 trigger_error("offset_offset($offset_offset) + this->_offset({$this->_offset}) + 4 != end_edge_offset($end_edge_offset)", E_USER_WARNING);
@@ -95,6 +106,11 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             echo "    StartBounds: ". IO_SWF_Type_RECT::string($this->_startBounds)."\n";
             echo "    EndBounds: ". IO_SWF_Type_RECT::string($this->_endBounds)."\n";
+            if ($tagCode == 84) { // DefineMorphShape2
+                echo "    StartEdgeBounds: ". IO_SWF_Type_RECT::string($this->_startEdgeBounds)."\n";
+                echo "    EndEdgeBounds: ". IO_SWF_Type_RECT::string($this->_endEdgeBounds)."\n";
+                echo "    UsesNonScalingStrokes:{$this->_usesNonScalingStrokes} UsesScalingStrokes:{$this->_usesScalingStrokes}\n";
+            }
             echo "    Offset:{$this->_offset}\n";
             echo "    FillStyles:\n";
             echo IO_SWF_Type_FILLSTYLEARRAY::string($this->_morphFillStyles, $opts);
@@ -136,6 +152,13 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         } else {
             IO_SWF_Type_RECT::build($writer, $this->_startBounds);
             IO_SWF_Type_RECT::build($writer, $this->_endBounds);
+            if ($tagCode == 84) { // DefineMorphShape2
+                IO_SWF_Type_RECT::build($writer, $this->_startEdgeBounds);
+                IO_SWF_Type_RECT::build($writer, $this->_endEdgeBounds);
+                $writer->putUIBits($this->_reserved, 6);
+                $writer->putUIBit($this->_usesNonScalingStrokes);
+                $writer->putUIBit($this->_usesScalingStrokes);
+            }
 
             $writer->byteAlign();
             list($offset_offset, $dummy) = $writer->getOffset();
