@@ -22,6 +22,6 @@ class IO_SWF_Type_Double implements IO_SWF_Type {
     	$writer->putData($data, 8);
     }
     static function string($value, $opts = array()) {
-    	return sprintf("(Double)%d", $value);
+    	return sprintf("(float)%d", $value);
     }
 }
