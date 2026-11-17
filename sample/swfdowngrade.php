@@ -6,17 +6,18 @@ if (is_readable('vendor/autoload.php')) {
     require 'IO/SWF/Editor.php';
 }
 
-$options = getopt("f:v:l:ESdP");
+$options = getopt("f:v:l:ESdpP");
 
 function usage() {
-    fprintf(STDERR, "Usage: php swfdowngrade.php -f <swf_file> [-v <swf_version>] [-l <limit_tag_swf_version>] [-E] [-S] [-P] \n");
+    fprintf(STDERR, "Usage: php swfdowngrade.php -f <swf_file> [-v <swf_version>] [-l <limit_tag_swf_version>] [-E] [-S] [-p] \n");
     fprintf(STDERR, "    -f <swf_file>\n");
     fprintf(STDERR, "    -v <swf_version> # default 4\n");
     fprintf(STDERR, "    -l <limit_tag_swf_version>\n");
     fprintf(STDERR, "    -E  # disable eliminate mode\n");
     fprintf(STDERR, "    -S  # disable strict mode\n");
     fprintf(STDERR, "    -d  # debub mode\n");
-    fprintf(STDERR, "    -P  # disable preserveStyleState\n");
+    fprintf(STDERR, "    -p  # enable preserveStyleState (keep original shape state bits)\n");
+    fprintf(STDERR, "    -P  # disable preserveStyleState (default, kept for compatibility)\n");
     fprintf(STDERR, "ex) php swfdowngrade.php -v 4 -f test.swf\n");
 }
 
@@ -57,7 +58,9 @@ $opts = [
     'eliminate'          => ! isset($options['E']),  // 未対応タグを残すか
     'strict'             => ! isset($options['S']),  // 続行するかどうか
     'debug'              => isset($options['d']),    // debug mode
-    'preserveStyleState' => ! isset($options['P']),  // Shape 構築不具合あるのでデフォルト off
+    // Shape の state ビットを元のまま保つか。既定は最適化(保たない)。
+    // -p で保持。-P は既定と同じ (互換のため受け付ける)。両方指定時は -P を優先。
+    'preserveStyleState' => isset($options['p']) && ! isset($options['P']),
 ];
 
 if (is_readable($filename) === false) {
