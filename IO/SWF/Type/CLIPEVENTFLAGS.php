@@ -24,7 +24,7 @@ class IO_SWF_Type_CLIPEVENTFLAGS implements IO_SWF_Type {
         }
         if ($opts['Version'] >= 6) {
             $clipeventflags['Reserved'] = $reader->getUIBits(5);
-            $clipeventflags['ClipEventKeyConstruct'] = $reader->getUIBit();
+            $clipeventflags['ClipEventConstruct'] = $reader->getUIBit();
             $clipeventflags['ClipEventKeyPress'] = $reader->getUIBit();
             $clipeventflags['ClipEventDragOut'] = $reader->getUIBit();
             $clipeventflags['Reserved2'] = $reader->getUIBits(8);
@@ -48,7 +48,7 @@ class IO_SWF_Type_CLIPEVENTFLAGS implements IO_SWF_Type {
         if ($opts['Version'] <= 5) {
             $clipevent_list = self::$clipevent_list;
         } else {
-            $clipevent_list = self::$clipevent_list + array('Construct', 'KeyPress', 'DragOut');
+            $clipevent_list = array_merge(self::$clipevent_list, array('Construct', 'KeyPress', 'DragOut'));
         }
         foreach ($clipevent_list as $key) {
             if ($clipeventflags['ClipEvent'.$key] == 1) {

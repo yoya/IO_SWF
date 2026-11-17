@@ -18,7 +18,7 @@ class IO_SWF_Type_CLIPACTIONRECORD implements IO_SWF_Type {
         $clipactionrecord = array();
         $clipactionrecord['EventFlags'] = IO_SWF_Type_CLIPEVENTFLAGS::parse($reader, $opts);
         $clipactionrecord['ActionRecordSize'] = $reader->getUI32LE();
-        if ($clipactionrecord['EventFlags']['ClipEventKeyPress'] == 1) {
+        if (! empty($clipactionrecord['EventFlags']['ClipEventKeyPress'])) { // SWF6-
             $clipactionrecord['KeyCode'] = $reader->getUI8();
         }
         $actions = array();
@@ -32,16 +32,22 @@ class IO_SWF_Type_CLIPACTIONRECORD implements IO_SWF_Type {
     }
     static function build(&$writer, $clipactionrecord, $opts = array()) {
         IO_SWF_Type_CLIPEVENTFLAGS::build($writer, $clipactionrecord['EventFlags'], $opts);
-        $actionRecordSize = $clipactionrecord['ActionRecordSize']; // XXX
+        // ActionRecordSize は (KeyCode +) Actions + ActionEndFlag のバイト数。
+        // アクションの編集や再エンコードでサイズが変わり得るので、
+        // parse 時の値を使わず、ここで組み立ててから計算する。
+        $actions_writer = new IO_Bit();
+        foreach ($clipactionrecord['Actions'] as $action) {
+            IO_SWF_Type_Action::build($actions_writer, $action);
+        }
+        $actions_writer->putUI8(0); // ActionEndFlag
+        $actions_data = $actions_writer->output();
+        $hasKeyCode = ! empty($clipactionrecord['EventFlags']['ClipEventKeyPress']); // SWF6-
+        $actionRecordSize = ($hasKeyCode ? 1 : 0) + strlen($actions_data);
         $writer->putUI32LE($actionRecordSize);
-        if ($clipactionrecord['EventFlags']['ClipEventKeyPress'] == 1) {
+        if ($hasKeyCode) {
             $writer->putUI8($clipactionrecord['KeyCode']);
         }
-        $actions = array();
-        foreach ($clipactionrecord['Actions'] as $action) {
-            IO_SWF_Type_Action::build($writer, $action);
-        }
-        $writer->putUI8(0); // ActionEndFlag
+        $writer->putData($actions_data);
     }
     static function string($clipactionrecord, $opts = array()) {
         $text = '';

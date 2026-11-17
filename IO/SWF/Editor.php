@@ -1463,7 +1463,8 @@ class IO_SWF_Editor extends IO_SWF {
                            "String" => $data]
                       ], "__" => __FILE__.":".__LINE__];
         $actions []= ["Code" => 0x1d]; // SetVariable
-        $actions []= ["Code" => 0x00]; // End
+        // End(0x00) は BUTTONCONDACTION::build が終端として書くので積まない
+        // (積むと 0x00 が二重になり、次の CONDACTION がずれて壊れる)
         $condaction1 = [
             'CondActionSize' => 0, // Last action
             //

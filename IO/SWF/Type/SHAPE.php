@@ -227,11 +227,18 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
                         $stateFillStyle0 = $shapeRecord['StateFillStyle0'];
                         $stateMoveTo = $shapeRecord['StateMoveTo'];
+                    } else if ($stateNewStyles) {
+                        // 新しいスタイル配列を導入するレコードでは、スタイル番号は
+                        // 新しい配列を指す。旧配列での現在値と同じ番号でも省略すると
+                        // プレイヤーの解釈次第で意味が変わるため、Flash の出力と
+                        // 同様に常に書く。MoveTo も同様 (同じ位置への MoveTo は無害で、
+                        // 新スタイル導入時のペン位置の扱いに依存しなくなる)。
+                        $stateLineStyle = 1;
+                        $stateFillStyle1 = 1;
+                        $stateFillStyle0 = 1;
+                        $stateMoveTo = 1;
                     } else {
                         $stateLineStyle = ($shapeRecord['LineStyle'] != $currentLineStyle)?1:0;
-                        if ($opts['debug']) {
-                            
-                        }
                         $stateFillStyle1 = ($shapeRecord['FillStyle1'] != $currentFillStyle1)?1:0;
                         $stateFillStyle0 = ($shapeRecord['FillStyle0'] != $currentFillStyle0)?1:0;
                         $stateMoveTo = (($shapeRecord['MoveX'] != $currentDrawingPositionX) || ($shapeRecord['MoveY'] != $currentDrawingPositionY))?1:0;
