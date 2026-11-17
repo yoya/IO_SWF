@@ -343,14 +343,14 @@ class IO_SWF_ABC_Code {
                 }
                 $propertyMap[$index] = ["name" => $name,
                                         "valuetype" => null];
-                if ($opts['debug']) {
+                if (! empty($opts['debug'])) {
                     $debugPropertyArray []= "[". $index."]".$name;
                 }
                 break;
             }
         }
         unset($code); // remove reference.
-        if ($opts['debug']) {
+        if (! empty($opts['debug'])) {
             if (count($debugPropertyArray) > 0) {
                 fprintf(STDERR, "init propertyMap:");
                 foreach ($debugPropertyArray as $entry) {
@@ -381,8 +381,8 @@ class IO_SWF_ABC_Code {
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
             $instName = $this->getInstructionName($inst);
-            if ($opts['debug']) {
-                echo "DEBUG: ABCCodetoActionTag[$idx]: $inst($instName)\n";
+            if (! empty($opts['debug'])) {
+                fprintf(STDERR, "DEBUG: ABCCodetoActionTag[$idx]: $inst($instName)\n");
             }
             $code["instName"] = $instName;
             switch ($inst) {
@@ -781,7 +781,7 @@ class IO_SWF_ABC_Code {
                     // GotoFrame2 の場合、stack から読み込むので、
                     // $push_path が空の時もある
                     if ($gotofunc !== "GotoFrame2" && is_null($push_path)) {
-                        if ($opts['strict']) {
+                        if (! empty($opts['strict'])) {
                             $this->dump();
                             throw new IO_SWF_Exception("unknown pattern [$idx] callpropvoid $name bytecode");
                         }
@@ -900,7 +900,7 @@ class IO_SWF_ABC_Code {
                     }
                     break;
                 default:
-                    if ($opts['strict']) {
+                    if (! empty($opts['strict'])) {
                         $this->dump();
                         throw new IO_SWF_Exception("support callpropvoid for gotoAndPlay, play, stop only: unknown function name:".$name);
                     } else {
@@ -1114,8 +1114,8 @@ class IO_SWF_ABC_Code {
             $bit = new IO_SWF_ABC_Bit();
             $bit->input($code["bytes"]);
             $inst = $bit->getUI8();
-            if ($opts['debug']) {
-                echo "DEBUG: flushABCQueue: $inst(".$this->getInstructionName($inst).")\n";
+            if (! empty($opts['debug'])) {
+                fprintf(STDERR, "DEBUG: flushABCQueue: $inst(".$this->getInstructionName($inst).")\n");
             }
             switch ($inst) {
             case 0x08:  // kill

@@ -1254,7 +1254,7 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts) {
-        $eliminate = $opts["eliminate"];
+        $eliminate = ! empty($opts['eliminate']);
         // downgrade other tags.
         foreach ($tags as $idx => &$tag) {
             $tagCode = $tag->code;
@@ -1310,7 +1310,7 @@ class IO_SWF_Editor extends IO_SWF {
             foreach ($tagsEachKrass[$klass_kind] as $tagNoVer) {
                 list($no, $ver) = $tagNoVer;
                 if ($ver <= $limitSwfVersion) {
-                    if ($opts['debug'] && ($tag->code !== $no)) {
+                    if (! empty($opts['debug']) && ($tag->code !== $no)) {
                         $name = $tag->getTagInfo($no, "name");
                         fprintf(STDERR, "downgrade tag %d(%s) to %d(%s)\n",
                                 $tag->code, $tag->getTagName(), $no ,$name);
@@ -1319,7 +1319,7 @@ class IO_SWF_Editor extends IO_SWF {
                     continue 2;
                 }
             }
-            if ($opts['debug']) {
+            if (! empty($opts['debug'])) {
                 $t = $tags[$idx];
                 if ($eliminate) {
                     fprintf(STDERR, "Eliminated: %d(%s)\n", $t->code, $t->getTagName());

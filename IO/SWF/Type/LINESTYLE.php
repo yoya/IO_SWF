@@ -80,7 +80,7 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
     static function build(&$writer, $lineStyle, $opts = array()) {
         $tagCode = $opts['tagCode'];
         $isMorph = ($tagCode == 46) || ($tagCode == 84);
-        if ($opts['debug']) {
+        if (! empty($opts['debug'])) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
             fprintf(STDERR, "Type_LINESTYLE::build: shapeId:%d tagCode:%d(%s)\n",
                     $opts['shapeId'], $tagCode, $tagName);

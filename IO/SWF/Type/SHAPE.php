@@ -17,7 +17,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
         $tagCode = $opts['tagCode'];
         $opts['debug'] = ! empty($opts['debug']);
-        if ($opts['debug']) {
+        if (! empty($opts['debug'])) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
             fprintf(STDERR, "Type_SHAPE::parse: shapeId:%d tagCode:%d(%s)\n",
                     $opts['shapeId'], $tagCode, $tagName);
@@ -58,7 +58,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                     $shapeRecord['StateFillStyle1'] = $stateFillStyle1;
                     $shapeRecord['StateFillStyle0'] = $stateFillStyle0;
                     $shapeRecord['StateMoveTo'] = $stateMoveTo;
-                    if ($opts['debug']) {
+                    if (! empty($opts['debug'])) {
                         fprintf(STDERR, "%d%d%d%d%d styles:%d line:%d fill1:%d fill0:%d move:%d\n",
                                 $stateNewStyles, $stateLineStyle,
                                 $stateFillStyle1, $stateFillStyle0,
@@ -152,7 +152,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         $tagCode = $opts['tagCode'];
         $fillStyleCount = $opts['fillStyleCount'];
         $lineStyleCount = $opts['lineStyleCount'];
-        if ($opts['debug']) {
+        if (! empty($opts['debug'])) {
             $tagName = IO_SWF_Tag::getTagInfo($tagCode, "name");
             fprintf(STDERR, "Type_SHAPE::build: shapeId:%d tagCode:%d(%s) fillStyleCount:%d lineStyleCount:%d\n",
                     $opts['shapeId'], $tagCode, $tagName, $fillStyleCount, $lineStyleCount);
@@ -221,7 +221,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                             $stateNewStyles = 1;
                         }
                     }
-                    if ($opts['preserveStyleState']) {
+                    if (! empty($opts['preserveStyleState'])) {
                         $stateNewStyles  = $shapeRecord['StateNewStyles'];
                         $stateLineStyle = $shapeRecord['StateLineStyle'];
                         $stateFillStyle1 = $shapeRecord['StateFillStyle1'];
