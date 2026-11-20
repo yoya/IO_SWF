@@ -29,21 +29,21 @@ class IO_SWF_Tag {
         7 => array('name' => 'DefineButton', 'klass' => 'Button', 'version' => 1),
         8 => array('name' => 'JPEGTables', 'klass' => 'Jpeg', 'version' => 1),
         9 => array('name' => 'SetBackgroundColor', 'klass' => 'BGColor', 'version' => 1),
-        10 => array('name' => 'DefineFont', 'version' => 1),
+        10 => array('name' => 'DefineFont', 'klass' => 'Font1', 'version' => 1),
         11 => array('name' => 'DefineText', 'klass' => 'Text', 'version' => 1),
         12 => array('name' => 'DoAction', 'klass' => 'Action', 'version' => 3),
-        13 => array('name' => 'DefineFontInfo', 'version' => 1),
+        13 => array('name' => 'DefineFontInfo', 'klass' => 'FontInfo', 'kind' => 'FontInfo', 'version' => 1),
         14 => array('name' => 'DefineSound', 'klass' => 'Sound', 'version' => 1),
-        15 => array('name' => 'StartSound', 'version' => 1),
+        15 => array('name' => 'StartSound', 'klass' => 'StartSound', 'kind' => 'StartSound', 'version' => 1),
         // 16 missing
-        17 => array('name' => 'DefineButtonSound', 'version' => 2),
-        18 => array('name' => 'SoundStreamHead', 'version' => 1),
-        19 => array('name' => 'SoundStreamBlock', 'version' => 1),
+        17 => array('name' => 'DefineButtonSound', 'klass' => 'ButtonSound', 'version' => 2),
+        18 => array('name' => 'SoundStreamHead', 'klass' => 'SoundStream', 'kind' => 'Head', 'version' => 1),
+        19 => array('name' => 'SoundStreamBlock', 'klass' => 'SoundStream', 'kind' => 'Block', 'version' => 1),
         20 => array('name' => 'DefineBitsLossless', 'klass' => 'Lossless', 'version' => 2),
         21 => array('name' => 'DefineBitsJPEG2', 'klass' => 'Jpeg', 'version' => 2),
         22 => array('name' => 'DefineShape2', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 2),
-        23 => array('name' => 'DefineButtonCxform', 'version' => 2),
-        24 => array('name' => 'Protect', 'version' => 2),
+        23 => array('name' => 'DefineButtonCxform', 'klass' => 'ButtonCxform', 'version' => 2),
+        24 => array('name' => 'Protect', 'klass' => 'Control', 'kind' => 'Protect', 'version' => 2),
         // 25 missing
         26 => array('name' => 'PlaceObject2', 'klass' => 'Place', 'version' => 3),
         // 27 missing
@@ -60,32 +60,32 @@ class IO_SWF_Tag {
         // 40,41,42 missing
         43 => array('name' => 'FrameLabel', 'klass' => 'FrameLabel', 'version' => 3),
         // 44 missing
-        45 => array('name' => 'SoundStreamHead2', 'version' => 3),
+        45 => array('name' => 'SoundStreamHead2', 'klass' => 'SoundStream', 'kind' => 'Head2', 'version' => 3),
         46 => array('name' => 'DefineMorphShape', 'klass' => 'Shape', 'kind' => 'MorphShape', 'version' => 3),
         48 => array('name' => 'DefineFont2', 'klass' => 'Font', 'version' => 3),
-        56 => array('name' => 'ExportAssets', 'version' => 5),
-        57 => array('name' => 'ImportAssets', 'version' => 5),
-        58 => array('name' => 'EnableDebugger', 'version' => 5),
+        56 => array('name' => 'ExportAssets', 'klass' => 'Assets', 'kind' => 'Export', 'version' => 5),
+        57 => array('name' => 'ImportAssets', 'klass' => 'Assets', 'kind' => 'Import', 'version' => 5),
+        58 => array('name' => 'EnableDebugger', 'klass' => 'Control', 'kind' => 'EnableDebugger', 'version' => 5),
         59 => array('name' => 'DoInitAction', 'klass' => 'Action', 'version' => 6),
         //
         60 => array('name' => 'DefineVideoStream', 'klass' => 'VideoStream','version' => 6),
         61 => array('name' => 'VideoFrame', 'klass' => 'VideoFrame', 'version' => 6),
-        62 => array('name' => 'DefineFontInfo2', 'version' => 6),
+        62 => array('name' => 'DefineFontInfo2', 'klass' => 'FontInfo', 'kind' => 'FontInfo2', 'version' => 6),
         // 63 missing
-        64 => array('name' => 'EnableDebugger2', 'version' => 6),
-        65 => array('name' => 'ScriptLimits', 'version' => 7),
-        66 => array('name' => 'SetTabIndex', 'version' => 7),
+        64 => array('name' => 'EnableDebugger2', 'klass' => 'Control', 'kind' => 'EnableDebugger2', 'version' => 6),
+        65 => array('name' => 'ScriptLimits', 'klass' => 'Control', 'kind' => 'ScriptLimits', 'version' => 7),
+        66 => array('name' => 'SetTabIndex', 'klass' => 'Control', 'kind' => 'SetTabIndex', 'version' => 7),
         // 67,68 missing
         69 => array('name' => 'FileAttributes', 'klass' => 'FileAttributes', 'version' => 8),
         70 => array('name' => 'PlaceObject3', 'klass' => 'Place', 'version' => 8),
-        71 => array('name' => 'ImportAssets2', 'version' => 8),
+        71 => array('name' => 'ImportAssets2', 'klass' => 'Assets', 'kind' => 'Import2', 'version' => 8),
         // 72 missing
-        73 => array('name' => 'DefineFontAlignZones', 'version' => 8),
-        74 => array('name' => 'CSMTextSettings', 'version' => 8),
+        73 => array('name' => 'DefineFontAlignZones', 'klass' => 'FontAlignZones', 'version' => 8),
+        74 => array('name' => 'CSMTextSettings', 'klass' => 'CSMTextSettings', 'version' => 8),
         75 => array('name' => 'DefineFont3', 'klass' => 'Font', 'version' => 8),
         76 => array('name' => 'SymbolClass', 'klass' => 'SymbolClass', 'version' => 9),
-        77 => array('name' => 'MetaData', 'version' => 1),
-        78 => array('name' => 'DefineScalingGrid', 'version' => 8),
+        77 => array('name' => 'MetaData', 'klass' => 'Control', 'kind' => 'Metadata', 'version' => 1),
+        78 => array('name' => 'DefineScalingGrid', 'klass' => 'Control', 'kind' => 'ScalingGrid', 'version' => 8),
         // 79,80,81 missing
         82 => array('name' => 'DoABC', 'klass' => 'ABC', 'version' => 9),
         83 => array('name' => 'DefineShape4', 'klass' => 'Shape', 'kind' => 'Shape', 'version' => 8),
@@ -94,12 +94,12 @@ class IO_SWF_Tag {
         // 86:DefineSceneAndFrameLabelData added in SWFv9,
         // but sometimes included in SWFv4 publish,
         // so seems to be specially treated as SWFv4 tags.
-        86 => array('name' => 'DefineSceneAndFrameLabelData', 'version' => 4),
-        87 => array('name' => 'DefineBinaryData', 'version' => 9),
-        88 => array('name' => 'DefineFontName', 'version' => 9),
-        89 => array('name' => 'StartSound2', 'version' => 9),
-        90 => array('name' => 'DefineBitsJPEG4', 'version' => 10),
-        91 => array('name' => 'DefineFont4', 'version' => 10),
+        86 => array('name' => 'DefineSceneAndFrameLabelData', 'klass' => 'SceneAndFrameLabel', 'version' => 4),
+        87 => array('name' => 'DefineBinaryData', 'klass' => 'BinaryData', 'version' => 9),
+        88 => array('name' => 'DefineFontName', 'klass' => 'FontName', 'version' => 9),
+        89 => array('name' => 'StartSound2', 'klass' => 'StartSound', 'kind' => 'StartSound2', 'version' => 9),
+        90 => array('name' => 'DefineBitsJPEG4', 'klass' => 'Jpeg', 'kind' => 'JPEG4', 'version' => 10),
+        91 => array('name' => 'DefineFont4', 'klass' => 'Font4', 'version' => 10),
         777 => array('name' => 'Reflex', 'version' => null), // swftools ?
         );
 
@@ -179,6 +179,7 @@ class IO_SWF_Tag {
           case 35: // DefineBitsJPEG3
           case 20: // DefineBitsLossless
           case 36: // DefineBitsLossless2
+          case 90: // DefineBitsJPEG4
           case 19: // SoundStreamBlock
             $longFormat = true;
             break;
