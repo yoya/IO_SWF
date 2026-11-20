@@ -32,10 +32,10 @@ class IO_SWF_Type_BUTTONRECORD implements IO_SWF_Type {
         $buttonrecord['CharacterID'] = $reader->getUI16LE();
         $buttonrecord['PlaceDepth'] = $reader->getUI16LE();
         $buttonrecord['PlaceMatrix'] = IO_SWF_Type_MATRIX::parse($reader);
+        // ColorTransform は DefineButton2 のときだけ存在する。
+        // DefineButton (7) の色変換は別タグ DefineButtonCxform (23) で指定する。
         if ($opts['tagCode'] == 34) { // DefineButton2
             $buttonrecord['ColorTransform'] = IO_SWF_Type_CXFORMWITHALPHA::parse($reader);
-        } else {
-            $buttonrecord['ColorTransform'] = IO_SWF_Type_CXFORM::parse($reader);
         }
         if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
             // DefineButton2 & SWF8 later
@@ -64,10 +64,8 @@ class IO_SWF_Type_BUTTONRECORD implements IO_SWF_Type {
         $writer->putUI16LE($buttonrecord['CharacterID']);
         $writer->putUI16LE($buttonrecord['PlaceDepth']);
         IO_SWF_Type_MATRIX::build($writer, $buttonrecord['PlaceMatrix']);
-        if ($opts['tagCode'] == 34) { // DefineButton2
+        if ($opts['tagCode'] == 34) { // DefineButton2 (DefineButton には無い)
             IO_SWF_Type_CXFORMWITHALPHA::build($writer, $buttonrecord['ColorTransform']);
-        } else {
-            IO_SWF_Type_CXFORM::build($writer, $buttonrecord['ColorTransform']);
         }
         if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
             // DefineButton2 & SWF8 later
@@ -90,12 +88,10 @@ class IO_SWF_Type_BUTTONRECORD implements IO_SWF_Type {
         $text .= "\n        ";
         $text .= "CharacterID:{$buttonrecord['CharacterID']} PlaceDepth:{$buttonrecord['PlaceDepth']}";
         $text .= "\n";
-        $opts['indent']++;
+        $opts['indent'] = (isset($opts['indent']) ? $opts['indent'] : 0) + 1;
         $text .= IO_SWF_Type_MATRIX::string($buttonrecord['PlaceMatrix'], $opts)."\n";
-        if ($opts['tagCode'] == 34) { // DefineButton2
+        if ($opts['tagCode'] == 34) { // DefineButton2 (DefineButton には無い)
             $text .= "        ColorTransform:". IO_SWF_Type_CXFORMWITHALPHA::string($buttonrecord['ColorTransform']).' ';
-        } else {
-            $text .= 'ColorTransform:'.IO_SWF_Type_CXFORM::string($buttonrecord['ColorTransform']).' ';
         }
         if (($opts['tagCode'] == 34) && ($opts['Version'] >= 8)) {
             // DefineButton2 & SWF8 later

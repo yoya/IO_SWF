@@ -24,15 +24,17 @@ class IO_SWF_Type_BUTTONCONDACTION implements IO_SWF_Type {
         }
         $condAction['CondKeyPress'] = $reader->getUIBits(7);
         $condAction['CondOverDownToIdle'] = $reader->getUIBit();
-        if ($reader->hasNextData()) { // XXX (depends on ActionOffset
-            $actions = array();
-            while ($reader->getUI8() != 0) {
-                $reader->incrementOffset(-1, 0); // 1 byte back
-                $actions []= IO_SWF_Type_Action::parse($reader);
-            }
-            $condAction['Actions'] = $actions;
+        // Actions は 0x00 (ActionEndFlag) で終わる。データが尽きていても
+        // build/string が扱えるよう、常に配列を持たせる。
+        // 次の BUTTONCONDACTION への位置合わせは呼び出し側 (Tag_Button) が
+        // CondActionSize に基づいて行う。
+        $actions = array();
+        while ($reader->hasNextData(1) && ($reader->getUI8() != 0)) {
+            $reader->incrementOffset(-1, 0); // 1 byte back
+            $actions []= IO_SWF_Type_Action::parse($reader);
         }
-    	return $condAction; 
+        $condAction['Actions'] = $actions;
+    	return $condAction;
     }
     static function build(&$writer, $condAction, $opts = array()) {
         list($offset_condAction, $dummy) = $writer->getOffset();

@@ -36,19 +36,30 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         }
         $this->_characters = $characters;
         if ($tagCode == 34) { // DefineButton2
-            // TODO: skip ActionOffset - CurrentOffsetUntilCharactersField
             $actions = array();
             if ($this->_actionOffset > 0) {
+                // ActionOffset は ActionOffset フィールドの先頭から
+                // 最初の BUTTONCONDACTION までのバイト数。
                 list($offset_buttonCondition, $dummy) = $reader->getOffset();
-                if ($offset_actionOffset + $this->_actionOffset != $offset_buttonCondition) {
-                    // TODO: warning
-                    $reader->setOffset($offset_actionOffset + $this->_actionOffset, 0);
+                $expected = $offset_actionOffset + $this->_actionOffset;
+                if ($expected != $offset_buttonCondition) {
+                    trigger_error("DefineButton2(ButtonId:{$this->_buttonId}): ActionOffset points to $expected but BUTTONRECORDs end at $offset_buttonCondition", E_USER_WARNING);
+                    $reader->setOffset($expected, 0);
                 }
                 while (true) {
+                    list($offset_condAction, $dummy) = $reader->getOffset();
                     $action  = IO_SWF_Type_BUTTONCONDACTION::parse($reader, $opts);
                     $actions []= $action;
                     if ($action['CondActionSize'] == 0) {
                         break; // last action
+                    }
+                    // 次の BUTTONCONDACTION の位置は CondActionSize で決まる。
+                    // 終端の 0x00 だけを頼りにすると、余分なバイトがあるとずれる。
+                    $offset_next = $offset_condAction + $action['CondActionSize'];
+                    list($offset_now, $dummy) = $reader->getOffset();
+                    if ($offset_now != $offset_next) {
+                        trigger_error("DefineButton2(ButtonId:{$this->_buttonId}): CondActionSize points to $offset_next but actions end at $offset_now", E_USER_WARNING);
+                        $reader->setOffset($offset_next, 0);
                     }
                 }
                 $this->_actions = $actions;
@@ -70,7 +81,7 @@ class IO_SWF_Tag_Button extends IO_SWF_Tag_Base {
         $opts['tagCode'] = $tagCode;
         echo "\tButtonID:{$this->_buttonId} TrackAsMenu:{$this->_trackAsMenu} (ActionOffset:{$this->_actionOffset})\n";
         echo "\t    Characters:\n";
-        $opts['indent']++;
+        $opts['indent'] = (isset($opts['indent']) ? $opts['indent'] : 0) + 1;
         foreach ($this->_characters as $character) {
             $buttonrecord_str = IO_SWF_Type_BUTTONRECORD::string($character, $opts);
             echo "\t\t$buttonrecord_str\n";

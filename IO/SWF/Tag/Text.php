@@ -21,6 +21,7 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
     var $_TextMatrix;
     var $_GlyphBits;
     var $_AdvanceBits;
+    var $_TextRecords = array();
     function parseContent($tagCode, $content, $opts = array()) {
         $opts['tagCode'] = $tagCode;
         $reader = new IO_Bit();
@@ -71,8 +72,22 @@ class IO_SWF_Tag_Text extends IO_SWF_Tag_Base {
         IO_SWF_TYPE_RECT::build($writer, $this->_TextBounds);
         IO_SWF_Type_MATRIX::build($writer, $this->_TextMatrix);
 
-        $glyphBits = $this->_GlyphBits; // XXX
-        $advanceBits = $this->_AdvanceBits; // XXX
+        // GlyphIndex/GlyphAdvance を編集して値が大きくなっても溢れないよう、
+        // 必要なビット数を確保する。元の幅で足りるなら元の幅のまま
+        // (未編集ならバイト列は変わらない)。
+        $glyphBits = (int) $this->_GlyphBits;
+        $advanceBits = (int) $this->_AdvanceBits;
+        foreach ($this->_TextRecords as $textRecord) {
+            if (empty($textRecord['GlyphEntries'])) {
+                continue;
+            }
+            foreach ($textRecord['GlyphEntries'] as $glyphEntry) {
+                $glyphBits = max($glyphBits, $writer->need_bits_unsigned($glyphEntry['GlyphIndex']));
+                $advanceBits = max($advanceBits, $writer->need_bits_signed($glyphEntry['GlyphAdvance']));
+            }
+        }
+        $this->_GlyphBits = $glyphBits;
+        $this->_AdvanceBits = $advanceBits;
         $writer->putUI8($glyphBits);
         $writer->putUI8($advanceBits);
 

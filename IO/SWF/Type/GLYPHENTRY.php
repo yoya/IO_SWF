@@ -15,12 +15,13 @@ class IO_SWF_Type_GLYPHENTRY implements IO_SWF_Type {
     static function parse(&$reader, $opts = array()) {
     	$glyphentry = array();
     	$glyphentry['GlyphIndex'] = $reader->getUIBits($opts['GlyphBits']);
-        $glyphentry['GlyphAdvance'] = $reader->getUIBits($opts['AdvanceBits']);
+        // GlyphAdvance は SB[AdvanceBits] (符号付き)
+        $glyphentry['GlyphAdvance'] = $reader->getSIBits($opts['AdvanceBits']);
     	return $glyphentry;
     }
     static function build(&$writer, $glyphentry, $opts = array()) {
     	$writer->putUIBits($glyphentry['GlyphIndex'], $opts['GlyphBits']);
-    	$writer->putUIBits($glyphentry['GlyphAdvance'], $opts['AdvanceBits']);
+    	$writer->putSIBits($glyphentry['GlyphAdvance'], $opts['AdvanceBits']);
     }
     static function string($glyphentry, $opts = array()) {
     	return "GlyphIndex: {$glyphentry['GlyphIndex']} GlyphAdvance: {$glyphentry['GlyphAdvance']}";

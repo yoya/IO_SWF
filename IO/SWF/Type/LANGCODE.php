@@ -23,16 +23,24 @@ class IO_SWF_Type_LANGCODE implements IO_SWF_Type {
     static function string($langcode, $opts = array()) {
         $languageCode = $langcode['LanguageCode'];
         switch ($languageCode) {
+        case 0:
+            $language = 'None';
+            break;
         case 1:
             $language = 'Latin';
+            break;
         case 2:
             $language = 'Japanese';
+            break;
         case 3:
             $language = 'Korean';
+            break;
         case 4:
             $language = 'Simplified Chinese';
+            break;
         case 5:
             $language = 'Traditional Chinese';
+            break;
         default:
             $language = 'Unknown';
         }
