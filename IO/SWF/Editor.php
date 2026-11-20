@@ -1201,27 +1201,6 @@ class IO_SWF_Editor extends IO_SWF {
             $this->downgradeABCTags($this->_tags, $swfVersion, $limitSwfVersion, $opts);
         }
         $this->downgradeTags($this->_tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts);
-        // addEventListener を検知して DefineButton2 にアクションを付与する機能。
-        // 既定では無効。$opts['addEventListenerButton'] が真のときだけ動作する。
-        if (! empty($opts['addEventListenerButton'])) {
-            // DefineButton2 を探す
-            $buttonTags = [];
-            foreach ($this->_tags as &$tag) {
-                if ($tag->code == 34) {  // DefineButton2
-                    if ($tag->parseTagContent($opts)) {
-                        $tag->content = null;
-                        $buttonTags []= $tag;
-                    } else {
-                        fprintf(STDERR, "failed parseTagContent buttontag\n");
-                    }
-                }
-            }
-            unset($tag);
-            if (false) { // ボタンが存在しない場合
-                $this->convertButtonTags($buttonTags);
-            }
-            $this->addActionToButtonTags($buttonTags);
-        }
     }
 
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion, $opts) {
@@ -1251,6 +1230,9 @@ class IO_SWF_Editor extends IO_SWF {
                 $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $codeContext, $opts);
             }
         }
+        unset($tag);
+        // addEventListener で登録されたクリック処理を、SWF4 のボタンにする
+        $this->eventListenersToButtons($tags, $doABC, $spriteList, $codeContext, $opts);
     }
 
     function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts) {
@@ -1339,7 +1321,10 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
-            list($ns, $name) = explode(".", $symbolName);
+            // "パッケージ.クラス名"。パッケージの無いクラスもある (最後の . で分ける)
+            $dot = strrpos($symbolName, ".");
+            $ns = ($dot === false) ? "" : substr($symbolName, 0, $dot);
+            $name = ($dot === false) ? $symbolName : substr($symbolName, $dot + 1);
             // echo "$spriteId => $ns :: $name\n";
             $inst = $abc->getInstanceByName($name);
             if (is_null($inst)) {
@@ -1381,126 +1366,167 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
 
-    function convertButtonTags(&$tags) {
-        foreach ($tags as &$tag) {
-            // $this->convertButtonTag($tag)
+    // addEventListener(MouseEvent.CLICK, ハンドラ) を SWF4 のボタンに置き換える。
+    // 対象のムービークリップを見た目と当たり判定に使う DefineButton2 を作って配置を差し替え、
+    // ハンドラをボタンのアクションにする。条件は押した瞬間・Enter キー・5 キー。
+    // (doc/addEventListenerButton-plan.md)
+    static $buttonConditions = [
+        ['CondOverUpToOverDown' => 1, 'CondKeyPress' => 13], // 押した瞬間 + Enter キー
+        ['CondKeyPress' => 53],                              // 5 キー
+    ];
+
+    function eventListenersToButtons(&$tags, $doABC, &$spriteList, $codeContext, $opts) {
+        if (is_null($doABC) || count($codeContext->eventListeners) === 0) {
+            return;
+        }
+        $abc = $doABC->tag->_ABC;
+        $version = $this->_headers['Version'];
+        $done = [];
+        foreach ($codeContext->eventListeners as $listener) {
+            $label = implode('.', $listener['target']) . ".addEventListener({$listener['event']}, {$listener['handler']})";
+            if ($listener['event'] !== 'MouseEvent.CLICK') {
+                fprintf(STDERR, "addEventListener: only MouseEvent.CLICK is supported: $label\n");
+                continue;
+            }
+            if ($listener['spriteId'] !== 0) {
+                // ハンドラの this を絶対パスにできるのは、メインタイムラインのクラスだけ
+                fprintf(STDERR, "addEventListener: only in MainTimeline is supported: $label\n");
+                continue;
+            }
+            $key = implode('/', $listener['target']) . ':' . $listener['handler'];
+            if (isset($done[$key])) {
+                continue;
+            }
+            $done[$key] = true;
+            // ハンドラをボタンのアクションに変換する (strict なら未対応の命令で例外)
+            $inst = $abc->getInstanceByName($listener['class']);
+            $methodId = is_null($inst) ? null : $abc->getMethodIdByTraitName($inst, $listener['handler']);
+            if (is_null($methodId)) {
+                fprintf(STDERR, "addEventListener: handler method not found: $label\n");
+                continue;
+            }
+            $actions = $abc->getCodeByMethodId($methodId)->ABCCodetoButtonActions($version, $codeContext, $opts);
+            // 対象の配置を探す
+            $found = $this->findPlacementByPath($tags, $spriteList, $listener['target'], $version);
+            if (is_null($found)) {
+                fprintf(STDERR, "addEventListener: target not found: $label\n");
+                continue;
+            }
+            list($placements, $targetId, $parentSprite) = $found;
+            $buttonTag = $this->makeButtonTag($tags, $targetId, $actions, $version);
+            // 対象の定義の直後にボタンを置き、配置をボタンに差し替える
+            foreach ($tags as $idx => $t) {
+                if ($this->definedCharacterId($t) === $targetId) {
+                    array_splice($tags, $idx + 1, 0, [$buttonTag]);
+                    break;
+                }
+            }
+            $buttonId = $buttonTag->tag->_buttonId;
+            foreach ($placements as $placeTag) {
+                $placeTag->tag->_characterId = $buttonId;
+                $placeTag->content = null;
+            }
+            if (! is_null($parentSprite)) {
+                $parentSprite->content = null;
+            }
         }
     }
-    function addActionToButtonTags($buttonTags) {
-        foreach ($buttonTags as &$tag) {
-            $this->addActionToButtonTag($tag);
+
+    // 定義タグのキャラクタ ID (定義タグでなければ null)
+    function definedCharacterId($tag) {
+        // DefineShape*, DefineBits*, DefineButton*, DefineFont*, DefineText*, DefineSound,
+        // DefineBitsLossless*, DefineEditText, DefineSprite, DefineMorphShape*, DefineVideoStream,
+        // DefineBinaryData
+        static $defining = [2, 6, 7, 10, 11, 14, 20, 21, 22, 32, 33, 34, 35, 36, 37, 39,
+                            46, 48, 60, 75, 83, 84, 87, 90, 91];
+        if (! in_array($tag->code, $defining)) {
+            return null;
         }
+        if (! is_null($tag->content) && strlen($tag->content) >= 2) {
+            return unpack('v', substr($tag->content, 0, 2))[1];
+        }
+        if (! is_null($tag->tag)) {
+            foreach (['_spriteId', '_shapeId', '_buttonId', '_CharacterID', 'CharacterID', 'FontID'] as $prop) {
+                if (isset($tag->tag->$prop)) {
+                    return $tag->tag->$prop;
+                }
+            }
+        }
+        return null;
     }
-    function addActionToButtonTag(&$buttonTag) {
-        //$variableName = "/:url";
-        //$variableName = "/url";
-        $variableName = "url";
-        $target = "";
-        $buttonrecord = [];
-        $buttonrecord['ButtonReserved'] = 0;
-        $buttonrecord['ButtonHasBlandMode'] = 0;
-        $buttonrecord['ButtonHasFilterList'] = 0;
-        $buttonrecord['ButtonStateHitTest'] = 1;
-        $buttonrecord['ButtonStateDown'] = 1;
-        $buttonrecord['ButtonStateOver'] = 1;
-        $buttonrecord['ButtonStateUp'] = 1;
-        $buttonrecord['CharacterID'] = 56; // TODO 56?
-        $buttonrecord['PlaceDepth'] = 1;
-        $buttonrecord['PlaceMatrix'] = [
-            'ScaleX' => 0x10000,
-            'ScaleY' => 0x10000,
-            'RotateSkew0' => 0,
-            'RotateSkew1' => 0,
-            'TranslateX' => 0,
-            'TranslateY' => 0,
-        ];
-        $buttonrecord['ColorTransform'] = null;
-        $buttonTag->tag->_characters = [ $buttonrecord ];
-        $actions = [];
-        /*
-          // 0000 [0] Stop(Code:0x07)
-            0001 [1] Push(Code:0x96) (Length:8) (String)/:url
-            0012 [2] GetVariable(Code:0x1C)
-            0013 [3] Push(Code:0x96) (Length:8) (String)_blank
-            0024 [4] GetURL2(Code:0x9A) (Length:1) LoadVariablesFlag=0 LoadTargetFlag=0 (Reserved)=0 SendVarsMethod=0
-            0028 [5] End(Code:0x00)
-            pushbyte 1
-            setproperty 7(kind:7(QName),ns=1(),name=12(flag))
-         */
-        $actions []= ["Code" => 0x07]; // Stop
-         //         $actions []= ["Code" => 0x06]; // Play
-        $actions []= ["Code" => 0x96, // Push
-                      "Length" => 1 + strlen($variableName) + 1,
-                      "Values" => [
-                          ["Type" => 0,  // String
-                           "String" => $variableName."\0"]
-                      ], "__" => __FILE__.":".__LINE__];
-        $actions []= ["Code" => 0x1C]; // GetVariable
-        $actions []= ["Code" => 0x96, // Push
-                      "Length" => 1 + strlen($target) + 1,
-                      "Values" => [
-                          ["Type" => 0,  // String
-                           "String" => $target."\0"]
-                      ], "__" => __FILE__.":".__LINE__];
-        $actions []= ["Code" => 0x9A, // GetURL2
-                      'LoadVariablesFlag' => 0,
-                      'LoadTargetFlag' => 0,
-                      'SendVarsMethod' => 0
-        ];
-        // pushbyte 1
-        // setproperty flag
-        $actions []= ["Code" => 0x96, // Push
-                      "Length" => 1 + 4,
-                      "Values" => [
-                          ["Type" => 7,  // Integer
-                           "Integer" => 1 ],
-                      ], "__" => __FILE__.":".__LINE__];
-        $data = "flag";
-        $actions []= ["Code" => 0x96, // Push
-                      "Length" => 1 + strlen($data) + 1,
-                      "Values" => [
-                          ["Type" => 0,  // String
-                           "String" => $data]
-                      ], "__" => __FILE__.":".__LINE__];
-        $actions []= ["Code" => 0x1d]; // SetVariable
-        // End(0x00) は BUTTONCONDACTION::build が終端として書くので積まない
-        // (積むと 0x00 が二重になり、次の CONDACTION がずれて壊れる)
-        $condaction1 = [
-            'CondActionSize' => 0, // Last action
-            //
-            'CondIdleToOverDown' => 0,
-            'CondOutDownToIdle' => 0,
-            'CondOutDownToOverDown' => 0,
-            'CondOverDownToOutDown' => 0,
-            'CondOverDownToOverUp' => 0,
-            'CondOverUpToOverDown' => 1,
-            'CondOverUpToIdle' => 0,
-            'CondIdleToOverUp' => 0,
-            //
-            'CondKeyPress' => 13,
-            'CondOverDownToIdle' => 0,
-            //
-            'Actions' => $actions
-        ];
-        $condaction2 = [
-            'CondActionSize' => 0, // Last action
-            //
-            'CondIdleToOverDown' => 0,
-            'CondOutDownToIdle' => 0,
-            'CondOutDownToOverDown' => 0,
-            'CondOverDownToOutDown' => 0,
-            'CondOverDownToOverUp' => 0,
-            'CondOverUpToOverDown' => 0,
-            'CondOverUpToIdle' => 0,
-            'CondIdleToOverUp' => 0,
-            //
-            'CondKeyPress' => 53,
-            'CondOverDownToIdle' => 0,
-            //
-            'Actions' => $actions
-        ];
-        $buttonTag->tag->_actions = [ $condaction1, $condaction2 ];
+
+    // インスタンス名のパス (メインタイムラインから) で配置タグを探す
+    // 戻り値: [配置タグの配列, キャラクタ ID, 親の DefineSprite (メインタイムラインなら null)]
+    function findPlacementByPath(&$rootTags, &$spriteList, $path, $version) {
+        $timeline = $rootTags;
+        $parentSprite = null;
+        foreach ($path as $i => $name) {
+            $found = [];
+            $cid = null;
+            foreach ($timeline as $t) {
+                if (($t->code === 26 || $t->code === 70) && $t->parseTagContent(['Version' => $version]) &&
+                    ($t->tag->_name === $name) && ! is_null($t->tag->_characterId) &&
+                    (is_null($cid) || $t->tag->_characterId === $cid)) {
+                    $cid = $t->tag->_characterId;
+                    $found []= $t;
+                }
+            }
+            if (count($found) === 0) {
+                return null;
+            }
+            if ($i === count($path) - 1) {
+                return [$found, $cid, $parentSprite];
+            }
+            if (! isset($spriteList[$cid])) {
+                return null;
+            }
+            $parentSprite = $spriteList[$cid];
+            $timeline = $parentSprite->tag->_controlTags;
+        }
+        return null;
     }
+
+    // 対象のキャラクタを全状態 (見た目と当たり判定) に使い、アクションを持つ DefineButton2 を作る
+    function makeButtonTag($tags, $targetId, $actions, $version) {
+        require_once dirname(__FILE__).'/Tag/Button.php';
+        $maxId = 0;
+        foreach ($tags as $t) {
+            $id = $this->definedCharacterId($t);
+            if (! is_null($id) && $id > $maxId) {
+                $maxId = $id;
+            }
+        }
+        $button = new IO_SWF_Tag_Button();
+        $button->_buttonId = $maxId + 1;
+        $button->_reservedFlags = 0;
+        $button->_trackAsMenu = 0;
+        $button->_characters = [[
+            'ButtonReserved' => 0, 'ButtonHasBlandMode' => 0, 'ButtonHasFilterList' => 0,
+            'ButtonStateHitTest' => 1, 'ButtonStateDown' => 1, 'ButtonStateOver' => 1, 'ButtonStateUp' => 1,
+            'CharacterID' => $targetId, 'PlaceDepth' => 1,
+            'PlaceMatrix' => ['ScaleX' => 0x10000, 'ScaleY' => 0x10000,
+                              'RotateSkew0' => 0, 'RotateSkew1' => 0,
+                              'TranslateX' => 0, 'TranslateY' => 0],
+            'ColorTransform' => ['HasAddTerms' => 0, 'HasMultiTerms' => 0],
+        ]];
+        $condActions = [];
+        foreach (self::$buttonConditions as $cond) {
+            $condAction = ['CondActionSize' => 0];
+            foreach (IO_SWF_Type_BUTTONCONDACTION::$buttoncond_list as $key) {
+                $condAction['Cond' . $key] = 0;
+            }
+            $condAction['CondKeyPress'] = 0;
+            $condAction['CondOverDownToIdle'] = 0;
+            $condActions []= array_merge($condAction, $cond, ['Actions' => $actions]);
+        }
+        $button->_actions = $condActions;
+        $tag = new IO_SWF_Tag(['Version' => $version]);
+        $tag->code = 34; // DefineButton2
+        $tag->tag = $button;
+        $tag->content = null;
+        return $tag;
+    }
+
     /*
      * DoABC 内の method と実際に動作する Frame の対応表
      */
@@ -1510,7 +1536,10 @@ class IO_SWF_Editor extends IO_SWF {
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
-            list($ns, $name) = explode(".", $symbolName);
+            // "パッケージ.クラス名"。パッケージの無いクラスもある (最後の . で分ける)
+            $dot = strrpos($symbolName, ".");
+            $ns = ($dot === false) ? "" : substr($symbolName, 0, $dot);
+            $name = ($dot === false) ? $symbolName : substr($symbolName, $dot + 1);
             // echo "### $spriteId => $ns :: $name\n";
             $inst = $abc->getInstanceByName($name);
             $frameMethodArray = $abc->getFrameAndCodeByInstance($inst);

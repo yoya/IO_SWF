@@ -794,6 +794,19 @@ class IO_SWF_ABC {
         }
         return $frameMethodArray;
     }
+    // インスタンスのメソッド (Trait_Method) を名前で探し、method id を返す
+    function getMethodIdByTraitName($inst, $name) {
+        foreach ($inst["trait"] as $trait) {
+            if (($trait["kind"] & 0x0F) !== 1) {  // Trait_Method
+                continue;
+            }
+            $trait_multiname = $this->_constant_pool["multiname"][$trait["name"]];
+            if ($this->getString_name($trait_multiname["name"]) === $name) {
+                return $trait["method"];
+            }
+        }
+        return null;
+    }
     function getCodeByMethodId($methodId) {
         return $this->method_body[$methodId]["code"];
     }

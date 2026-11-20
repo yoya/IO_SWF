@@ -283,4 +283,21 @@ class IO_SWF_ABC_Code {
         $action_tag->tag->_actions = $actions;
         return $action_tag;
     }
+
+    // イベントハンドラを、ボタン (BUTTONCONDACTION) のアクション列に変換する。
+    // this はメインタイムライン (絶対パス) として扱い、途中の return は末尾への Jump にする。
+    // 分岐先はバイト位置で確定させ、末尾の End は付けない (BUTTONCONDACTION が終端を書く)。
+    function ABCCodetoButtonActions($version, $ctx, $opts) {
+        $opts['thisBase'] = 'root';
+        $opts['returnAsJump'] = true;
+        $action_tag = $this->ABCCodetoActionTag($version, $ctx, $opts);
+        $bin = $action_tag->tag->buildContent(12, []);
+        $resolved = new IO_SWF_Tag_Action();
+        $resolved->parseContent(12, $bin);
+        $actions = $resolved->_actions;
+        if (count($actions) && $actions[count($actions) - 1]['Code'] === 0x00) {
+            array_pop($actions);
+        }
+        return $actions;
+    }
 }

@@ -28,6 +28,19 @@
 require_once dirname(__FILE__).'/../../Exception.php';
 
 class IO_SWF_ABC_Code_Converter {
+    // Math.random() を random(N) / N で表すときの N
+    const RANDOM_RESOLUTION = 10000;
+    // AS3 の表示プロパティ => [AS1 の GetProperty/SetProperty の番号, AS1 での倍率, 代入できるか]
+    // (AS3 の scaleX/scaleY/alpha は 1.0 が等倍、AS1 の _xscale/_yscale/_alpha は 100)
+    static $displayProps = [
+        'x' => [0, 1, true], 'y' => [1, 1, true],
+        'scaleX' => [2, 100, true], 'scaleY' => [3, 100, true],
+        'currentFrame' => [4, 1, false], 'totalFrames' => [5, 1, false],
+        'alpha' => [6, 100, true], 'visible' => [7, 1, true],
+        'width' => [8, 1, true], 'height' => [9, 1, true],
+        'rotation' => [10, 1, true], 'framesLoaded' => [12, 1, false],
+        'mouseX' => [20, 1, false], 'mouseY' => [21, 1, false],
+    ];
     var $code;              // IO_SWF_ABC_Code
     var $version;           // 出力する SWF のバージョン
     var $strict;
@@ -48,12 +61,19 @@ class IO_SWF_ABC_Code_Converter {
     var $reachable = true;
     var $tempSeq = 0;
     var $warnings = [];
+    // ボタンのアクション用の変換 (イベントハンドラ)
+    var $thisBase = 'this';      // 'root': this をメインタイムライン (絶対パス) として扱う
+    var $returnAsJump = false;   // return を末尾への Jump にする (途中に End を置かない)
 
     function __construct($code, $version, $opts) {
         $this->code = $code;
         $this->version = (int) $version;
         $this->strict = ! empty($opts['strict']);
         $this->debug = ! empty($opts['debug']);
+        if (! empty($opts['thisBase'])) {
+            $this->thisBase = $opts['thisBase'];
+        }
+        $this->returnAsJump = ! empty($opts['returnAsJump']);
     }
 
     // ------------------------------------------------------------
@@ -67,6 +87,7 @@ class IO_SWF_ABC_Code_Converter {
         // 2 パス目: AS1 を出力する
         $this->analysis = false;
         $this->run();
+        $this->labelPos['__end'] = count($this->actions); // return を Jump にした場合の飛び先
         // 分岐先を AS1 のアクション位置に直す
         $labels = [];
         $branches = [];
@@ -199,7 +220,7 @@ class IO_SWF_ABC_Code_Converter {
             return;
           // ---- 参照
           case 'getlocal_0':
-            $this->stack []= ['k' => 'obj', 'id' => $id, 'base' => 'this', 'path' => []];
+            $this->stack []= ['k' => 'obj', 'id' => $id, 'base' => $this->thisBase, 'path' => []];
             return;
           case 'getlocal_1': case 'getlocal_2': case 'getlocal_3': case 'getlocal':
             $n = ($inst['name'] === 'getlocal') ? $a[0] : (int) substr($inst['name'], -1);
@@ -228,7 +249,7 @@ class IO_SWF_ABC_Code_Converter {
             $this->stack []= ['k' => 'obj', 'id' => $id, 'base' => 'global', 'path' => [], 'name' => $a[0]['name']];
             return;
           case 'getproperty':
-            $this->getProperty($a[0]['name'], $id);
+            $this->getProperty($a[0]['name'], $id, $a[0]['kind']);
             return;
           // ---- リテラル
           case 'pushbyte':
@@ -291,7 +312,14 @@ class IO_SWF_ABC_Code_Converter {
             $this->condBranch2($inst);
             return;
           case 'returnvoid': case 'returnvalue':
-            $this->emit(['Code' => 0x00]); // End
+            if ($this->returnAsJump) {
+                // 最後の命令なら何もしない。途中なら末尾に飛ぶ
+                if ($p !== count($this->insts) - 1) {
+                    $this->emitBranch(0x99, '__end');
+                }
+            } else {
+                $this->emit(['Code' => 0x00]); // End
+            }
             $this->stack = [];
             $this->reachable = false;
             return;
@@ -327,44 +355,112 @@ class IO_SWF_ABC_Code_Converter {
             $this->unsupported("object used as value: " . $this->describeObj($node));
             return $this->lit('', 'string', $node['id']);
         }
+        $last = end($node['path']);
+        if (is_string($last) && isset(self::$displayProps[$last])) {
+            // 表示プロパティ: GetProperty(対象, 番号)
+            $path = $node['path'];
+            array_pop($path);
+            list($index, $scale) = self::$displayProps[$last];
+            return ['k' => 'val', 'id' => $node['id'],
+                    'tree' => ['getprop', 'number', $this->clipTarget($node, $path), $index, $scale, $last],
+                    'type' => 'number', 'pure' => true];
+        }
         return ['k' => 'val', 'id' => $node['id'], 'tree' => ['var', $this->varTarget($node)],
                 'type' => null, 'pure' => true];
     }
 
+    // GetProperty/SetProperty の対象 (木)。自分自身は空文字
+    function clipTarget($node, $path) {
+        if ($node['base'] === 'this' && count($path) === 0) {
+            return ['lit', '', 'string'];
+        }
+        return $this->mcPathTree($node, $path);
+    }
+
     function describeObj($node) {
         $s = ($node['base'] === 'global') ? $node['name'] : $node['base'];
-        foreach ($node['path'] as $p) $s .= ".$p";
+        foreach ($node['path'] as $p) $s .= is_array($p) ? '[expr]' : ".$p";
         return $s;
     }
 
-    // ムービークリップのパス (末尾の : なし)。this 直下の子 a.b は "a/b"、root は "/"、parent は ".."
-    function mcPath($node, $path) {
-        switch ($node['base']) {
-          case 'this':   return implode('/', $path);
-          case 'root':   return '/' . implode('/', $path);
-          case 'parent': return '..' . (count($path) ? '/' . implode('/', $path) : '');
+    // パスの要素は固定の名前 (文字列) か、実行時に決まる名前 ['dyn', 木] (this[式] など)。
+    // パスの文字列は、固定部分だけならリテラル、式を含めば文字列連結の木にする。
+    function partsToTree($parts) {
+        $merged = [];
+        foreach ($parts as $p) {
+            if (is_array($p)) {
+                $merged []= $p[1];
+            } elseif (count($merged) && is_string(end($merged))) {
+                $merged[count($merged) - 1] .= $p;
+            } else {
+                $merged []= $p;
+            }
         }
-        $this->unsupported("path of " . $this->describeObj($node));
-        return '';
+        $tree = null;
+        foreach ($merged as $m) {
+            $t = is_string($m) ? ['lit', $m, 'string'] : $m;
+            $tree = is_null($tree) ? $t : ['add', 'string', $tree, $t];
+        }
+        return is_null($tree) ? ['lit', '', 'string'] : $tree;
     }
 
-    // 変数の参照名: this.x → "x", this.a.x → "a:x", root.x → "/:x", parent.x → "..:x"
+    // ムービークリップのパスの要素。this 直下の子 a.b は "a/b"、root は "/"、parent は ".."
+    function mcPathParts($node, $path) {
+        switch ($node['base']) {
+          case 'this':   $parts = []; break;
+          case 'root':   $parts = ['/']; break;
+          case 'parent': $parts = ['..']; if (count($path)) $parts []= '/'; break;
+          default:
+            $this->unsupported("path of " . $this->describeObj($node));
+            return [''];
+        }
+        foreach ($path as $i => $p) {
+            if ($i > 0) $parts []= '/';
+            $parts []= $p;
+        }
+        return $parts;
+    }
+
+    function mcPathTree($node, $path, $suffix = '') {
+        $parts = $this->mcPathParts($node, $path);
+        if ($suffix !== '') $parts []= $suffix;
+        return $this->partsToTree($parts);
+    }
+
+    // 変数の参照名 (木): this.x → "x", this.a.x → "a:x", root.x → "/:x", parent.x → "..:x"
     function varTarget($node, $name = null) {
         $path = $node['path'];
         if (is_null($name)) {
             $name = array_pop($path);
         }
         if ($node['base'] === 'this' && count($path) === 0) {
-            return $name;
+            return $this->partsToTree([$name]);
         }
-        return $this->mcPath($node, $path) . ':' . $name;
+        $parts = $this->mcPathParts($node, $path);
+        $parts []= ':';
+        $parts []= $name;
+        return $this->partsToTree($parts);
     }
 
-    // 再評価して二重に出力してよい式か (変数の読み出し・リテラル・演算のみ)
+    // 式が読む変数 (再評価してよいかの判定に使う)。名前が実行時に決まるものは '*'
     function treeReads($tree, &$reads) {
         switch ($tree[0]) {
           case 'lit': return;
-          case 'var': $reads[$tree[1]] = true; return;
+          case 'var':
+            $t = $tree[1];
+            if (is_string($t)) {
+                $reads[$t] = true;
+            } elseif ($t[0] === 'lit') {
+                $reads[$t[1]] = true;
+            } else {
+                $reads['*'] = true;
+                $this->treeReads($t, $reads);
+            }
+            return;
+          case 'getprop':
+            $reads[$tree[5]] = true;
+            $this->treeReads($tree[2], $reads);
+            return;
           default:
             for ($i = 2; $i < count($tree); $i++) {
                 if (is_array($tree[$i])) $this->treeReads($tree[$i], $reads);
@@ -420,9 +516,28 @@ class IO_SWF_ABC_Code_Converter {
           case 'lit':
             $this->pushLiteral($tree[1], $tree[2]);
             return;
-          case 'var':
-            $this->pushString($tree[1]);
+          case 'var': // 参照名は文字列か、文字列になる木
+            if (is_string($tree[1])) {
+                $this->pushString($tree[1]);
+            } else {
+                $this->emitTree($tree[1]);
+            }
             $this->emit(['Code' => 0x1C]); // GetVariable
+            return;
+          case 'getprop': // ['getprop', type, 対象, 番号, 倍率, AS3 の名前]
+            $this->emitTree($tree[2]);
+            $this->pushString((string) $tree[3]);
+            $this->emit(['Code' => 0x22]); // GetProperty
+            if ($tree[4] != 1) {
+                $this->pushString((string) $tree[4]);
+                $this->emit(['Code' => 0x0D]); // Divide
+            }
+            return;
+          case 'randomraw': // Math.random(): 0 以上 1 未満 = random(N) / N
+            $this->pushString((string) self::RANDOM_RESOLUTION);
+            $this->emit(['Code' => 0x30]); // RandomNumber
+            $this->pushString((string) self::RANDOM_RESOLUTION);
+            $this->emit(['Code' => 0x0D]); // Divide
             return;
           case 'add':
             $this->emitTree($tree[2]);
@@ -543,11 +658,16 @@ class IO_SWF_ABC_Code_Converter {
             $this->stack[$i] = ['k' => 'mat', 'id' => $node['id'], 'type' => null, 'src' => null, 'obj' => $node];
             return;
         }
-        if ($consumer && $consumer['kind'] === 'set') {
-            $this->pushString($this->setTarget($node, $consumer['name']));
+        if ($consumer && $consumer['kind'] === 'set' && isset(self::$displayProps[$consumer['name']]) &&
+            $node['base'] !== 'global') {
+            // 表示プロパティへの代入: 対象と番号の 2 つを積む (SetProperty で使う)
+            $this->emitTree($this->clipTarget($node, $node['path']));
+            $this->pushString((string) self::$displayProps[$consumer['name']][0]);
+        } elseif ($consumer && $consumer['kind'] === 'set') {
+            $this->emitTree($this->setTarget($node, $consumer['name']));
         } elseif ($consumer && $consumer['kind'] === 'goto' && $node['base'] !== 'global' &&
                   ! ($node['base'] === 'this' && count($node['path']) === 0)) {
-            $this->pushString($this->mcPath($node, $node['path']) . ':');
+            $this->emitTree($this->mcPathTree($node, $node['path'], ':'));
         } elseif ($node['base'] !== 'global' && count($node['path']) > 0) {
             // 代入先でも goto 先でもない this.x などは、変数の値として出力する
             $val = $this->objToVal($node);
@@ -604,7 +724,21 @@ class IO_SWF_ABC_Code_Converter {
     // ------------------------------------------------------------
     // 個々の命令
     // ------------------------------------------------------------
-    function getProperty($name, $id) {
+    function getProperty($name, $id, $kind = 7) {
+        if (is_null($name) && ($kind === 0x1B || $kind === 0x1C)) {
+            // MultinameL: 名前を実行時に決める (this[式] など)。名前、受け手の順に取り出す
+            $nameNode = $this->objToVal($this->popNode());
+            $node = $this->popNode();
+            if ($node['k'] === 'obj' && $node['base'] !== 'global' && $nameNode['k'] === 'val') {
+                $node['path'][] = ['dyn', $nameNode['tree']];
+                $node['id'] = $id;
+                $this->stack []= $node;
+                return;
+            }
+            $this->unsupported("property with a runtime name on " . (($node['k'] === 'obj') ? $this->describeObj($node) : 'a value'));
+            $this->stack []= $this->lit('', 'string', $id);
+            return;
+        }
         $node = $this->popNode();
         if ($name === 'length' && $node['k'] === 'obj' && $node['base'] !== 'global' && count($node['path']) > 0) {
             // x.length: 変数 x の値 (文字列) の長さ
@@ -820,7 +954,8 @@ class IO_SWF_ABC_Code_Converter {
             if (($nm === 'setlocal' && $inst['args'][0] === $n) || $nm === "setlocal_$n") {
                 return false;
             }
-            if (($nm === 'setproperty' || $nm === 'initproperty') && isset($names[$inst['args'][0]['name']])) {
+            if (($nm === 'setproperty' || $nm === 'initproperty') &&
+                (isset($names['*']) || isset($names[$inst['args'][0]['name']]))) {
                 $assigned = true;
             }
             if ($assigned && (($nm === 'getlocal' && $inst['args'][0] === $n) || $nm === "getlocal_$n")) {
@@ -847,11 +982,34 @@ class IO_SWF_ABC_Code_Converter {
         // 受け手より下を先に評価する (AS3 ではこれらは先に評価済み)
         $this->materializeBelow($n - 2);
         $value = $this->objToVal($this->stack[$n - 1]);
+        $recvObj = ($recv['k'] === 'obj') ? $recv : (isset($recv['obj']) ? $recv['obj'] : null);
+        if (isset(self::$displayProps[$name]) && $recvObj && $recvObj['base'] !== 'global') {
+            // 表示プロパティ: SetProperty(対象, 番号, 値)
+            list($index, $scale, $settable) = self::$displayProps[$name];
+            if (! $settable) {
+                $this->unsupported("setproperty of read-only property $name");
+            }
+            if ($recv['k'] === 'obj') { // 受け手が実体化済みなら対象と番号は積まれている
+                $this->emitTree($this->clipTarget($recv, $recv['path']));
+                $this->pushString((string) $index);
+            }
+            if ($value['k'] === 'val') {
+                $this->emitTree($value['tree']);
+            }
+            if ($scale != 1) {
+                $this->pushString((string) $scale);
+                $this->emit(['Code' => 0x0C]); // Multiply
+            }
+            $this->emit(['Code' => 0x23]); // SetProperty
+            array_splice($this->stack, $n - 2);
+            $this->invalidateSources();
+            return;
+        }
         if ($recv['k'] === 'obj') {
             if ($recv['base'] === 'global') {
                 $this->unsupported("setproperty $name on " . $this->describeObj($recv));
             }
-            $this->pushString($this->setTarget($recv, $name));
+            $this->emitTree($this->setTarget($recv, $name));
         } elseif (! isset($recv['obj'])) {
             $this->unsupported("setproperty $name on a value");
         }
@@ -864,11 +1022,14 @@ class IO_SWF_ABC_Code_Converter {
         $this->invalidateSources();
     }
 
+    // 代入先の参照名 (木)
     function setTarget($recv, $name) {
         if ($recv['base'] === 'this' && count($recv['path']) === 0) {
-            return $name;
+            return ['lit', $name, 'string'];
         }
-        return $this->mcPath($recv, $recv['path']) . ':' . $name;
+        $parts = $this->mcPathParts($recv, $recv['path']);
+        $parts []= ':' . $name;
+        return $this->partsToTree($parts);
     }
 
     // 受け手と引数を取り出す。引数は値として返す
@@ -999,14 +1160,15 @@ class IO_SWF_ABC_Code_Converter {
             }
             // GotoFrame2: スタックの "パス:フレーム" を使う
             if ($recv['k'] === 'obj') {
-                $prefix = $this->isSelf($recv, $name) ? '' : $this->mcPath($recv, $recv['path']) . ':';
+                // "パス:" (自分自身なら無し)。パスに実行時の名前があれば文字列連結の木になる
+                $prefix = $this->isSelf($recv, $name) ? [] : array_merge($this->mcPathParts($recv, $recv['path']), [':']);
                 if ($frame['k'] === 'val' && $frame['tree'][0] === 'lit' && $frame['tree'][2] !== 'bool') {
                     $f = ($frame['tree'][2] === 'number') ? $this->numberString($frame['tree'][1]) : (string) $frame['tree'][1];
-                    $this->pushString($prefix . $f);
+                    $this->emitTree($this->partsToTree(array_merge($prefix, [$f])));
                 } else {
-                    if ($prefix !== '') $this->pushString($prefix);
+                    if ($prefix) $this->emitTree($this->partsToTree($prefix));
                     if ($frame['k'] === 'val') $this->emitTree($frame['tree']);
-                    if ($prefix !== '') $this->emit(['Code' => 0x21]); // StringAdd
+                    if ($prefix) $this->emit(['Code' => 0x21]); // StringAdd
                 }
             } else { // 受け手は実体化済み ("パス:" が積まれている)
                 if ($frame['k'] === 'val') $this->emitTree($frame['tree']);
@@ -1023,8 +1185,14 @@ class IO_SWF_ABC_Code_Converter {
             if ($this->isSelf($recv, $name)) {
                 $this->emit(['Code' => $code]);
             } elseif ($recv['k'] === 'obj' && $recv['base'] !== 'global') {
-                $target = $this->mcPath($recv, $recv['path']);
-                $this->emit(['Code' => 0x8B, 'Length' => strlen($target) + 1, 'TargetName' => $target]); // SetTarget
+                $target = $this->mcPathTree($recv, $recv['path']);
+                if ($target[0] === 'lit') {
+                    $t = (string) $target[1];
+                    $this->emit(['Code' => 0x8B, 'Length' => strlen($t) + 1, 'TargetName' => $t]); // SetTarget
+                } else { // 実行時に決まるパス
+                    $this->emitTree($target);
+                    $this->emit(['Code' => 0x20]); // SetTarget2
+                }
                 $this->emit(['Code' => $code]);
                 $this->emit(['Code' => 0x8B, 'Length' => 1, 'TargetName' => '']);
             } else {
@@ -1051,14 +1219,49 @@ class IO_SWF_ABC_Code_Converter {
                          'LoadTargetFlag' => 0, 'SendVarsMethod' => 0]); // GetURL2
             $this->invalidateSources();
             return;
+          case 'trace':
+            $this->materializeBelow($n - 1 - $argc);
+            $msg = ($argc >= 1) ? $this->objToVal($this->stack[$n - 1]) : $this->lit('', 'string', $id);
+            array_splice($this->stack, $n - 1 - $argc);
+            if ($msg['k'] === 'val') $this->emitTree($msg['tree']);
+            $this->emit(['Code' => 0x26]); // Trace
+            return;
           case 'addEventListener':
-            // AS1 にはイベントリスナーが無い。既存の変換と同じく登録を捨てる
-            // (ボタンへの変換は別機能: doc/addEventListenerButton-plan.md)
+            // AS1 にはイベントリスナーが無いので、ここでは登録を記録するだけ。
+            // Editor が、対象のムービークリップをボタンにしてハンドラをボタンのアクションにする。
+            if (! $this->analysis && $argc >= 2) {
+                $this->recordEventListener($recv, $this->stack[$n - $argc], $this->stack[$n - $argc + 1]);
+            }
             array_splice($this->stack, $n - 1 - $argc);
             return;
         }
         $this->popCall($argc, $recv);
         $this->unsupported("callpropvoid $name/$argc");
+    }
+
+    // target.addEventListener(MouseEvent.X, this.handler) を記録する
+    function recordEventListener($recv, $event, $handler) {
+        $ctx = $this->code->codeContext;
+        $static = function($node) {
+            if ($node['k'] !== 'obj') return null;
+            foreach ($node['path'] as $p) if (! is_string($p)) return null;
+            return $node['path'];
+        };
+        $target = $static($recv);
+        $eventPath = $static($event);
+        $handlerPath = $static($handler);
+        if (is_null($target) || $recv['base'] !== 'this' ||
+            is_null($eventPath) || $event['base'] !== 'global' || count($eventPath) !== 1 ||
+            is_null($handlerPath) || $handler['base'] !== 'this' || count($handlerPath) !== 1) {
+            fprintf(STDERR, "ABC to Action: addEventListener of unsupported form is ignored\n");
+            return;
+        }
+        if (is_null($ctx)) {
+            return;
+        }
+        $ctx->eventListeners []= ['spriteId' => $ctx->spriteId, 'class' => $ctx->name,
+                                  'target' => $target, 'event' => $event['name'] . '.' . $eventPath[0],
+                                  'handler' => $handlerPath[0]];
     }
 
     // ------------------------------------------------------------
