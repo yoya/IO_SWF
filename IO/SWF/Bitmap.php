@@ -12,7 +12,8 @@ if (is_readable('vendor/autoload.php')) {
 require_once dirname(__FILE__).'/Exception.php';
 
 class IO_SWF_Bitmap {
-    const FORMAT_UNKNOW = 0;
+    const FORMAT_UNKNOWN = 0;
+    const FORMAT_UNKNOW = 0; // 旧名 (互換のため残す)
     const FORMAT_JPEG = 1;
     const FORMAT_PNG = 2;
     const FORMAT_GIF = 4;

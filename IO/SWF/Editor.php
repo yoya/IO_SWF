@@ -463,13 +463,13 @@ class IO_SWF_Editor extends IO_SWF {
 
     function replaceBitmapData($bitmap_id, $bitmap_data, $jpeg_alphadata = null) {
         $this->setCharacterId();
-        // TODO: 後で IO_SWF_Bitmap::detect_bitmap_format を使うよう書き換える
-        if ((strncmp($bitmap_data, 'GIF', 3) == 0) ||
-            (strncmp($bitmap_data, "\x89PNG", 4) == 0)) {
+        $bitmap_format = IO_SWF_Bitmap::detect_bitmap_format($bitmap_data);
+        if (($bitmap_format === IO_SWF_Bitmap::FORMAT_GIF) ||
+            ($bitmap_format === IO_SWF_Bitmap::FORMAT_PNG)) {
             $tag = IO_SWF_Lossless::BitmapData2Lossless($bitmap_id, $bitmap_data);
             $new_width = $tag['width'];
             $new_height = $tag['height'];
-        } else if (strncmp($bitmap_data, "\xff\xd8\xff", 3) == 0) {
+        } else if ($bitmap_format === IO_SWF_Bitmap::FORMAT_JPEG) {
             $erroneous_header = pack('CCCC', 0xFF, 0xD9, 0xFF, 0xD8);
             if (is_null($jpeg_alphadata)) {
                 // 21: DefineBitsJPEG2

@@ -21,7 +21,7 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
     var $_startBounds, $_endBounds;
     var $_offset;
     var $_morphFillStyles, $_morphLineStyles;
-    var $_startEdge, $_endEdges;
+    var $_startEdge, $_endEdge;
     // DefineMorphShape2 only
     var $_startEdgeBounds, $_endEdgeBounds;
     // DefineShape4
@@ -311,83 +311,117 @@ class IO_SWF_Tag_Shape extends IO_SWF_Tag_Base {
         }
     }
 
+    // 閾値より短い直線を、隣の直線にマージして頂点を 1 つ減らす。
+    // エッジ座標は絶対値なので、短い直線 i を消すのは頂点を 1 つ消すことになる。
+    //   前の直線にマージ: 前の直線の終点を i の終点に移す (i の始点が消える)
+    //   次の直線にマージ: i を消すだけ (i の終点が消え、次の直線は i の始点から始まる)
+    // 両隣とも直線なら、消える頂点とマージ後の線分との距離 (形のずれ) が小さい方を選ぶ。
+    // 曲線の隣にはマージしない。マージした数を返す (0 になるまで呼び出し側が繰り返す)。
     function deformeShapeRecordUnit_2_line($threshold, $startIndex, $endIndex) {
         $threshold_2 = $threshold * $threshold;
-        $shapeRecord = $this->_shapeRecords[$startIndex];
-        $prevIndex = null;
-        $currentDrawingPositionX = $shapeRecord['MoveX'];
-        $currentDrawingPositionY = $shapeRecord['MoveY'];
-        $distance_list_short = array();
-        $distance_table_all = array();
-        for ($i = $startIndex + 1 ;$i <= $endIndex; $i++) {
-            $shapeRecord = & $this->_shapeRecords[$i];
-            if ($shapeRecord['StraightFlag'] == 0) {
-                $diff_x = $shapeRecord['ControlX'] - $currentDrawingPositionX;
-                $diff_y = $shapeRecord['ControlY'] - $currentDrawingPositionY;
-                $distance_2_control = $diff_x * $diff_x + $diff_y * $diff_y;
-                $diff_x = $shapeRecord['AnchorX'] - $currentDrawingPositionX;
-                $diff_y = $shapeRecord['AnchorY'] - $currentDrawingPositionY;
-                $distance_2_anchor = $diff_x * $diff_x + $diff_y * $diff_y;
-//                $distance_list[$i] = $distance_2_control +  $distance_2_anchor;
-                $distance_table_all[$i] = $distance_2_control +  $distance_2_anchor;
-                $currentDrawingPositionX = $shapeRecord['AnchorX'];
-                $currentDrawingPositionY = $shapeRecord['AnchorY'];
-            } else {
-                $diff_x = $shapeRecord['X'] - $currentDrawingPositionX;
-                $diff_y = $shapeRecord['Y'] - $currentDrawingPositionY;
-            $distance_2 = $diff_x * $diff_x + $diff_y * $diff_y;
-            if ($distance_2 < $threshold_2) {
-               $distance_list_short[] = $i;
+        $moveRecord = $this->_shapeRecords[$startIndex];
+        // 範囲内に残っているエッジ (前のパスでマージ済みのものは飛ばす) と始点・終点
+        $edges = array();
+        $startPos = array();
+        $endPos = array();
+        $x = $moveRecord['MoveX'];
+        $y = $moveRecord['MoveY'];
+        for ($i = $startIndex + 1; $i <= $endIndex; $i++) {
+            if (! isset($this->_shapeRecords[$i])) {
+                continue;
             }
-            $distance_table_all[$i] = $distance_2;
-            $currentDrawingPositionX = $shapeRecord['X'];
-            $currentDrawingPositionY = $shapeRecord['Y'];
-        }
-    }
-    sort($distance_list_short);
-    $deforme_number = 0;
-    foreach ($distance_list_short as $i) {
-        $distance_2 = $distance_table_all[$i];
-        if ($distance_2 > $threshold_2) {
-            continue; // 一定距離以上の線分は処理しない
-        }
-        if (empty($distance_list_all[$i-1]) && empty($distance_list_all[$i+1])) {
-            // 隣の線分が吸収され済みor曲線の場合は処理しない
-
-        }
-        $index_to_merge;
-        if (empty($distance_list_all[$i-1])) {
-            if (empty($distance_list_all[$i+1])) {
-                // 隣の線分が吸収されている場合は処理しない
-                continue;           
+            $record = $this->_shapeRecords[$i];
+            $startPos[$i] = array($x, $y);
+            if ($record['StraightFlag']) {
+                $x = $record['X'];
+                $y = $record['Y'];
             } else {
-                $index_to_merge = $i+1;
+                $x = $record['AnchorX'];
+                $y = $record['AnchorY'];
             }
-        } else {
-            if (empty($distance_list_all[$i+1])) {
-                $index_to_merge = $i-1;
-            } else {
-                $index_to_merge = $i-1; // XXX 後で選択する処理を入れる
+            $endPos[$i] = array($x, $y);
+            $edges []= $i;
+        }
+        // 短い直線を短い順に処理する
+        $shortList = array();
+        foreach ($edges as $i) {
+            if ($this->_shapeRecords[$i]['StraightFlag']) {
+                $d2 = self::distance2($startPos[$i], $endPos[$i]);
+                if ($d2 < $threshold_2) {
+                    $shortList[$i] = $d2;
+                }
             }
         }
-        // line merge 処理
-        $shapeRecord = $this->_shapeRecords[$i];
-        $shapeRecord_toMerge = & $this->_shapeRecords[$index_to_merge];
-        if ($i > $index_to_merge) {
-            if ($shapeRecord['StraightFlag']) {
-                $shapeRecord_toMerge['X'] = $shapeRecord['X'];
-                $shapeRecord_toMerge['Y'] = $shapeRecord['Y'];
-            } else {
-                $shapeRecord_toMerge['AnchorX'] = $shapeRecord['X'];
-                $shapeRecord_toMerge['AnchorY'] = $shapeRecord['Y'];
+        asort($shortList);
+        $positionOf = array_flip($edges); // record index => $edges 内の位置
+        $removed = array();
+        $deforme_number = 0;
+        foreach (array_keys($shortList) as $i) {
+            if (isset($removed[$i])) {
+                continue;
             }
-        }
-        $distance_list_all[$index_to_merge] += $distance_list_all[$i];
-//        unset($distance_list_all[$i]);
-          unset($this->_shapeRecords[$i]);
-          $deforme_number += 1;
+            // 先にマージした結果で長くなっていれば対象外
+            if (self::distance2($startPos[$i], $endPos[$i]) >= $threshold_2) {
+                continue;
+            }
+            $prev = self::neighborEdge($edges, $positionOf[$i], -1, $removed);
+            $next = self::neighborEdge($edges, $positionOf[$i], +1, $removed);
+            if (! is_null($prev) && ! $this->_shapeRecords[$prev]['StraightFlag']) {
+                $prev = null; // 曲線にはマージしない
+            }
+            if (! is_null($next) && ! $this->_shapeRecords[$next]['StraightFlag']) {
+                $next = null;
+            }
+            if (is_null($prev) && is_null($next)) {
+                continue;
+            }
+            // 消える頂点とマージ後の線分との距離 (形のずれ)
+            $errorPrev = is_null($prev) ? INF :
+                self::pointSegmentDistance2($startPos[$i], $startPos[$prev], $endPos[$i]);
+            $errorNext = is_null($next) ? INF :
+                self::pointSegmentDistance2($endPos[$i], $startPos[$i], $endPos[$next]);
+            if ($errorPrev <= $errorNext) { // 同じなら従来どおり前にマージ
+                $this->_shapeRecords[$prev]['X'] = $endPos[$i][0];
+                $this->_shapeRecords[$prev]['Y'] = $endPos[$i][1];
+                $endPos[$prev] = $endPos[$i];
+            } else {
+                $startPos[$next] = $startPos[$i];
+            }
+            unset($this->_shapeRecords[$i]);
+            $removed[$i] = true;
+            $deforme_number++;
         }
         return $deforme_number;
+    }
+
+    // $edges の $pos から $dir 方向に、まだ残っている隣のエッジの record index を返す
+    static function neighborEdge($edges, $pos, $dir, $removed) {
+        for ($p = $pos + $dir; ($p >= 0) && ($p < count($edges)); $p += $dir) {
+            if (! isset($removed[$edges[$p]])) {
+                return $edges[$p];
+            }
+        }
+        return null;
+    }
+
+    static function distance2($p, $q) {
+        $dx = $q[0] - $p[0];
+        $dy = $q[1] - $p[1];
+        return $dx * $dx + $dy * $dy;
+    }
+
+    // 点 $p と線分 $a-$b の距離の 2 乗
+    static function pointSegmentDistance2($p, $a, $b) {
+        $abx = $b[0] - $a[0];
+        $aby = $b[1] - $a[1];
+        $len2 = $abx * $abx + $aby * $aby;
+        if ($len2 == 0) {
+            return self::distance2($p, $a);
+        }
+        $t = (($p[0] - $a[0]) * $abx + ($p[1] - $a[1]) * $aby) / $len2;
+        $t = max(0, min(1, $t));
+        $closest = array($a[0] + $t * $abx, $a[1] + $t * $aby);
+        return self::distance2($p, $closest);
     }
     function countEdges() {
         $edges_count = 0;
