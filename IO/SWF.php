@@ -1,7 +1,7 @@
 <?php
 
 /*
- * 2010/8/11- (c) yoya@awm.jp - v4.1.5
+ * 2010/8/11- (c) yoya@awm.jp - v4.3.1
  */
 
 if (is_readable('vendor/autoload.php')) {
