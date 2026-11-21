@@ -47,6 +47,12 @@ class IO_SWF_ABC_Bit extends IO_Bit {
         }
         return $v;
     }
+    // pushshort の引数。u30 の可変長で書かれ、下位 16 ビットを符号付きで使う
+    // (負の値は 32 ビットの 2 の補数のまま 5 バイトで書かれることがあるので、u30 では読めない)
+    function get_s16() {
+        $v = $this->get_u32() & 0xFFFF;
+        return ($v < 0x8000)? $v: ($v - 0x10000);
+    }
     function get_s32() {
         $v = $this->get_u32();
         return ($v < 0x80000000)? $v: ($v - 0x100000000); // 2-negative

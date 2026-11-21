@@ -12,8 +12,18 @@ class IO_SWF_ABC_Code {
     var $opts = [];
     var $labels = [];    // 飛び先につけるラベル。自分自身の idx
     var $branches = [];  // 飛び元(分岐命令)につける。飛び先 idx
+    // AVM2 の命令表 (avm2overview.pdf と avmplus の opcodes.tbl)
+    // 引数の型: u30, s24, ubyte (u8), s24... (lookupswitch の分岐先の列),
+    //           s16 (pushshort: u30 の可変長で書かれ、下位 16 ビットを符号付きで読む)
     var $instructionTable = [
         //         name             Arg type    Arg to pool
+        0x01 => ["bkpt"          , []           ],  // 1
+        0x02 => ["nop"           , []           ],  // 2
+        0x03 => ["throw"         , []           ],  // 3
+        0x04 => ["getsuper"      , ["u30"]      , ["multiname"]],  // 4
+        0x05 => ["setsuper"      , ["u30"]      , ["multiname"]],  // 5
+        0x06 => ["dxns"          , ["u30"]      , ["string"]   ],  // 6
+        0x07 => ["dxnslate"      , []           ],  // 7
         0x08 => ["kill"          , ["u30"]      ],  // 8  (local register)
         0x09 => ["label"         , []           ],  // 9
         0x0c => ["ifnlt"         , ["s24"]      ],  // 12
@@ -32,70 +42,135 @@ class IO_SWF_ABC_Code {
         0x19 => ["ifstricteq"    , ["s24"]      ],  // 25 // spec doc wrong
         0x1a => ["ifstrictne"    , ["s24"]      ],  // 26 // spec doc wrong
         0x1b => ["lookupswitch"  , ["s24","u30","s24..."]],  // 27
+        0x1c => ["pushwith"      , []           ],  // 28
         0x1d => ["popscope"      , []           ],  // 29
+        0x1e => ["nextname"      , []           ],  // 30
+        0x1f => ["hasnext"       , []           ],  // 31
         0x20 => ["pushnull"      , []           ],  // 32
         0x21 => ["pushundefined" , []           ],  // 33
-        0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36
-        0x25 => ["pushshort"     , ["u30"]      ],  // 37
+        0x23 => ["nextvalue"     , []           ],  // 35
+        0x24 => ["pushbyte"      , ["ubyte"]    ],  // 36 (符号付き。変換器で直す)
+        0x25 => ["pushshort"     , ["s16"]      ],  // 37
         0x26 => ["pushtrue"      , []           ],  // 38
         0x27 => ["pushfalse"     , []           ],  // 39
+        0x28 => ["pushnan"       , []           ],  // 40
         0x29 => ["pop"           , []           ],  // 41
         0x2A => ["dup"           , []           ],  // 42
         0x2B => ["swap"          , []           ],  // 43
         0x2C => ["pushstring"    , ["u30"]      , ["string"]   ],  // 44
-        0x2F => ["pushdouble"    , ["u30"]      ],  // 47
+        0x2D => ["pushint"       , ["u30"]      ],  // 45 (int の定数表の番号)
+        0x2E => ["pushuint"      , ["u30"]      ],  // 46 (uint の定数表の番号)
+        0x2F => ["pushdouble"    , ["u30"]      ],  // 47 (double の定数表の番号)
         0x30 => ["pushscope"     , []           ],  // 48
+        0x31 => ["pushnamespace" , ["u30"]      ],  // 49
+        0x32 => ["hasnext2"      , ["u30","u30"]],  // 50
+        0x35 => ["li8"           , []           ],  // 53
+        0x36 => ["li16"          , []           ],  // 54
+        0x37 => ["li32"          , []           ],  // 55
+        0x38 => ["lf32"          , []           ],  // 56
+        0x39 => ["lf64"          , []           ],  // 57
+        0x3a => ["si8"           , []           ],  // 58
+        0x3b => ["si16"          , []           ],  // 59
+        0x3c => ["si32"          , []           ],  // 60
+        0x3d => ["sf32"          , []           ],  // 61
+        0x3e => ["sf64"          , []           ],  // 62
+        0x40 => ["newfunction"   , ["u30"]      ],  // 64
         0x41 => ["call"          , ["u30"]      ],  // 65
+        0x42 => ["construct"     , ["u30"]      ],  // 66
+        0x43 => ["callmethod"    , ["u30","u30"]],  // 67
+        0x44 => ["callstatic"    , ["u30","u30"]],  // 68
+        0x45 => ["callsuper"     , ["u30","u30"], ["multiname"]],  // 69
         0x46 => ["callproperty"  , ["u30","u30"], ["multiname"]],  // 70
         0x47 => ["returnvoid"    , []           ],  // 71
         0x48 => ["returnvalue"   , []           ],  // 72
-        0x49 => ["construct"     , ["u30"]      ],  // 73
+        0x49 => ["constructsuper", ["u30"]      ],  // 73
         0x4a => ["constructprop" , ["u30","u30"], ["multiname"]],  // 74
+        0x4c => ["callproplex"   , ["u30","u30"], ["multiname"]],  // 76
+        0x4e => ["callsupervoid" , ["u30","u30"], ["multiname"]],  // 78
         0x4f => ["callpropvoid"  , ["u30","u30"], ["multiname"]],  // 79
-        0x56 => ["newarray"      , ["u30"]      , ["multiname"]],  // 86
+        0x50 => ["sxi1"          , []           ],  // 80
+        0x51 => ["sxi8"          , []           ],  // 81
+        0x52 => ["sxi16"         , []           ],  // 82
+        0x53 => ["applytype"     , ["u30"]      ],  // 83
+        0x55 => ["newobject"     , ["u30"]      ],  // 85
+        0x56 => ["newarray"      , ["u30"]      ],  // 86
+        0x57 => ["newactivation" , []           ],  // 87
         0x58 => ["newclass"      , ["u30"]      ],  // 88
+        0x59 => ["getdescendants", ["u30"]      , ["multiname"]],  // 89
         0x5a => ["newcatch"      , ["u30"]      ],  // 90
         0x5d => ["findpropstrict", ["u30"]      , ["multiname"]],  // 93
         0x5e => ["findproperty"  , ["u30"]      , ["multiname"]],  // 94
+        0x5f => ["finddef"       , ["u30"]      , ["multiname"]],  // 95
         0x60 => ["getlex"        , ["u30"]      , ["multiname"]],  // 96
         0x61 => ["setproperty"   , ["u30"]      , ["multiname"]],  // 97
         0x62 => ["getlocal"      , ["u30"]      ],  // 98
         0x63 => ["setlocal"      , ["u30"]      ],  // 99
-        0x65 => ["getscopeobject", ["u30"]      ],  // 101 (u30?)
+        0x64 => ["getglobalscope", []           ],  // 100
+        0x65 => ["getscopeobject", ["ubyte"]    ],  // 101
         0x66 => ["getproperty"   , ["u30"]      , ["multiname"]],  // 102
+        0x67 => ["getouterscope" , ["u30"]      ],  // 103
         0x68 => ["initproperty"  , ["u30"]      , ["multiname"]],  // 104
+        0x6a => ["deleteproperty", ["u30"]      , ["multiname"]],  // 106
+        0x6c => ["getslot"       , ["u30"]      ],  // 108
         0x6d => ["setslot"       , ["u30"]      ],  // 109
+        0x6e => ["getglobalslot" , ["u30"]      ],  // 110
+        0x6f => ["setglobalslot" , ["u30"]      ],  // 111
+        0x70 => ["convert_s"     , []           ],  // 112
+        0x71 => ["esc_xelem"     , []           ],  // 113
+        0x72 => ["esc_xattr"     , []           ],  // 114
+        0x73 => ["convert_i"     , []           ],  // 115
+        0x74 => ["convert_u"     , []           ],  // 116
         0x75 => ["convert_d"     , []           ],  // 117
         0x76 => ["convert_b"     , []           ],  // 118
+        0x77 => ["convert_o"     , []           ],  // 119
+        0x78 => ["checkfilter"   , []           ],  // 120
         0x80 => ["coerce"        , ["u30"]      , ["multiname"]],  // 128
+        0x81 => ["coerce_b"      , []           ],  // 129
         0x82 => ["coerce_a"      , []           ],  // 130
-        0x86 => ["astype"        , ["u30"]      ],  // 134
+        0x83 => ["coerce_i"      , []           ],  // 131
+        0x84 => ["coerce_d"      , []           ],  // 132
+        0x85 => ["coerce_s"      , []           ],  // 133
+        0x86 => ["astype"        , ["u30"]      , ["multiname"]],  // 134
         0x87 => ["astypelate"    , []           ],  // 135
+        0x88 => ["coerce_u"      , []           ],  // 136
+        0x89 => ["coerce_o"      , []           ],  // 137
         0x90 => ["negate"        , []           ],  // 144
         0x91 => ["increment"     , []           ],  // 145
         0x92 => ["inclocal"      , ["u30"]      ],  // 146
         0x93 => ["decrement"     , []           ],  // 147
-        0x94 => ["bitnot"        , []           ],  // 148
+        0x94 => ["declocal"      , ["u30"]      ],  // 148
+        0x95 => ["typeof"        , []           ],  // 149
         0x96 => ["not"           , []           ],  // 150
+        0x97 => ["bitnot"        , []           ],  // 151
         0xa0 => ["add"           , []           ],  // 160
         0xa1 => ["subtract"      , []           ],  // 161
         0xa2 => ["multiply"      , []           ],  // 162
         0xa3 => ["divide"        , []           ],  // 163
         0xa4 => ["modulo"        , []           ],  // 164
+        0xa5 => ["lshift"        , []           ],  // 165
+        0xa6 => ["rshift"        , []           ],  // 166
+        0xa7 => ["urshift"       , []           ],  // 167
         0xa8 => ["bitand"        , []           ],  // 168
         0xa9 => ["bitor"         , []           ],  // 169
         0xaa => ["bitxor"        , []           ],  // 170
         0xab => ["equals"        , []           ],  // 171
+        0xac => ["strictequals"  , []           ],  // 172
         0xad => ["lessthan"      , []           ],  // 173
         0xae => ["lessequals"    , []           ],  // 174
         0xaf => ["greaterthan"   , []           ],  // 175
+        0xb0 => ["greaterequals" , []           ],  // 176
         0xb1 => ["instanceof"    , []           ],  // 177
-        0xb2 => ["istype"        , ["u30"]      ],  // 178
+        0xb2 => ["istype"        , ["u30"]      , ["multiname"]],  // 178
         0xb3 => ["istypelate"    , []           ],  // 179
         0xb4 => ["in"            , []           ],  // 180
         0xc0 => ["increment_i"   , []           ],  // 192
+        0xc1 => ["decrement_i"   , []           ],  // 193
         0xc2 => ["inclocal_i"    , ["u30"]      ],  // 194
+        0xc3 => ["declocal_i"    , ["u30"]      ],  // 195
+        0xc4 => ["negate_i"      , []           ],  // 196
         0xc5 => ["add_i"         , []           ],  // 197
+        0xc6 => ["subtract_i"    , []           ],  // 198
+        0xc7 => ["multiply_i"    , []           ],  // 199
         0xd0 => ["getlocal_0"    , []           ],  // 208
         0xd1 => ["getlocal_1"    , []           ],  // 209
         0xd2 => ["getlocal_2"    , []           ],  // 210
@@ -104,6 +179,11 @@ class IO_SWF_ABC_Code {
         0xd5 => ["setlocal_1"    , []           ],  // 213
         0xd6 => ["setlocal_2"    , []           ],  // 214
         0xd7 => ["setlocal_3"    , []           ],  // 215
+        0xef => ["debug"         , ["ubyte","u30","ubyte","u30"], [null, "string"]],  // 239
+        0xf0 => ["debugline"     , ["u30"]      ],  // 240
+        0xf1 => ["debugfile"     , ["u30"]      , ["string"]   ],  // 241
+        0xf2 => ["bkptline"      , ["u30"]      ],  // 242
+        0xf3 => ["timestamp"     , []           ],  // 243
     ];
     function isBranchInstruction($code) {
         if ((0x0c <= $code) && ($code <= 0x1a)) {
@@ -112,7 +192,8 @@ class IO_SWF_ABC_Code {
         return false; // others
     }
     function getCodeArrayIndexByBranchOffset($idx, $branchOffset) {
-        $offset = $this->codeArray[$idx + 1]["offset"] + $branchOffset;
+        // 分岐の基準は分岐命令の次の位置 (分岐命令が最後の命令でも求まるように、自分の位置と長さから)
+        $offset = $this->codeArray[$idx]["offset"] + $this->codeArray[$idx]["size"] + $branchOffset;
         foreach ($this->codeArray as $branchIdx => $code) {
             if ($offset === $code["offset"]) {
                 return $branchIdx;
@@ -163,6 +244,9 @@ class IO_SWF_ABC_Code {
                 case "u30":
                     $v = $bit->get_u30();
                     break;
+                case "s16":
+                    $v = $bit->get_s16();
+                    break;
                 case "s24":
                     $v = $bit->get_s24();
                     break;
@@ -197,6 +281,10 @@ class IO_SWF_ABC_Code {
             if ($this->isBranchInstruction($inst)) {
                 $v = $bit->get_s24();  // 分岐命令は 24 のはず
                 $branchIdx = $this->getCodeArrayIndexByBranchOffset($idx, $v);
+                if (is_null($branchIdx)) {
+                    // コードの末尾 (やその先) を指す分岐。return の後の到達しない jump に現れる
+                    continue;
+                }
                 $this->labels[$branchIdx] = $branchIdx;
                 $this->branches[$idx] = $branchIdx;
             }
@@ -222,6 +310,9 @@ class IO_SWF_ABC_Code {
                 switch ($argType) {
                 case "u30":
                     $v = $bit->get_u30();
+                    break;
+                case "s16":
+                    $v = $bit->get_s16();
                     break;
                 case "s24":
                     $v = $bit->get_s24();

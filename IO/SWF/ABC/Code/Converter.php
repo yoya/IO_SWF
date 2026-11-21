@@ -132,6 +132,7 @@ class IO_SWF_ABC_Code_Converter {
             foreach ($types as $i => $t) {
                 switch ($t) {
                   case 'u30':   $v = $bit->get_u30(); break;
+                  case 's16':   $v = $bit->get_s16(); break;
                   case 's24':   $v = $bit->get_s24(); break;
                   case 'ubyte': $v = $bit->getUI8(); break;
                   default:      $v = null; // lookupswitch など (未対応)
@@ -206,10 +207,16 @@ class IO_SWF_ABC_Code_Converter {
         $op = $inst['op'];
         $a = $inst['args'];
         $id = $inst['idx'];
+        if ($this->code->isBranchInstruction($op) && ! isset($inst['target'])) {
+            $this->unsupported("{$inst['name']} to outside of code at [$id]");
+            return;
+        }
         switch ($inst['name']) {
           // ---- 何もしない
           case 'label': case 'popscope': case 'coerce_a': case 'coerce':
           case 'convert_d': case 'convert_b': case 'kill_noop':
+          case 'nop': case 'bkpt': case 'bkptline': case 'timestamp':
+          case 'debug': case 'debugline': case 'debugfile':
             if ($inst['name'] === 'convert_d' && $this->stack) {
                 $top = &$this->stack[count($this->stack) - 1];
                 if ($top['k'] !== 'obj') $top['type'] = 'number';
