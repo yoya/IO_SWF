@@ -51,6 +51,8 @@ class IO_SWF_ABC_Code_Converter {
     // 解析パスで集める情報
     var $analysis = false;
     var $consumers = [];    // obj の id => ['kind'=>'set','name'=>..] | ['kind'=>'goto'] | ...
+    var $localTypes = [];   // ローカル変数の番号 => 代入された値の型の一覧
+    var $localAliasable = []; // ローカル変数の番号 => localAliasMode() の結果
     // 生成パスの状態
     var $actions = [];
     var $labelPos = [];     // AS3 命令 idx => AS1 アクション位置
@@ -155,6 +157,8 @@ class IO_SWF_ABC_Code_Converter {
         foreach ($code->labels as $idx => $dummy) {
             $this->labelSet[$idx] = true;
         }
+        $this->localAliasable = [];
+        $this->localTypes = [];
     }
 
     // ------------------------------------------------------------
@@ -891,41 +895,69 @@ class IO_SWF_ABC_Code_Converter {
         // 未出力の副作用の無い式・obj は出力不要
     }
 
-    // ローカル変数: SWF4 にはレジスタが無いので、式の別名か一時変数で表す
+    // ローカル変数: SWF4 にはレジスタが無いので、式の別名か一時変数で表す。
+    // 別名にできるのは、代入から使用までが一直線の場合だけ (localAliasable)。
     function setLocal($n, $p) {
         $node = $this->popNode();
         if ($node['k'] === 'obj') {
-            $this->locals[$n] = $node;
-            return;
+            // this.a は子のムービークリップか変数かが使われ方で決まるので、できるだけ参照のまま別名にする
+            $isRef = ($node['base'] === 'global' || count($node['path']) === 0); // 変数として読めない参照
+            $reads = [];
+            if (! $isRef) {
+                $val = $this->objToVal($node);
+                $this->treeReads($val['tree'], $reads);
+            }
+            if ($this->canAliasLocal($n, $p, $reads)) {
+                $this->locals[$n] = $node;
+                return;
+            }
+            if ($isRef) {
+                // 参照 (ムービークリップ等) は AS1 の変数に保存できない
+                $this->unsupported("setlocal $n: object reference used across branches: " . $this->describeObj($node));
+                $this->locals[$n] = $node;
+                return;
+            }
+            $node = $val; // 変数の値として一時変数に保存する
         }
+        if ($this->analysis) {
+            $this->localTypes[$n] []= $node['type'];
+        }
+        $type = $this->localType($n, $node['type']);
+        $tmp = '__abc_local' . $n;
         if ($node['k'] === 'val') {
             $reads = [];
             $this->treeReads($node['tree'], $reads);
-            if ($node['pure'] && ! $this->assignedBeforeLastUse($n, $p, $reads)) {
+            if ($node['pure'] && $this->canAliasLocal($n, $p, $reads)) {
                 $this->locals[$n] = $node; // 式の別名 (使う時点で再評価しても同じ値)
                 return;
             }
             // 一時変数に保存する: 名前を先に積めるのは値が未出力の場合だけ
             $this->materializeAll();
-            $tmp = '__abc_local' . $n;
             $this->pushString($tmp);
             $this->emitTree($node['tree']);
             $this->emit(['Code' => 0x1D]); // SetVariable
             $this->invalidateSources();
             $this->locals[$n] = ['k' => 'val', 'id' => $node['id'], 'tree' => ['var', $tmp],
-                                 'type' => $node['type'], 'pure' => true];
+                                 'type' => $type, 'pure' => true];
             return;
         }
-        // 出力済みの値は、その下に名前を積めないので SWF4 では保存できない。
-        // 再評価できる式で、使うまでに値が変わらないなら、捨てて後で再評価する
-        $reads = [];
-        if (! is_null($node['src'])) {
+        // 出力済みの値は、その下に名前を積めないので SWF4 ではそのまま保存できない。
+        // 再評価できる式なら、積んだ値を捨てて、別名にするか一時変数に保存し直す
+        if (isset($node['src'])) {
+            $reads = [];
             $this->treeReads($node['src'], $reads);
-        }
-        if (! is_null($node['src']) && ! $this->assignedBeforeLastUse($n, $p, $reads)) {
-            $this->emit(['Code' => 0x17]); // Pop (後で再評価する)
-            $this->locals[$n] = ['k' => 'val', 'id' => $node['id'], 'tree' => $node['src'],
-                                 'type' => $node['type'], 'pure' => true];
+            $this->emit(['Code' => 0x17]); // Pop
+            if ($this->canAliasLocal($n, $p, $reads)) {
+                $this->locals[$n] = ['k' => 'val', 'id' => $node['id'], 'tree' => $node['src'],
+                                     'type' => $node['type'], 'pure' => true];
+                return;
+            }
+            $this->pushString($tmp);
+            $this->emitTree($node['src']);
+            $this->emit(['Code' => 0x1D]); // SetVariable
+            $this->invalidateSources();
+            $this->locals[$n] = ['k' => 'val', 'id' => $node['id'], 'tree' => ['var', $tmp],
+                                 'type' => $type, 'pure' => true];
             return;
         }
         $this->unsupported("setlocal $n of an evaluated value");
@@ -933,11 +965,99 @@ class IO_SWF_ABC_Code_Converter {
         $this->locals[$n] = $this->lit('', 'string', $node['id']);
     }
 
+    // 命令がローカル変数 $n を読むか ('get')、書くか ('set')、捨てるか ('kill')
+    function localAccess($inst, $n) {
+        $nm = $inst['name'];
+        if (($nm === 'getlocal' && $inst['args'][0] === $n) || $nm === "getlocal_$n") return 'get';
+        if (($nm === 'setlocal' && $inst['args'][0] === $n) || $nm === "setlocal_$n") return 'set';
+        if ($nm === 'kill' && $inst['args'][0] === $n) return 'kill';
+        return null;
+    }
+
+    // ローカル変数 $n を「式の別名」(使う時点で再評価) で表せる形か。
+    //   'straight': どの代入も、代入から最後の使用までが一直線 (途中に分岐の合流点が無い)
+    //   'entry':    代入が 1 つだけで、メソッドの先頭から一直線の位置にある (必ず 1 回だけ実行される)
+    //   null:       どちらでもない。使う時点でどの代入の値かが決まらない (分岐ごとの代入、ループ) ので、
+    //               すべての代入を同じ一時変数に保存する
+    function localAliasMode($n) {
+        if (array_key_exists($n, $this->localAliasable)) {
+            return $this->localAliasable[$n];
+        }
+        $straight = true;
+        $defs = [];
+        $def = null;     // 直前の代入の位置
+        $lastUse = null; // その代入の値を最後に使う位置
+        $count = count($this->insts);
+        for ($q = 0; $q <= $count; $q++) {
+            $kind = ($q < $count) ? $this->localAccess($this->insts[$q], $n) : 'end';
+            if ($kind === 'get' && ! is_null($def)) {
+                $lastUse = $q;
+            } elseif ($kind === 'set' || $kind === 'kill' || $kind === 'end') {
+                if (! is_null($def) && ! is_null($lastUse) && $this->hasLabel($def + 1, $lastUse)) {
+                    $straight = false;
+                }
+                $def = ($kind === 'set') ? $q : null;
+                $lastUse = null;
+                if ($kind === 'set') {
+                    $defs []= $q;
+                }
+            }
+        }
+        if ($straight) {
+            $mode = 'straight';
+        } elseif (count($defs) === 1 && ! $this->hasLabel(0, $defs[0])) {
+            $mode = 'entry';
+        } else {
+            $mode = null;
+        }
+        return $this->localAliasable[$n] = $mode;
+    }
+
+    // 位置 $from 〜 $to の命令に、分岐の合流点 (ラベル) があるか
+    function hasLabel($from, $to) {
+        for ($r = $from; $r <= $to; $r++) {
+            if (isset($this->labelSet[$this->insts[$r]['idx']])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 位置 $p の setlocal の値 (読む変数は $reads) を、式の別名にしてよいか
+    function canAliasLocal($n, $p, $reads) {
+        switch ($this->localAliasMode($n)) {
+          case 'straight': // 最後の使用までに、読む変数への代入が無い
+            return ! $this->assignedBeforeLastUse($n, $p, $reads);
+          case 'entry':    // 分岐やループをまたいで使うので、以降のどこにも代入が無い
+            return ! $this->assignedBeforeLastUse($n, $p, $reads, true);
+        }
+        return false;
+    }
+
+    // 一時変数に保存したローカル変数の型。別名にできない変数は、どの代入の値かが決まらないので、
+    // すべての代入の型が同じときだけその型にする (型は解析パスで集める)
+    function localType($n, $type) {
+        if ($this->analysis || ! is_null($this->localAliasMode($n)) || ! isset($this->localTypes[$n])) {
+            return $type;
+        }
+        foreach ($this->localTypes[$n] as $t) {
+            if ($t !== $type) {
+                return null;
+            }
+        }
+        return $type;
+    }
+
     // setlocal から、そのローカル変数を最後に使う (kill されるまでの) 間に、
-    // 式が読む変数への代入があるか (あれば別名ではなく一時変数に保存する)
-    function assignedBeforeLastUse($n, $p, $reads) {
+    // 式が読む変数への代入があるか (あれば別名ではなく一時変数に保存する)。
+    // $whole なら、使用の位置によらず、以降のどこかに代入があるか (表示プロパティは代入以外でも
+    // 変わるので、読んでいれば代入ありとする)
+    function assignedBeforeLastUse($n, $p, $reads, $whole = false) {
         if (count($reads) === 0) {
             return false;
+        }
+        if ($whole && count(array_intersect_key($reads, self::$displayProps))) {
+            return true;
         }
         $names = [];
         foreach ($reads as $t => $dummy) {
@@ -948,14 +1068,15 @@ class IO_SWF_ABC_Code_Converter {
         for ($q = $p + 1; $q < count($this->insts); $q++) {
             $inst = $this->insts[$q];
             $nm = $inst['name'];
-            if ($nm === 'kill' && $inst['args'][0] === $n) {
+            if (! $whole && in_array($this->localAccess($inst, $n), ['kill', 'set'])) {
                 return false;
             }
-            if (($nm === 'setlocal' && $inst['args'][0] === $n) || $nm === "setlocal_$n") {
-                return false;
-            }
+            // 名前が実行時に決まる代入 (this[式] = 値) は、どの変数にも代入しうる
             if (($nm === 'setproperty' || $nm === 'initproperty') &&
-                (isset($names['*']) || isset($names[$inst['args'][0]['name']]))) {
+                (isset($names['*']) || is_null($inst['args'][0]['name']) || isset($names[$inst['args'][0]['name']]))) {
+                if ($whole) {
+                    return true;
+                }
                 $assigned = true;
             }
             if ($assigned && (($nm === 'getlocal' && $inst['args'][0] === $n) || $nm === "getlocal_$n")) {
