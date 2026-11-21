@@ -1357,7 +1357,9 @@ class IO_SWF_ABC_Code_Converter {
           case 'addEventListener':
             // AS1 にはイベントリスナーが無いので、ここでは登録を記録するだけ。
             // Editor が、対象のムービークリップをボタンにしてハンドラをボタンのアクションにする。
-            if (! $this->analysis && $argc >= 2) {
+            if ($argc < 2) {
+                $this->unsupported("addEventListener/$argc");
+            } elseif (! $this->analysis) {
                 $this->recordEventListener($recv, $this->stack[$n - $argc], $this->stack[$n - $argc + 1]);
             }
             array_splice($this->stack, $n - 1 - $argc);
@@ -1381,7 +1383,7 @@ class IO_SWF_ABC_Code_Converter {
         if (is_null($target) || $recv['base'] !== 'this' ||
             is_null($eventPath) || $event['base'] !== 'global' || count($eventPath) !== 1 ||
             is_null($handlerPath) || $handler['base'] !== 'this' || count($handlerPath) !== 1) {
-            fprintf(STDERR, "ABC to Action: addEventListener of unsupported form is ignored\n");
+            $this->unsupported("addEventListener of unsupported form");
             return;
         }
         if (is_null($ctx)) {

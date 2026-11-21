@@ -1398,16 +1398,23 @@ class IO_SWF_Editor extends IO_SWF {
             return;
         }
         $version = $this->_headers['Version'];
+        // 変換できない登録: strict なら例外、そうでなければ警告して捨てる
+        $skip = function ($msg) use ($opts) {
+            if (! empty($opts['strict'])) {
+                throw new IO_SWF_Exception("addEventListener: $msg");
+            }
+            fprintf(STDERR, "addEventListener: $msg\n");
+        };
         $done = [];
         foreach ($codeContext->eventListeners as $listener) {
             $label = implode('.', $listener['target']) . ".addEventListener({$listener['event']}, {$listener['handler']})";
             if ($listener['event'] !== 'MouseEvent.CLICK') {
-                fprintf(STDERR, "addEventListener: only MouseEvent.CLICK is supported: $label\n");
+                $skip("only MouseEvent.CLICK is supported: $label");
                 continue;
             }
             if ($listener['spriteId'] !== 0) {
                 // ハンドラの this を絶対パスにできるのは、メインタイムラインのクラスだけ
-                fprintf(STDERR, "addEventListener: only in MainTimeline is supported: $label\n");
+                $skip("only in MainTimeline is supported: $label");
                 continue;
             }
             $key = implode('/', $listener['target']) . ':' . $listener['handler'];
@@ -1420,14 +1427,14 @@ class IO_SWF_Editor extends IO_SWF {
             $inst = $abc->getInstanceByName($listener['class'], $listener['ns']);
             $methodId = is_null($inst) ? null : $abc->getMethodIdByTraitName($inst, $listener['handler']);
             if (is_null($methodId)) {
-                fprintf(STDERR, "addEventListener: handler method not found: $label\n");
+                $skip("handler method not found: $label");
                 continue;
             }
             $actions = $abc->getCodeByMethodId($methodId)->ABCCodetoButtonActions($version, $codeContext, $opts);
             // 対象の配置を探す
             $found = $this->findPlacementByPath($tags, $spriteList, $listener['target'], $version);
             if (is_null($found)) {
-                fprintf(STDERR, "addEventListener: target not found: $label\n");
+                $skip("target not found: $label");
                 continue;
             }
             list($placements, $targetId, $parentSprite) = $found;
