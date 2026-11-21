@@ -1,6 +1,8 @@
 IO_SWF
 ======
 
+English version: [README.en.md](README.en.md)
+
 This is a library for interpreting/editing the SWF binary.
 It's mainly targeted for Flash Lite 1.x/2.x.
 Not limited in use, free to copy and modify by MIT license.
