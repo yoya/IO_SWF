@@ -286,6 +286,18 @@ class IO_SWF_ABC {
             // multiname_kind_MultinameL format
             $info["ns_set"] = $bit->get_u30();
             break;
+        case self::CONSTANT_TypeName:     // 0x1D
+            // Vector.<T> などの型引数付きの名前 (avm2overview には無い)
+            $info["qname"]  = $bit->get_u30();
+            $param_count    = $bit->get_u30();
+            $params = [];
+            for ($i = 0; $i < $param_count; $i++) {
+                $params []= $bit->get_u30();
+            }
+            $info["params"] = $params;
+            break;
+        default:
+            throw new IO_SWF_Exception("unknown multiname kind:$kind");
         }
         return $info;
     }
@@ -807,7 +819,13 @@ class IO_SWF_ABC {
         }
         return null;
     }
+    // method_body の並びは method の番号と一致しない (本体の無いメソッドがある) ので、method で探す
     function getCodeByMethodId($methodId) {
-        return $this->method_body[$methodId]["code"];
+        foreach ($this->method_body as $body) {
+            if ($body["method"] === $methodId) {
+                return $body["code"];
+            }
+        }
+        throw new IO_SWF_Exception("method body not found: method:$methodId");
     }
 }
