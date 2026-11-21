@@ -1208,7 +1208,9 @@ class IO_SWF_Editor extends IO_SWF {
         $spriteList = [];
         $codeContext = new IO_SWF_ABC_Code_Context();
         // downgrade DoABC tag
-        foreach ($tags as $idx => &$tag) {
+        // ABCtoAction がメインタイムライン ($tags) にアクションを挿入するので、挿入前の並びを回す。
+        // (参照で回すと、挿入の後の反復が末尾まで飛び、残りのタグが処理されない)
+        foreach ($tags as $tag) {
             $tagCode = $tag->code;
             if ($tagCode === 39) {  // DefineSprite
                 if ($tag->parseTagContent($opts) === false) {
@@ -1230,7 +1232,6 @@ class IO_SWF_Editor extends IO_SWF {
                 $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $codeContext, $opts);
             }
         }
-        unset($tag);
         // addEventListener で登録されたクリック処理を、SWF4 のボタンにする
         $this->eventListenersToButtons($tags, $doABC, $spriteList, $codeContext, $opts);
     }
