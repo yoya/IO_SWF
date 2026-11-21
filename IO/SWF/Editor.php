@@ -1258,6 +1258,17 @@ class IO_SWF_Editor extends IO_SWF {
                 }
                 $tag->content = null;
             }
+            // PlaceObject2/3 の ClipActions: イベントフラグは SWF6 以降 32 ビット、SWF5 以下 16 ビット。
+            // バイト列のままでは SWF5 以下で読めないので、作り直す (SWF4 には ClipActions が無いので捨てる)
+            if ((($tagCode === 26) || ($tagCode === 70)) && ($swfVersion <= 5) &&
+                ($tag->swfInfo['Version'] >= 6)) {
+                $hasClipActions = is_null($tag->content) ?
+                                ! is_null($tag->tag->_clipActions) :
+                                ((ord($tag->content[0]) & 0x80) !== 0);  // PlaceFlagHasClipActions
+                if ($hasClipActions) {
+                    $this->downgradeClipActions($tag, $swfVersion, $opts);
+                }
+            }
             $tagVersion = $tag->getTagInfo($tagCode, "version");
             $tagName = $tag->getTagInfo($tagCode, "name");
             if ($tag->getTagInfo($tagCode, "klass") === false) {
@@ -1315,6 +1326,49 @@ class IO_SWF_Editor extends IO_SWF {
                 unset($tags[$idx]);
             }
         }
+    }
+
+    // SWF6 以降の ClipActions を SWF5 以下の形にする。
+    // SWF6 で増えたイベント (Construct, KeyPress, DragOut) だけのハンドラは捨てる。SWF4 では全部捨てる。
+    function downgradeClipActions($tag, $swfVersion, $opts) {
+        if ($tag->parseTagContent($opts) === false) {
+            throw new IO_SWF_Exception("failed to parseTagContent");
+        }
+        $place = $tag->tag;
+        $dropped = 0;
+        $records = [];
+        $allFlags = [];
+        foreach (IO_SWF_Type_CLIPEVENTFLAGS::$clipevent_list as $key) {
+            $allFlags['ClipEvent' . $key] = 0;
+        }
+        foreach ($place->_clipActions['ClipActionRecords'] as $record) {
+            $flags = [];
+            $any = 0;
+            foreach (IO_SWF_Type_CLIPEVENTFLAGS::$clipevent_list as $key) {
+                $flags['ClipEvent' . $key] = $record['EventFlags']['ClipEvent' . $key];
+                $any |= $flags['ClipEvent' . $key];
+                $allFlags['ClipEvent' . $key] |= $flags['ClipEvent' . $key];
+            }
+            if ($any && ($swfVersion >= 5)) {
+                $record['EventFlags'] = $flags;  // KeyPress が無くなるので KeyCode も書かれない
+                unset($record['KeyCode']);
+                $records []= $record;
+            } else {
+                $dropped++;
+            }
+        }
+        if (count($records) === 0) {
+            $place->_clipActions = null;
+        } else {
+            $place->_clipActions['AllEventFlags'] = $allFlags;
+            $place->_clipActions['ClipActionRecords'] = $records;
+        }
+        if ($dropped > 0) {
+            fprintf(STDERR, "ClipActions: dropped %d handler(s) not available in SWF%d (depth:%d)\n",
+                    $dropped, $swfVersion, $place->_depth);
+        }
+        $tag->swfInfo['Version'] = $swfVersion;
+        $tag->content = null;
     }
 
     function ABCtoAction(&$tags, $doABCs, $symbolTag, &$spriteList, &$codeContext, $opts) {
