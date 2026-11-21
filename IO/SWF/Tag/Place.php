@@ -25,6 +25,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
     var $_surfaceFilterList = null;
     var $_blendMode = null;
     var $_bitmapCache = null;
+    var $_bitmapCacheOmitted = false; // フラグはあるが値がタグの末尾で省かれている
     var $_clipActions = null;
     //
     var $_placeFlags;
@@ -82,11 +83,10 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
             }
             // 
             $this->_depth = $reader->getUI16LE();
-            if ($tagCode >= 70) {
-                if (($this->_placeFlagHasClassName) ||
-                    ($this->_placeFlagHasImage && $this->_placeFlagHasCharacter)) {
-                    $this->_className = IO_SWF_Type_String::parse($reader);
-                }
+            // 仕様書は「HasClassName か (HasImage かつ HasCharacter)」で ClassName を読むとするが、
+            // Animate の出力は HasImage と HasCharacter だけで ClassName を書かない (build も HasClassName だけを見る)
+            if (($tagCode >= 70) && $this->_placeFlagHasClassName) {
+                $this->_className = IO_SWF_Type_String::parse($reader);
             }
             if ($this->_placeFlagHasCharacter) {
                 $this->_characterId = $reader->getUI16LE();
@@ -114,7 +114,12 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                     $this->_blendMode = $reader->getUI8();
                 }
                 if ($this->_placeFlagHasCacheAsBitmap) {
-                    $this->_bitmapCache = $reader->getUI8();
+                    // Animate はフラグだけ立てて値を書かないことがある (タグがそこで終わる)
+                    if ($reader->hasNextData(1)) {
+                        $this->_bitmapCache = $reader->getUI8();
+                    } else {
+                        $this->_bitmapCacheOmitted = true;
+                    }
                 }
             }
             if ($this->_placeFlagHasClipActions) {
@@ -187,6 +192,8 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
         }
         if (is_null($this->_bitmapCache) === false) {
             echo "    BitmapCache: ".$this->_bitmapCache."\n";
+        } elseif ($this->_bitmapCacheOmitted) {
+            echo "    BitmapCache: (omitted)\n";
         }
         if (is_null($this->_clipActions) === false) {
             echo "    ClipActions:\n";
@@ -228,7 +235,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                 // placeFlags2
                 $this->_placeFlagHasFilterList    = is_null($this->_surfaceFilterList)? 0: 1;
                 $this->_placeFlagHasBlendMode     = is_null($this->_blendMode)? 0: 1;
-                $this->_placeFlagHasCacheAsBitmap = is_null($this->_bitmapCache)? 0: 1;
+                $this->_placeFlagHasCacheAsBitmap = (is_null($this->_bitmapCache) && ! $this->_bitmapCacheOmitted)? 0: 1;
                 $this->_placeFlagHasClassName     = is_null($this->_className)? 0: 1;
                 $this->_placeFlagHasImage         = ($this->_placeFlagHasImage)? 1: 0;
                 // placeFlag2
@@ -269,7 +276,7 @@ class IO_SWF_Tag_Place extends IO_SWF_Tag_Base {
                 if ($this->_placeFlagHasBlendMode) {
                     $writer->putUI8($this->_blendMode);
                 }
-                if ($this->_placeFlagHasCacheAsBitmap) {
+                if (! is_null($this->_bitmapCache)) {
                     $writer->putUI8($this->_bitmapCache);
                 }
             }
