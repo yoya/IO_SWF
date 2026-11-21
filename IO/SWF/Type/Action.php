@@ -336,7 +336,7 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
               case 0x8E: // ActionDefineFunction2
                 $values_writer->putData($action['FunctionName']."\0");
                 // $numParams = $action['NumParams'];
-                $numParams = count($parameters);
+                $numParams = count($action['Parameters']);
                 $values_writer->putUI16LE($numParams);
                 $values_writer->putUI8($action['RegisterCount']);
                 //
