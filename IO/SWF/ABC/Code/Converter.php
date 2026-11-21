@@ -1387,7 +1387,8 @@ class IO_SWF_ABC_Code_Converter {
         if (is_null($ctx)) {
             return;
         }
-        $ctx->eventListeners []= ['spriteId' => $ctx->spriteId, 'class' => $ctx->name,
+        $ctx->eventListeners []= ['spriteId' => $ctx->spriteId, 'abc' => $this->code->abc,
+                                  'ns' => $ctx->ns, 'class' => $ctx->name,
                                   'target' => $target, 'event' => $event['name'] . '.' . $eventPath[0],
                                   'handler' => $handlerPath[0]];
     }

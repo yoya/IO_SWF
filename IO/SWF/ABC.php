@@ -774,14 +774,23 @@ class IO_SWF_ABC {
         
     }
     //
-    function getInstanceByName($name) {
-        $name_match = null;
+    // クラス名 (と、$ns が null でなければパッケージ名) でクラスのインスタンス情報を探す
+    function getInstanceByName($name, $ns = null) {
         foreach ($this->instance as $inst) {
             $multiname = $this->_constant_pool["multiname"][$inst["name"]];
             $multiname_name = $this->getString_name($multiname["name"]);
-            if ($multiname_name === $name) {
-                return $inst;
+            if ($multiname_name !== $name) {
+                continue;
             }
+            if (! is_null($ns)) {
+                $nsIdx = isset($multiname["ns"]) ? $multiname["ns"] : 0;
+                $nsInfo = $this->_constant_pool["namespace"][$nsIdx];
+                $nsName = empty($nsInfo["name"]) ? "" : $this->getString_name($nsInfo["name"]);
+                if ($nsName !== $ns) {
+                    continue;
+                }
+            }
+            return $inst;
         }
         return null;
     }
@@ -797,9 +806,10 @@ class IO_SWF_ABC {
             case 1:  // Trait_Method
                 $trait_multiname = $this->_constant_pool["multiname"][$trait["name"]];
                 $name = $this->getString_name($trait_multiname["name"]);
-                if (substr($name, 0, 5) === "frame") {
-                    $frame = intval(substr($name, 5));
-                    $frameMethodArray []= [$frame, $trait["method"]];
+                // Animate はフレーム N のスクリプトを frameN という名前のメソッドにする
+                // (frameLoop など、frame で始まるだけの名前は除く)
+                if (preg_match('/^frame([1-9][0-9]*)$/', $name, $m)) {
+                    $frameMethodArray []= [intval($m[1]), $trait["method"]];
                 }
             }
 

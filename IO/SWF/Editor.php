@@ -1204,7 +1204,7 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function downgradeABCTags(&$tags, $swfVersion, $limitSwfVersion, $opts) {
-        $doABC = null;
+        $doABCs = [];  // それまでに現れた DoABC (クラスはどれかに定義されている)
         $spriteList = [];
         $codeContext = new IO_SWF_ABC_Code_Context();
         // downgrade DoABC tag
@@ -1223,17 +1223,17 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent($opts) === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                $doABC = $tag;
+                $doABCs []= $tag;
             }
             if ($tagCode === 76) {  // SymbolClass
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
-                $this->ABCtoAction($tags, $doABC, $tag, $spriteList, $codeContext, $opts);
+                $this->ABCtoAction($tags, $doABCs, $tag, $spriteList, $codeContext, $opts);
             }
         }
         // addEventListener で登録されたクリック処理を、SWF4 のボタンにする
-        $this->eventListenersToButtons($tags, $doABC, $spriteList, $codeContext, $opts);
+        $this->eventListenersToButtons($tags, $spriteList, $codeContext, $opts);
     }
 
     function downgradeTags(&$tags, $tagsEachKrass, $swfVersion, $limitSwfVersion, $opts) {
@@ -1317,8 +1317,7 @@ class IO_SWF_Editor extends IO_SWF {
         }
     }
 
-    function ABCtoAction(&$tags, $doABC, $symbolTag, &$spriteList, &$codeContext, $opts) {
-        $abc = $doABC->tag->_ABC;
+    function ABCtoAction(&$tags, $doABCs, $symbolTag, &$spriteList, &$codeContext, $opts) {
         foreach ($symbolTag->tag->_Symbols as $tagAndName) {
             $spriteId = $tagAndName["Tag"];
             $symbolName = $tagAndName["Name"];
@@ -1327,7 +1326,15 @@ class IO_SWF_Editor extends IO_SWF {
             $ns = ($dot === false) ? "" : substr($symbolName, 0, $dot);
             $name = ($dot === false) ? $symbolName : substr($symbolName, $dot + 1);
             // echo "$spriteId => $ns :: $name\n";
-            $inst = $abc->getInstanceByName($name);
+            // 同じクラスが複数の DoABC にあれば、先に定義されたものが使われる
+            $inst = null;
+            foreach ($doABCs as $doABC) {
+                $abc = $doABC->tag->_ABC;
+                $inst = $abc->getInstanceByName($name, $ns);
+                if (! is_null($inst)) {
+                    break;
+                }
+            }
             if (is_null($inst)) {
                 throw new IO_SWF_Exception("spriteId:$spriteId instance not found by ns:$ns name:$name");
             }
@@ -1349,16 +1356,26 @@ class IO_SWF_Editor extends IO_SWF {
                 } else {
                     throw new Exception("not found sprite:$spriteId");
                 }
+                // フレーム N の終わり (N 個目の ShowFrame の直前) に入れる。
+                // DoAction はフレームのタグをすべて処理した後に動くので、フレーム内の位置で動作は変わらない。
+                // (先頭に入れると、先頭にあるべき FileAttributes より前になる)
+                // フレームが足りなければ、末尾の End の直前に入れる。
                 $f = 1;
-                $offset = 0;
-                foreach ($target_tags as $tag) {
-                    if ($frame <= $f) {
-                        break;
-                    }
+                $offset = null;
+                foreach (array_values($target_tags) as $i => $tag) {
                     if ($tag->code === 1) {  // ShowFrame
+                        if ($f === $frame) {
+                            $offset = $i;
+                            break;
+                        }
                         $f++;
                     }
-                    $offset++;
+                }
+                if (is_null($offset)) {
+                    $offset = count($target_tags);
+                    if ($offset > 0 && end($target_tags)->code === 0) {  // End
+                        $offset--;
+                    }
                 }
                 // insert action tag
                 array_splice($target_tags, $offset, 0, [$actionTag]);
@@ -1376,11 +1393,10 @@ class IO_SWF_Editor extends IO_SWF {
         ['CondKeyPress' => 53],                              // 5 キー
     ];
 
-    function eventListenersToButtons(&$tags, $doABC, &$spriteList, $codeContext, $opts) {
-        if (is_null($doABC) || count($codeContext->eventListeners) === 0) {
+    function eventListenersToButtons(&$tags, &$spriteList, $codeContext, $opts) {
+        if (count($codeContext->eventListeners) === 0) {
             return;
         }
-        $abc = $doABC->tag->_ABC;
         $version = $this->_headers['Version'];
         $done = [];
         foreach ($codeContext->eventListeners as $listener) {
@@ -1400,7 +1416,8 @@ class IO_SWF_Editor extends IO_SWF {
             }
             $done[$key] = true;
             // ハンドラをボタンのアクションに変換する (strict なら未対応の命令で例外)
-            $inst = $abc->getInstanceByName($listener['class']);
+            $abc = $listener['abc'];  // 登録したメソッドのある ABC
+            $inst = $abc->getInstanceByName($listener['class'], $listener['ns']);
             $methodId = is_null($inst) ? null : $abc->getMethodIdByTraitName($inst, $listener['handler']);
             if (is_null($methodId)) {
                 fprintf(STDERR, "addEventListener: handler method not found: $label\n");
