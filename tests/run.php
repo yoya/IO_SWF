@@ -13,6 +13,7 @@ set_include_path($root.PATH_SEPARATOR.get_include_path());
 require_once 'IO/SWF/Editor.php';
 require_once 'IO/SWF/ActionEditor.php';
 require_once 'IO/SWF/Tag/Text.php';
+require_once 'IO/SWF/Tag/Font.php';
 
 $failed = 0;
 $passed = 0;
@@ -411,6 +412,22 @@ check('TEXTRECORD offsets', array(-20, 30), array($record['XOffset'], $record['Y
 $writer = new IO_Bit();
 IO_SWF_Type_TEXTRECORD::build($writer, $record, $opts);
 check('TEXTRECORD offsets build', $data, $writer->output());
+
+/*
+ * DefineFont2 with no glyphs and FontFlagsHasLayout: CodeTableOffset and the layout block
+ */
+// FontID=1, HasLayout, no name, NumGlyphs=0, CodeTableOffset=2, Ascent=900 Descent=200 Leading=10, KerningCount=0
+$content = pack('v', 1).chr(0x80).chr(0).chr(0).pack('v', 0).pack('v', 2).pack('vvv', 900, 200, 10).pack('v', 0);
+$font = new IO_SWF_Tag_Font();
+$font->parseContent(48, $content, array('tagCode' => 48));
+check('DefineFont2 no glyphs layout parse', array(900, 200, 10),
+      array($font->FontAscent, $font->FontDescent, $font->FontLeading));
+check('DefineFont2 no glyphs layout build', bin2hex($content), bin2hex($font->buildContent(48)));
+// without layout: NumGlyphs=0 and nothing after it (as before)
+$content = pack('v', 1).chr(0).chr(0).chr(0).pack('v', 0);
+$font = new IO_SWF_Tag_Font();
+$font->parseContent(48, $content, array('tagCode' => 48));
+check('DefineFont2 no glyphs no layout build', bin2hex($content), bin2hex($font->buildContent(48)));
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
