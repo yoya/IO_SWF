@@ -614,5 +614,33 @@ if (function_exists('imagecreatefromstring')) {
     check('BitmapData2Lossless / bitmapAlpha2PNG no warnings', array(), $errors);
 }
 
+/*
+ * selectByCIDs: move-only PlaceObject2 and RemoveObject2 in sprites are kept
+ * for a depth whose character is kept
+ */
+function spriteControls($swfdata) {
+    $swf = new IO_SWF();
+    $swf->parse($swfdata);
+    $result = array();
+    foreach ($swf->_tags as $tag) {
+        if ($tag->code == 39) {
+            $tag->parseTagContent();
+            foreach ($tag->tag->_controlTags as $t) {
+                $t->parseTagContent();
+                $result[] = $t->code.(isset($t->tag->_depth) ? '@'.$t->tag->_depth : '');
+            }
+        }
+    }
+    return implode(',', $result);
+}
+$move = function ($depth) { return tag(26, chr(0x01).pack('v', $depth)); };
+$sprite = sprite(9, place2(1, 1).place2(2, 2).tag(1, '').
+                    $move(1).$move(2).tag(1, '').
+                    tag(28, pack('v', 1)).tag(28, pack('v', 2)).tag(1, ''), 3);
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(minimalShape(2, 1).minimalShape(2, 2).$sprite.place2(9, 1, 'mc').tag(1, '')));
+check('selectByCIDs sprite move/remove by depth', '26@1,1,26@1,1,28@1,1,0',
+      spriteControls($editor->selectByCIDs(array(1, 9))));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

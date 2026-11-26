@@ -1072,8 +1072,22 @@ class IO_SWF_Editor extends IO_SWF {
                 // copy before editing, the source Editor shares the tag objects.
                 $tag = clone $tag;
                 $tag->tag = clone $tag->tag;
+                // depth => whether the last character placed there is kept
+                $depth_kept = array();
                 foreach ($tag->tag->_controlTags as $idx_in_sprite => &$tag_in_sprite) {
                     $tag_in_sprite_keep = true;
+                    $depth = null;
+                    switch ($tag_in_sprite->code) {
+                      case 4:  // PlaceObject
+                      case 5:  // RemoveObject
+                      case 26: // PlaceObject2
+                      case 28: // RemoveObject2
+                      case 70: // PlaceObject3
+                        if ($tag_in_sprite->parseTagContent()) {
+                            $depth = $tag_in_sprite->tag->_depth;
+                        }
+                        break;
+                    }
                     if (isset($tag_in_sprite->referenceId)) {
                         $tag_in_sprite_keep = false;
                         $refid = $tag_in_sprite->referenceId;
@@ -1091,10 +1105,19 @@ class IO_SWF_Editor extends IO_SWF {
                         if ($tag_keep && isset($tag_in_sprite->characterId)) {
                             $cid_table[$tag_in_sprite->characterId] = true;
                         }
-                    } else if ($tag_in_sprite->code == 26) { // PlaceObject2
-                        $tag_in_sprite_keep = false;
-                    } else if ($tag_in_sprite->code == 5 || $tag_in_sprite->code == 28) { // RemoveObject
-                        $tag_in_sprite_keep = false;
+                        if (! is_null($depth)) {
+                            if ($tag_in_sprite->code == 5) { // RemoveObject
+                                unset($depth_kept[$depth]);
+                            } else {
+                                $depth_kept[$depth] = $tag_in_sprite_keep;
+                            }
+                        }
+                    } else if ($tag_in_sprite->code == 26 || $tag_in_sprite->code == 28) {
+                        // PlaceObject2 (move only), RemoveObject2: keep for a kept character
+                        $tag_in_sprite_keep = (! is_null($depth)) && (! empty($depth_kept[$depth]));
+                        if ($tag_in_sprite->code == 28) {
+                            unset($depth_kept[$depth]);
+                        }
                     }
                     if ($tag_in_sprite_keep === false) {
                         unset($tag->tag->_controlTags[$idx_in_sprite]);
