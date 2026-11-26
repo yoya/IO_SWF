@@ -23,7 +23,7 @@ function usage() {
 
 // 指定したキーが全て含まれれば true。
 function array_key_contain_all($arr, $keys) {
-    $inter_keys = array_intersect_key(array_keys($arr), $keys);
+    $inter_keys = array_intersect(array_keys($arr), $keys);
     return count($inter_keys) === count($keys);
 }
 
