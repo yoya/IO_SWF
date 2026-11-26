@@ -312,19 +312,24 @@ class IO_SWF_Tag {
           case 4:  // PlaceObject
           case 5:  // RemoveObject
           case 26: // PlaceObject2 (Shape Reference)
-          case 34: // DefineButton2
             if (isset($this->tag->_characterId)) {
-                $new_cid = $trans_table[$this->tag->_characterId];
-                if ($this->tag->_characterId != $new_cid) {
-                    $this->tag->_characterId = $new_cid;
+                $cid = $this->tag->_characterId;
+                if (isset($trans_table[$cid]) && ($trans_table[$cid] != $cid)) {
+                    $this->tag->_characterId = $trans_table[$cid];
                     $this->content = null;
                 }
-            } else if (isset($this->tag->_buttonId)) {
-                $new_cid = $trans_table[$this->tag->_buttonId];
-                if ($this->tag->_buttonId != $new_cid) {
-                    $this->tag->_buttonId = $new_cid;
-                    $this->content = null;
+            }
+            break;
+          case 34: // DefineButton2 (button records)
+            if (is_null($this->tag->_characters) === false) {
+                foreach ($this->tag->_characters as &$character) {
+                    $cid = $character['CharacterID'];
+                    if (isset($trans_table[$cid]) && ($trans_table[$cid] != $cid)) {
+                        $character['CharacterID'] = $trans_table[$cid];
+                        $this->content = null;
+                    }
                 }
+                unset($character);
             }
             break;
           case 2:  // DefineShape   (Bitmap ReferenceId)
@@ -342,7 +347,7 @@ class IO_SWF_Tag {
                 foreach ($this->tag->_fillStyles as &$fillStyle) {
                     if (isset($fillStyle['BitmapId'])) {
                         if ($fillStyle['BitmapId'] != 65535) {
-                            $new_id = $trans_table[$fillStyle['BitmapId']];
+                            $new_id = isset($trans_table[$fillStyle['BitmapId']]) ? $trans_table[$fillStyle['BitmapId']] : $fillStyle['BitmapId'];
                             if ($fillStyle['BitmapId'] != $new_id) {
                                 $modified = true;
                                 $fillStyle['BitmapId'] = $new_id;
@@ -357,7 +362,7 @@ class IO_SWF_Tag {
                         foreach ($shapeRecord['FillStyles'] as &$fillStyle) {
                             if (isset($fillStyle['BitmapId'])) {
                                 if ($fillStyle['BitmapId'] != 65535) {
-                                    $new_id = $trans_table[$fillStyle['BitmapId']];
+                                    $new_id = isset($trans_table[$fillStyle['BitmapId']]) ? $trans_table[$fillStyle['BitmapId']] : $fillStyle['BitmapId'];
                                     if ($fillStyle['BitmapId'] != $new_id) {
                                         $modified = true;
                                         $fillStyle['BitmapId'] = $new_id;

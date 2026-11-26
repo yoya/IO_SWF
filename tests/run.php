@@ -148,5 +148,46 @@ foreach (array(46, 84) as $code) {
     check("getMovieClip MorphShape($code) bitmap reference", "21,$code,26,1,0", tagCodes($editor->getMovieClip('mc')));
 }
 
+/*
+ * replaceMovieClip: references that are not renumbered stay as they are,
+ * and DefineButton2 records are renumbered
+ */
+function replacedMovieClip($mc) {
+    $base = swf(minimalShape(2, 1).sprite(2, tag(1, '')).place2(2, 1, 'mc').tag(1, ''));
+    $editor = new IO_SWF_Editor();
+    $editor->parse($base);
+    $editor->replaceMovieClip('mc', $mc);
+    $swf = new IO_SWF();
+    $swf->parse($editor->build());
+    $result = array();
+    foreach ($swf->_tags as $tag) {
+        $tag->parseTagContent(array('Version' => 8));
+        switch ($tag->code) {
+          case 2:
+            $result[] = "shape:".$tag->tag->_shapeId;
+            break;
+          case 34:
+            $result[] = "button:".$tag->tag->_buttonId."/".$tag->tag->_characters[0]['CharacterID'];
+            break;
+          case 39:
+            foreach ($tag->tag->_controlTags as $t) {
+                if ($t->code == 26) {
+                    $t->parseTagContent();
+                    $result[] = "place:".var_export($t->tag->_characterId, true);
+                }
+            }
+            break;
+        }
+    }
+    return implode(' ', $result);
+}
+check('replaceMovieClip without id collision', 'shape:1 shape:5 place:5',
+      replacedMovieClip(swf(minimalShape(2, 5).place2(5, 1).tag(1, ''))));
+// DefineButton2 id=5 whose record uses shape 1 (renumbered to 3)
+$button2 = tag(34, pack('v', 5).chr(0).pack('v', 0)
+               .chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+check('replaceMovieClip DefineButton2', 'shape:1 shape:3 button:5/3 place:5',
+      replacedMovieClip(swf(minimalShape(2, 1).$button2.place2(5, 1).tag(1, ''))));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
