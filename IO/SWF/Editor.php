@@ -67,6 +67,7 @@ class IO_SWF_Editor extends IO_SWF {
               case 33: // DefineText2
               case 37: // DefineTextEdit
               case 39: // DefineSprite
+              case 7:  // DefineButton
               case 34: // DefineButton2
               case 60: // DefineVideoStream
                 $tag->characterId = $content_reader->getUI16LE();

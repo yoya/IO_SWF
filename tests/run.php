@@ -171,6 +171,7 @@ function replacedMovieClip($mc) {
           case 2:
             $result[] = "shape:".$tag->tag->_shapeId;
             break;
+          case 7:
           case 34:
             $result[] = "button:".$tag->tag->_buttonId."/".$tag->tag->_characters[0]['CharacterID'];
             break;
@@ -193,6 +194,10 @@ $button2 = tag(34, pack('v', 5).chr(0).pack('v', 0)
                .chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
 check('replaceMovieClip DefineButton2', 'shape:1 shape:3 button:5/3 place:5',
       replacedMovieClip(swf(minimalShape(2, 1).$button2.place2(5, 1).tag(1, ''))));
+// DefineButton id=2 (renumbered to 4) whose record uses shape 1 (renumbered to 3)
+$button = tag(7, pack('v', 2).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+check('replaceMovieClip DefineButton', 'shape:1 shape:3 button:4/3 place:4',
+      replacedMovieClip(swf(minimalShape(2, 1).$button.place2(2, 1).tag(1, ''))));
 
 /*
  * grepMovieClip keeps the movie clip and its placement
@@ -546,6 +551,28 @@ if (function_exists('imagecreatefromstring')) {
     restore_error_handler();
     check('no imagedestroy deprecation', array(), $errors);
 }
+
+/*
+ * DefineButton (7) is a character definition like DefineButton2
+ */
+// DefineButton id=4 -> shape 1; the button is not placed
+$button = tag(7, pack('v', 4).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(minimalShape(2, 1).$button.minimalShape(2, 2).place2(2, 1).tag(1, '')));
+$editor->purgeUselessContents();
+check('purgeUselessContents unused DefineButton', '2,26,1,0', tagCodes($editor->build()));
+// selecting the button id keeps the button, as for DefineButton2
+$button2 = tag(34, pack('v', 4).chr(0).pack('v', 0).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$result = array();
+foreach (array($button, $button2) as $b) {
+    $editor = new IO_SWF_Editor();
+    $editor->parse(swf(minimalShape(2, 1).$b.tag(1, '')));
+    $result[] = tagCodes($editor->selectByCIDs(array(1, 4)));
+    $editor = new IO_SWF_Editor();
+    $editor->parse(swf(minimalShape(2, 1).$b.minimalShape(2, 2).tag(1, '')));
+    $result[] = tagCodes($editor->selectByCIDs(array(2)));
+}
+check('selectByCIDs DefineButton', array('2,7,1,0', '2,1,0', '2,34,1,0', '2,1,0'), $result);
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

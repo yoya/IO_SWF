@@ -320,6 +320,7 @@ class IO_SWF_Tag {
                 }
             }
             break;
+          case 7:  // DefineButton (button records)
           case 34: // DefineButton2 (button records)
             if (is_null($this->tag->_characters) === false) {
                 foreach ($this->tag->_characters as &$character) {
