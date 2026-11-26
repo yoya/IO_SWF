@@ -574,5 +574,45 @@ foreach (array($button, $button2) as $b) {
 }
 check('selectByCIDs DefineButton', array('2,7,1,0', '2,1,0', '2,34,1,0', '2,1,0'), $result);
 
+/*
+ * BitmapData2Lossless / bitmapAlpha2PNG: no float to int deprecations (values truncated as before)
+ */
+if (function_exists('imagecreatefromstring')) {
+    $errors = array();
+    set_error_handler(function ($errno, $errstr) use (&$errors) {
+        if (strpos($errstr, 'imagedestroy') === false) {
+            $errors[] = $errstr;
+        }
+        return true;
+    });
+    // truecolor with alpha: GD alpha 64 -> SWF alpha 2 * (127 - 64) = 126, premultiplied
+    $im = imagecreatetruecolor(1, 1);
+    imagealphablending($im, false);
+    imagesavealpha($im, true);
+    imagesetpixel($im, 0, 0, imagecolorallocatealpha($im, 200, 100, 50, 64));
+    ob_start();
+    imagepng($im);
+    $png = ob_get_clean();
+    $lossless = new IO_SWF_Lossless();
+    $tag = $lossless->BitmapData2Lossless(1, $png);
+    check('BitmapData2Lossless alpha pixel', '7e623118', bin2hex(gzuncompress(substr($tag['Content'], 7))));
+    // palette with a transparent color
+    $im = imagecreate(1, 1);
+    imagecolorallocatealpha($im, 200, 100, 50, 64);
+    ob_start();
+    imagepng($im);
+    $png = ob_get_clean();
+    $lossless->BitmapData2Lossless(1, $png);
+    // JPEG + alpha 128
+    $im = imagecreatetruecolor(1, 1);
+    imagefill($im, 0, 0, imagecolorallocate($im, 100, 100, 100));
+    ob_start();
+    imagejpeg($im);
+    $jpeg = ob_get_clean();
+    IO_SWF_JPEG::bitmapAlpha2PNG($jpeg, chr(128));
+    restore_error_handler();
+    check('BitmapData2Lossless / bitmapAlpha2PNG no warnings', array(), $errors);
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

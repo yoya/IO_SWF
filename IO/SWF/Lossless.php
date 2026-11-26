@@ -35,9 +35,9 @@ class IO_SWF_Lossless {
                     $rgba = imagecolorsforindex($im, $i);
                     $alpha = $rgba['alpha'];
                     $alpha = 2 * (127 - $alpha);
-                    $colortable .= chr($rgba['red']  * $alpha / 255);
-                    $colortable .= chr($rgba['green']* $alpha / 255);
-                    $colortable .= chr($rgba['blue'] * $alpha / 255);
+                    $colortable .= chr((int) ($rgba['red']  * $alpha / 255));
+                    $colortable .= chr((int) ($rgba['green']* $alpha / 255));
+                    $colortable .= chr((int) ($rgba['blue'] * $alpha / 255));
                     $colortable .= chr($alpha);
                 }
             }
@@ -94,9 +94,9 @@ class IO_SWF_Lossless {
                         $alpha = $rgba['alpha'];
                         $alpha = 2 * (127 - $alpha);
                         $pixeldata .= chr($alpha);
-                        $pixeldata .= chr($rgba['red']  * $alpha / 255);
-                        $pixeldata .= chr($rgba['green']* $alpha / 255);
-                        $pixeldata .= chr($rgba['blue'] * $alpha / 255);
+                        $pixeldata .= chr((int) ($rgba['red']  * $alpha / 255));
+                        $pixeldata .= chr((int) ($rgba['green']* $alpha / 255));
+                        $pixeldata .= chr((int) ($rgba['blue'] * $alpha / 255));
                     }
                 }
             }

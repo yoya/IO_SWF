@@ -198,11 +198,11 @@ class IO_SWF_JPEG {
                     $alpha = 255;
                 }
                 if ($alpha > 0) {
-                    $red   = min($red   * 255 / $alpha, 255);
-                    $green = min($green * 255 / $alpha, 255);
-                    $blue  = min($blue  * 255 / $alpha, 255);
+                    $red   = (int) min($red   * 255 / $alpha, 255);
+                    $green = (int) min($green * 255 / $alpha, 255);
+                    $blue  = (int) min($blue  * 255 / $alpha, 255);
                 }
-                $alpha_gd = 127 - $alpha/2;
+                $alpha_gd = (int) (127 - $alpha/2);
                 $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                 imagesetpixel($im, $x, $y, $color);
             }
