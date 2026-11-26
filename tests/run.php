@@ -86,5 +86,15 @@ $editor->parse(swf(tag(14, pack('v', 5).chr(0x2E).pack('V', 1)."ABC")));
 check('getSoundData', 'ABC', $editor->getSoundData(5));
 check('getSoundData unknown id', false, $editor->getSoundData(6));
 
+/*
+ * ActionPush Double: high 32-bit word first
+ */
+// 1.5 = 0x3FF8000000000000
+$push = chr(0x96).pack('v', 9).chr(6)."\x00\x00\xF8\x3F\x00\x00\x00\x00";
+$action = new IO_SWF_Tag_Action();
+$action->parseContent(12, $push."\x00");
+check('ActionPush Double parse', 1.5, $action->_actions[0]['Values'][0]['Double']);
+check('ActionPush Double build', $push."\x00", $action->buildContent(12));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

@@ -245,7 +245,9 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                         $value['Boolean'] = $values_reader->getUI8();
                         break;
                       case 6: // Double
-                        $value['Double'] = IO_SWF_Type_Double::parse($values_reader);
+                        // high 32 bits first, each word little-endian
+                        $d = $values_reader->getData(8);
+                        $value['Double'] = unpack('e', substr($d, 4, 4) . substr($d, 0, 4))[1];
                         break;
                       case 7: // Integer
                         $value['Integer'] = $values_reader->getUI32LE();
@@ -397,7 +399,9 @@ class IO_SWF_Type_Action implements IO_SWF_Type {
                         $values_writer->putUI8($value['Boolean']);
                         break;
                       case 6: // Double
-                        IO_SWF_Type_Double::build($values_writer, $value['Double']);
+                        // high 32 bits first, each word little-endian
+                        $d = pack('e', (float) $value['Double']);
+                        $values_writer->putData(substr($d, 4, 4) . substr($d, 0, 4));
                         break;
                       case 7: // Integer
                         $values_writer->putUI32LE($value['Integer']);
