@@ -373,5 +373,29 @@ restore_error_handler();
 check('LINESTYLE2 fill dump', true, strpos($text, 'solid fill: #112233(44)') !== false);
 check('LINESTYLE2 fill dump no warnings', array(), $errors);
 
+/*
+ * FILLSTYLE dump: focal gradient, morph gradient start matrix
+ */
+// focal gradient (DefineShape4): identity matrix, 1 record, FocalPoint 0.5
+$reader = new IO_Bit();
+$reader->input(chr(0x13).chr(0).chr(0x01).chr(0)."\xff\x00\x00\xff".pack('v', 0x0080));
+$opts = array('tagCode' => 83);
+$text = IO_SWF_Type_FILLSTYLE::string(IO_SWF_Type_FILLSTYLE::parse($reader, $opts), $opts);
+check('FILLSTYLE focal gradient dump', true,
+      strpos($text, "focal gradient fill\n") === 0 && strpos($text, "FocalPoint: 0.5\n") !== false);
+// morph linear gradient: start matrix translates X by 20 twips, end matrix is identity
+$reader = new IO_Bit();
+$reader->input(chr(0x10)."\x10\x28\x00\x00".chr(1)."\x00\x11\x22\x33\x44\xff\x55\x66\x77\x88");
+$opts = array('tagCode' => 46);
+$text = IO_SWF_Type_FILLSTYLE::string(IO_SWF_Type_FILLSTYLE::parse($reader, $opts), $opts);
+check('FILLSTYLE morph gradient dump', "linear gradient fill\n".
+      "    StartGradientMatrix:\n".
+      "        | 1.000 0.000 |  1.00\n".
+      "        | 0.000 1.000 |  0.00\n".
+      "    EndGradientMatrix:\n".
+      "        | 1.000 0.000 |  0.00\n".
+      "        | 0.000 1.000 |  0.00\n".
+      "        Start: Ratio:0 Color:#112233(44) => End: Ratio:255 Color:#556677(88)\n", $text);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

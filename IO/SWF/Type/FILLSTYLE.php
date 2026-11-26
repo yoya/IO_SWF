@@ -202,10 +202,13 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
             break;
           case 0x10: // linear gradient fill
           case 0x12: // radial gradient fill
+          case 0x13: // focal gradient fill
             if ($fillStyleType == 0x10) {
                 $text .= "linear gradient fill\n";
-            } else {
+            } else if ($fillStyleType == 0x12) {
                 $text .= "radial gradient fill\n";
+            } else {
+                $text .= "focal gradient fill\n";
             }
             $opts = array('indent' => 2);
             if ($isMorph === false) {
@@ -214,7 +217,10 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
                 $spreadMode = $fillStyle['SpreadMode'];
                 $interpolationMode = $fillStyle['InterpolationMode'];
             } else {
+                $text .= "    StartGradientMatrix:\n";
                 $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['StartGradientMatrix'], $opts);
+                $text .= $matrix_str . "\n";
+                $text .= "    EndGradientMatrix:\n";
                 $matrix_str = IO_SWF_Type_MATRIX::string($fillStyle['EndGradientMatrix'], $opts);
                 $text .= $matrix_str . "\n";
             }
@@ -237,6 +243,9 @@ class IO_SWF_Type_FILLSTYLE implements IO_SWF_Type {
                     $endColorStr = IO_SWF_Type_RGBA::string($gradientRecord['EndColor']);
                     $text .= "        Start: Ratio:$startRatio Color:$startColorStr => End: Ratio:$endRatio Color:$endColorStr\n";
                 }
+            }
+            if (isset($fillStyle['FocalPoint'])) {
+                $text .= "        FocalPoint: ".($fillStyle['FocalPoint'] / 256)."\n";
             }
             break;
           case 0x40: // repeating bitmap fill
