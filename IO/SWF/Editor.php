@@ -548,13 +548,14 @@ class IO_SWF_Editor extends IO_SWF {
     }
 
     function getSoundData($sound_id) {
-        $this->setCharacterId();
-        $tag = $this->getTagByCharacterId($sound_id);
-        $tag_code = $tag->code;
-        if ($tag_code != 14) { // DefineSound
-            return false;
+        // DefineSound is not in setCharacterId(), so look for it here
+        foreach ($this->_tags as $tag) {
+            if ($tag->code == 14 && $tag->parseTagContent() && // DefineSound
+                $tag->tag->SoundId == $sound_id) {
+                return $tag->getSoundData();
+            }
         }
-        return $tag->getSoundData();
+        return false;
     }
 
     function getVideoStream($video_id) {

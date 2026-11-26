@@ -78,5 +78,13 @@ check('action jump after replaceActionStrings: offset', $action2->_byteSizeTable
 check('action jump after replaceActionStrings: target', 2,
       isset($action2->_branches[0]) ? $action2->_branches[0] : null);
 
+/*
+ * Editor::getSoundData() finds a DefineSound
+ */
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(tag(14, pack('v', 5).chr(0x2E).pack('V', 1)."ABC")));
+check('getSoundData', 'ABC', $editor->getSoundData(5));
+check('getSoundData unknown id', false, $editor->getSoundData(6));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
