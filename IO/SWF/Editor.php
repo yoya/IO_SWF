@@ -931,19 +931,19 @@ class IO_SWF_Editor extends IO_SWF {
             }
         }
         if ($is_grep) { // is grep
-            $new_main_tags []= $target_sprite_tag;
+            // $target_sprite_tag is already in $new_main_tags
             foreach ($this->_tags as $tag_idx => $tag) {
                 if ($tag_idx <= $target_sprite_tag_idx) {
                     continue;
                 }
                 if ($tag->code == 26) { // PlaceObject
                     if (($tag->parseTagContent($opts) === false) ||
-                        is_null($tag->tag->_characterId) === false) {
+                        is_null($tag->tag->_characterId)) {
                         continue;
                     }
                     if ($tag->tag->_characterId == $target_sprite_tag->tag->_spriteId) {
                         $new_main_tags []= $tag;
-                        $end_tag = new IO_SWF_Tag();
+                        $end_tag = new IO_SWF_Tag($opts);
                         $end_tag->code = 0;
                         $new_main_tags []= $end_tag;
                         break;

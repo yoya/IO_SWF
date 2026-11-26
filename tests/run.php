@@ -189,5 +189,18 @@ $button2 = tag(34, pack('v', 5).chr(0).pack('v', 0)
 check('replaceMovieClip DefineButton2', 'shape:1 shape:3 button:5/3 place:5',
       replacedMovieClip(swf(minimalShape(2, 1).$button2.place2(5, 1).tag(1, ''))));
 
+/*
+ * grepMovieClip keeps the movie clip and its placement
+ */
+$data = swf(minimalShape(2, 1).sprite(2, place2(1, 1).tag(1, '')).place2(2, 1, 'mc').tag(1, ''), 6);
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+try {
+    $codes = tagCodes($editor->grepMovieClip('mc'));
+} catch (Exception $e) {
+    $codes = $e->getMessage();
+}
+check('grepMovieClip', '2,39,26,0', $codes);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
