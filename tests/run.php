@@ -245,5 +245,28 @@ try {
 }
 check('setActionVariables new DoAction', '9,12,1,0 foo bar 29 baz qux 29 0', $result);
 
+/*
+ * VideoFrame: dump shows the codec specific data, no dynamic properties
+ */
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    $errors[] = $errstr;
+    return true;
+});
+// DefineVideoStream id=3 CodecID=4 (VP6), VideoFrame StreamID=3
+$data = swf(tag(60, pack('vvvv', 3, 1, 16, 16).chr(0).chr(4)).tag(61, pack('vv', 3, 0)."XYZW"));
+$swf = new IO_SWF();
+$swf->parse($data);
+ob_start();
+$swf->dump();
+$dump = ob_get_clean();
+check('VideoFrame dump Data', true, strpos($dump, "\n    Data: (len=4)") !== false);
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+$frames = $editor->getVideoFrames(3);
+check('getVideoFrames', 'XYZW', $frames[0]['Data']);
+restore_error_handler();
+check('VideoFrame no warnings', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

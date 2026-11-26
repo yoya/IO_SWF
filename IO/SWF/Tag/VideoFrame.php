@@ -11,6 +11,10 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
     var $_StreamID  = null;
     var $_FrameNum  = null;
     var $_VideoData = null;
+    var $_CodecID = null;
+    var $_Data = null;
+    var $_OffsetToAlpha = null;
+    var $_AlphaData = null;
 
     function parseContent($tagCode, $content, $opts = array()) {
         $reader = new IO_Bit();
@@ -45,9 +49,8 @@ class IO_SWF_Tag_VideoFrame extends IO_SWF_Tag_Base {
         echo "    StreamID: {$this->_StreamID}";
         echo "  FrameNum: {$this->_FrameNum}";
         echo "  VideoData: (len=$vdata_len)\n";
-        if (isset($this->_CodecID) &&
-            isset($this->_CodecID[$this->_StreamID])) {
-            $codecID = $this->_CodecID[$this->_StreamID];
+        if (isset($this->_CodecID)) {
+            $codecID = $this->_CodecID;
             switch ($codecID) {
             case 4:  // VP6SWFVIDEOPACKET
                 $data_len = strlen($this->_Data);

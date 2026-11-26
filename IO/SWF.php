@@ -207,7 +207,7 @@ class IO_SWF {
                     if (! isset($opts['_CodecID'])) {
                         $opts['_CodecID'] = [];
                     }
-                    $opts[$tag->tag->_CharacterID] = $tag->tag->_CodecID;
+                    $opts['_CodecID'][$tag->tag->_CharacterID] = $tag->tag->_CodecID;
                 }
             } catch (IO_Bit_Exception $e) {
                 echo "(tag dump failed) $e\n";
