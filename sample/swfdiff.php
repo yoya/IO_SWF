@@ -18,6 +18,11 @@ if ($argc !== 3)  {
     exit(1);
 }
 
+if (! function_exists('xdiff_string_diff')) {
+    fprintf(STDERR, "ERROR: swfdiff.php requires the xdiff extension (pecl install xdiff)\n");
+    exit(1);
+}
+
 $opts = [ 'hexdump'  => false,
           'addlabel' => true,
           'abcdump'  => true];
