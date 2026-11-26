@@ -425,11 +425,16 @@ $font->parseContent(48, $content, array('tagCode' => 48));
 check('DefineFont2 no glyphs layout parse', array(900, 200, 10),
       array($font->FontAscent, $font->FontDescent, $font->FontLeading));
 check('DefineFont2 no glyphs layout build', bin2hex($content), bin2hex($font->buildContent(48)));
-// without layout: NumGlyphs=0 and nothing after it (as before)
-$content = pack('v', 1).chr(0).chr(0).chr(0).pack('v', 0);
+// without layout: NumGlyphs=0, CodeTableOffset=2 (as Flash writes it)
+$content = pack('v', 1).chr(0).chr(0).chr(0).pack('v', 0).pack('v', 2);
 $font = new IO_SWF_Tag_Font();
 $font->parseContent(48, $content, array('tagCode' => 48));
 check('DefineFont2 no glyphs no layout build', bin2hex($content), bin2hex($font->buildContent(48)));
+// FontFlagsWideOffsets: CodeTableOffset is UI32 (4)
+$content = pack('v', 1).chr(0x08).chr(0).chr(0).pack('v', 0).pack('V', 4);
+$font = new IO_SWF_Tag_Font();
+$font->parseContent(75, $content, array('tagCode' => 75));
+check('DefineFont3 no glyphs wide offsets build', bin2hex($content), bin2hex($font->buildContent(75)));
 
 /*
  * selectByCIDs: placements of unselected characters inside sprites are dropped,

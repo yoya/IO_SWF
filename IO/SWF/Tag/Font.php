@@ -178,9 +178,6 @@ class IO_SWF_Tag_Font extends IO_SWF_Tag_Base {
         $writer->putData($this->FontName);
         $numGlyphs = count($this->OffsetTable);
         $writer->putUI16LE($numGlyphs);
-        if (($numGlyphs === 0) && (! $fontFlagsHasLayout)) {
-            return $writer->output(); // no glyphs field.
-        }
         list($startOfOffsetTable, $dummy) = $writer->getOffset();
         $startOfOffsetTable2 = array();
         if ($this->FontFlagsWideOffsets) {
