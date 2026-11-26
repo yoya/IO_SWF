@@ -15,6 +15,7 @@ require_once 'IO/SWF/ActionEditor.php';
 require_once 'IO/SWF/Tag/Text.php';
 require_once 'IO/SWF/Tag/Font.php';
 require_once 'IO/SWF/ABC.php';
+require_once 'IO/SWF/JPEG.php';
 
 $failed = 0;
 $passed = 0;
@@ -515,6 +516,31 @@ $text = ob_get_clean();
 restore_error_handler();
 check('ABC cpool double dump', true, strpos($text, "        double(count:2)\n    [0] NAN\n    [1] 1.5\n") !== false);
 check('ABC cpool double dump no warnings', array(), $errors);
+
+/*
+ * imagedestroy() is not called on PHP >= 8.0 (deprecated since PHP 8.5)
+ */
+if (function_exists('imagecreatefromstring')) {
+    $errors = array();
+    set_error_handler(function ($errno, $errstr) use (&$errors) {
+        if (strpos($errstr, 'imagedestroy') !== false) {
+            $errors[] = $errstr;
+        }
+        return true;
+    });
+    $im = imagecreatetruecolor(1, 1);
+    ob_start();
+    imagepng($im);
+    $png = ob_get_clean();
+    ob_start();
+    imagejpeg($im);
+    $jpeg = ob_get_clean();
+    $lossless = new IO_SWF_Lossless();
+    $lossless->BitmapData2Lossless(1, $png);
+    IO_SWF_JPEG::bitmapAlpha2PNG($jpeg, "\0");
+    restore_error_handler();
+    check('no imagedestroy deprecation', array(), $errors);
+}
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

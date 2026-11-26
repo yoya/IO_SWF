@@ -211,7 +211,9 @@ class IO_SWF_JPEG {
         imagepng($im);
         $pngdata = ob_get_contents();
         ob_end_clean(); // ----
-        imagedestroy($im);
+        if (PHP_VERSION_ID < 80000) { // no effect and deprecated since PHP 8.5
+            imagedestroy($im);
+        }
         return $pngdata;
     }
 

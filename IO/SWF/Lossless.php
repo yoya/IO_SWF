@@ -102,7 +102,9 @@ class IO_SWF_Lossless {
             }
         }
         
-        imagedestroy($im);
+        if (PHP_VERSION_ID < 80000) { // no effect and deprecated since PHP 8.5
+            imagedestroy($im);
+        }
         $content = pack('v', $bitmap_id).chr($format).pack('v', $width).pack('v', $height);
         if ($format == 3) {
             $content .= chr($colortable_size - 1).gzcompress($colortable.$pixeldata);
