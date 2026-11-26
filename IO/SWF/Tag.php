@@ -220,7 +220,7 @@ class IO_SWF_Tag {
         return true;
     }
 
-    function buildTagContent($opts) {
+    function buildTagContent($opts = array()) {
         if ((is_null($this->content) === false)) {
             return $this->content;
         }

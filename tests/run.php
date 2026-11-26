@@ -11,6 +11,7 @@ if (is_readable($root.'/vendor/autoload.php')) {
 }
 set_include_path($root.PATH_SEPARATOR.get_include_path());
 require_once 'IO/SWF/Editor.php';
+require_once 'IO/SWF/ActionEditor.php';
 
 $failed = 0;
 $passed = 0;
@@ -201,6 +202,29 @@ try {
     $codes = $e->getMessage();
 }
 check('grepMovieClip', '2,39,26,0', $codes);
+
+/*
+ * ActionEditor::rebuild()
+ */
+$editor = new IO_SWF_ActionEditor();
+$editor->parse(swf(tag(12, "\x07\x00").tag(1, ''), 6)); // DoAction(Stop)
+$editor->parseAllTagContent(array());
+$editor->insertSimpleTrace(0, 1, 1, "hi");
+try {
+    $editor->rebuild();
+    $swf = new IO_SWF();
+    $swf->parse($editor->build());
+    $swf->_tags[0]->parseTagContent();
+    $codes = array();
+    foreach ($swf->_tags[0]->tag->_actions as $action) {
+        $codes[] = $action['Code'];
+    }
+    sort($codes); // the insert position is not checked here
+    $codes = implode(',', $codes);
+} catch (Throwable $e) {
+    $codes = get_class($e);
+}
+check('ActionEditor rebuild', '0,7,38,150', $codes);
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
