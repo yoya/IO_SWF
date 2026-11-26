@@ -74,8 +74,8 @@ class IO_SWF_Bitmap {
     static function get_pngsize($pngdata) {
         $pngdata_len = strlen($pngdata);
         if ($pngdata_len< 24) {
-            fprintf(stderr, "IO_SWF_Bitmap::get_pngsize: data_len(%lu) < 16\n", $pngdata_len);
-            return 1;
+            fprintf(STDERR, "IO_SWF_Bitmap::get_pngsize: data_len(%lu) < 16\n", $pngdata_len);
+            return false;
         }
         $width = (((ord($pngdata[16])*0x100) + ord($pngdata[17]))*0x100 + ord($pngdata[18]))*0x100 + ord($pngdata[19]);
         $height =(((ord($pngdata[20])*0x100) + ord($pngdata[21]))*0x100 + ord($pngdata[22]))*0x100 + ord($pngdata[23]);
@@ -85,7 +85,7 @@ class IO_SWF_Bitmap {
     static function get_gifsize($gifdata) {
         $gifdata_len = strlen($gifdata);
         if ($gifdata_len < 10) {
-            fprintf(stderr, "IO_SWF_Bitmap::get_gifsize: data_len(%lu) < 10\n", $gifdata_len);
+            fprintf(STDERR, "IO_SWF_Bitmap::get_gifsize: data_len(%lu) < 10\n", $gifdata_len);
             return false;
         }
         $width  = 0x100 * ord($gifdata[7]) + ord($gifdata[6]);

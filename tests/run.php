@@ -327,5 +327,18 @@ try {
 }
 check('applyShapeAdjustModeByRefId TILED', true, $result);
 
+/*
+ * IO_SWF_Bitmap::get_bitmapsize() with short data
+ */
+$result = array();
+foreach (array("\x89PNG\r\n", "GIF89a") as $data) {
+    try {
+        $result[] = IO_SWF_Bitmap::get_bitmapsize($data);
+    } catch (Throwable $e) {
+        $result[] = get_class($e);
+    }
+}
+check('get_bitmapsize short data', array(false, false), $result);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
