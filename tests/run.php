@@ -642,5 +642,27 @@ $editor->parse(swf(minimalShape(2, 1).minimalShape(2, 2).$sprite.place2(9, 1, 'm
 check('selectByCIDs sprite move/remove by depth', '26@1,1,26@1,1,28@1,1,0',
       spriteControls($editor->selectByCIDs(array(1, 9))));
 
+/*
+ * DefineButtonCxform / DefineButtonSound go with their button
+ */
+// DefineButton id=4 -> shape 1, DefineButtonCxform for button 4 (empty CXFORM)
+$button = tag(7, pack('v', 4).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$cxform = tag(23, pack('v', 4).chr(0));
+$result = array();
+foreach (array('', place2(4, 2)) as $place) {
+    $editor = new IO_SWF_Editor();
+    $editor->parse(swf(minimalShape(2, 1).$button.$cxform.minimalShape(2, 2).place2(2, 1).$place.tag(1, '')));
+    $editor->purgeUselessContents();
+    $result[] = tagCodes($editor->build());
+}
+// DefineButton2 id=4 and DefineButtonSound for button 4 (no sounds)
+$button2 = tag(34, pack('v', 4).chr(0).pack('v', 0).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(minimalShape(2, 1).$button2.tag(17, pack('v', 4).str_repeat(pack('v', 0), 4)).
+                   minimalShape(2, 2).place2(2, 1).tag(1, '')));
+$editor->purgeUselessContents();
+$result[] = tagCodes($editor->build());
+check('purgeUselessContents button cxform/sound', array('2,26,1,0', '2,7,23,2,26,26,1,0', '2,26,1,0'), $result);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
