@@ -8,7 +8,7 @@ if (is_readable('vendor/autoload.php')) {
 
 $options = getopt("f:h");
 
-if (is_readable($options['f']) === false) {
+if ((! isset($options['f'])) || (is_readable($options['f']) === false)) {
     echo "Usage: php swfdecompile.php -f <swf_file> [-h]\n";
     echo "ex) php swfdecompile.php -f test.swf -h \n";
     exit(1);

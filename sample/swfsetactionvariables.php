@@ -7,8 +7,8 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 if ($argc != 4) {
-    fprintf(STDERR, "Usage: php swfsetactiovaribles.phpp <swf_file> <from_str> <to_str>\n");
-    fprintf(STDERR, "ex) php swfactionvariables.php test.swf foo baa\n");
+    fprintf(STDERR, "Usage: php swfsetactionvariables.php <swf_file> <from_str> <to_str>\n");
+    fprintf(STDERR, "ex) php swfsetactionvariables.php test.swf foo baa\n");
     exit(1);
 }
 
