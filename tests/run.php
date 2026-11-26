@@ -12,6 +12,7 @@ if (is_readable($root.'/vendor/autoload.php')) {
 set_include_path($root.PATH_SEPARATOR.get_include_path());
 require_once 'IO/SWF/Editor.php';
 require_once 'IO/SWF/ActionEditor.php';
+require_once 'IO/SWF/Tag/Text.php';
 
 $failed = 0;
 $passed = 0;
@@ -396,6 +397,20 @@ check('FILLSTYLE morph gradient dump', "linear gradient fill\n".
       "        | 1.000 0.000 |  0.00\n".
       "        | 0.000 1.000 |  0.00\n".
       "        Start: Ratio:0 Color:#112233(44) => End: Ratio:255 Color:#556677(88)\n", $text);
+
+/*
+ * TEXTRECORD XOffset/YOffset are SI16
+ */
+// TextRecordType=1, HasYOffset, HasXOffset, XOffset=-20, YOffset=30, GlyphCount=0
+$data = chr(0x83).pack('v', 0xFFEC).pack('v', 30).chr(0);
+$reader = new IO_Bit();
+$reader->input($data);
+$opts = array('tagCode' => 11, 'GlyphBits' => 0, 'AdvanceBits' => 0);
+$record = IO_SWF_Type_TEXTRECORD::parse($reader, $opts);
+check('TEXTRECORD offsets', array(-20, 30), array($record['XOffset'], $record['YOffset']));
+$writer = new IO_Bit();
+IO_SWF_Type_TEXTRECORD::build($writer, $record, $opts);
+check('TEXTRECORD offsets build', $data, $writer->output());
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

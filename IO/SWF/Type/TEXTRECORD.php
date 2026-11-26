@@ -41,10 +41,10 @@ class IO_SWF_Type_TEXTRECORD implements IO_SWF_Type {
             }
         }
         if ($styleFlagsHasXOffeet) {
-            $textrecord['XOffset'] = $reader->getUI16LE();
+            $textrecord['XOffset'] = $reader->getSI16LE();
         }
         if ($styleFlagsHasYOffeet) {
-            $textrecord['YOffset'] = $reader->getUI16LE();
+            $textrecord['YOffset'] = $reader->getSI16LE();
         }
         if ($styleFlagsHasFont) {
             $textrecord['TextHeight'] = $reader->getUI16LE();
@@ -83,10 +83,10 @@ class IO_SWF_Type_TEXTRECORD implements IO_SWF_Type {
             }
         }
         if ($styleFlagsHasXOffeet) {
-            $writer->putUI16LE($textrecord['XOffset']);
+            $writer->putSI16LE($textrecord['XOffset']);
         }
         if ($styleFlagsHasYOffeet) {
-            $writer->putUI16LE($textrecord['YOffset']);
+            $writer->putSI16LE($textrecord['YOffset']);
         }
         if ($styleFlagsHasFont) {
             $writer->putUI16LE($textrecord['TextHeight']);
