@@ -149,6 +149,16 @@ class IO_SWF_Editor extends IO_SWF {
                 $tag->referenceId = $refIds;
             }
             break;
+        case 37: // DefineEditText (FontID)
+            $content_reader->getUI16LE(); // CharacterID
+            IO_SWF_Type_RECT::parse($content_reader); // Bounds
+            $content_reader->byteAlign();
+            $hasFont = $content_reader->getUI8() & 0x01;
+            $content_reader->getUI8();
+            if ($hasFont) {
+                $tag->referenceId = $content_reader->getUI16LE();
+            }
+            break;
         case 11: // DefineText
         case 33: // DefineText2
             if ($tag->parseTagContent() === false) {

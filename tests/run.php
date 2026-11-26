@@ -467,5 +467,19 @@ $before = $editor->build();
 $editor->selectByCIDs(array(1, 9));
 check('selectByCIDs keeps source', bin2hex($before), bin2hex($editor->build()));
 
+/*
+ * reference tracking: DefineEditText -> its font
+ */
+// DefineFont2 id=1 (content after the id is not parsed), DefineEditText id=3 HasFont FontID=1
+$font = tag(48, pack('v', 1).'FONTDATA');
+$edit = tag(37, pack('v', 3).chr(0).chr(0x01).chr(0x00).pack('vv', 1, 240).chr(0));
+$data = swf($font.$edit.sprite(9, place2(3, 1).tag(1, '')).place2(9, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+check('getMovieClip DefineEditText font reference', '48,37,26,1,0', tagCodes($editor->getMovieClip('mc')));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+check('selectByCIDs DefineEditText font reference', '48,37,39,26,1,0', tagCodes($editor->selectByCIDs(array(1, 9))));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
