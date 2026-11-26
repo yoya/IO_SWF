@@ -84,6 +84,11 @@ class IO_SWF_Editor extends IO_SWF {
         case 5:  // RemoveObject
             $tag->referenceId = $content_reader->getUI16LE();
             break;
+        case 70: // PlaceObject3
+            if ($tag->parseTagContent() && ! is_null($tag->tag->_characterId)) {
+                $tag->referenceId = $tag->tag->_characterId;
+            }
+            break;
         case 26: // PlaceObject2 (Shape Reference)
             $tag->placeFlag = $content_reader->getUI8();
             if ($tag->placeFlag & 0x02) {
@@ -96,12 +101,19 @@ class IO_SWF_Editor extends IO_SWF {
         case 32: // DefineShape3   (Bitmap ReferenceId)
         case 83: // DefineShape4    (Bitmap ReferenceId)
         case 46: // DefineMorphShape (Bitmap ReferenceId)
+        case 84: // DefineMorphShape2 (Bitmap ReferenceId)
             $refIds = array();
             if ($tag->parseTagContent() === false) {
                 throw new IO_SWF_Exception("failed to parseTagContent");
             }
-            if (is_null($tag->tag->_fillStyles) === false) {
-                foreach ($tag->tag->_fillStyles as $fillStyle) {
+            $fillStyles = $tag->tag->_fillStyles;
+            $shapeRecords = $tag->tag->_shapeRecords;
+            if (is_null($fillStyles) && is_null($shapeRecords)) { // MorphShape
+                $fillStyles = $tag->tag->_morphFillStyles;
+                $shapeRecords = $tag->tag->_startEdge;
+            }
+            if (is_null($fillStyles) === false) {
+                foreach ($fillStyles as $fillStyle) {
                     if (isset($fillStyle['BitmapId'])) {
                         if ($fillStyle['BitmapId'] != 65535) {
                             $refIds []= $fillStyle['BitmapId'];
@@ -110,8 +122,8 @@ class IO_SWF_Editor extends IO_SWF {
                 }
                 $tag->referenceId = $refIds;
             }
-            if (is_null($tag->tag->_shapeRecords) === false) {
-                foreach ($tag->tag->_shapeRecords as $shapeRecord) {
+            if (is_null($shapeRecords) === false) {
+                foreach ($shapeRecords as $shapeRecord) {
                     if (isset($shapeRecord['FillStyles'])) {
                         foreach ($shapeRecord['FillStyles'] as $fillStyle) {
                             if (isset($fillStyle['BitmapId'])) {

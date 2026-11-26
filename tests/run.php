@@ -42,6 +42,34 @@ function swf($tags, $version = 8) {
     return 'FWS'.chr($version).pack('V', 8 + strlen($body)).$body;
 }
 
+// DefineShape(code) with no styles and only an EndShapeRecord
+function minimalShape($code, $id) {
+    return tag($code, pack('v', $id).chr(0).chr(0).chr(0).chr(0).chr(0));
+}
+
+function place2($cid, $depth, $name = null) {
+    $flags = 0x02 | (is_null($name) ? 0 : 0x20);
+    return tag(26, chr($flags).pack('v', $depth).pack('v', $cid).(is_null($name) ? '' : $name."\0"));
+}
+
+function place3($cid, $depth) {
+    return tag(70, chr(0x02).chr(0x00).pack('v', $depth).pack('v', $cid));
+}
+
+function sprite($id, $tags, $frames = 1) {
+    return tag(39, pack('vv', $id, $frames).$tags.tag(0, ''));
+}
+
+function tagCodes($swfdata) {
+    $swf = new IO_SWF();
+    $swf->parse($swfdata);
+    $codes = array();
+    foreach ($swf->_tags as $tag) {
+        $codes[] = $tag->code;
+    }
+    return implode(',', $codes);
+}
+
 /*
  * SHAPE build: a StyleChangeRecord that is skipped (MoveTo to the current
  * position) must not leave its TypeFlag bit in the stream.
@@ -95,6 +123,30 @@ $action = new IO_SWF_Tag_Action();
 $action->parseContent(12, $push."\x00");
 check('ActionPush Double parse', 1.5, $action->_actions[0]['Values'][0]['Double']);
 check('ActionPush Double build', $push."\x00", $action->buildContent(12));
+
+/*
+ * getMovieClip keeps characters referenced by PlaceObject3 and by
+ * MorphShape bitmap fills
+ */
+$data = swf(minimalShape(2, 1).sprite(2, place3(1, 1).tag(1, '')).place2(2, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+check('getMovieClip PlaceObject3 reference', '2,70,1,0', tagCodes($editor->getMovieClip('mc')));
+
+$bitmap = tag(21, pack('v', 1)."JPEGDATA"); // DefineBitsJPEG2 id=1
+foreach (array(46, 84) as $code) {
+    // DefineMorphShape(2) id=2 with a clipped bitmap fill of bitmap 1
+    $morph = pack('v', 2).chr(0).chr(0);
+    if ($code == 84) {
+        $morph .= chr(0).chr(0).chr(0); // StartEdgeBounds, EndEdgeBounds, flags
+    }
+    $morph .= pack('V', 9).chr(1).chr(0x41).pack('v', 1).chr(0).chr(0) // Offset, MorphFillStyles
+            .chr(0).chr(0x10).chr(0).chr(0x00).chr(0); // MorphLineStyles, StartEdges, EndEdges
+    $data = swf($bitmap.tag($code, $morph).sprite(9, place2(2, 1).tag(1, '')).place2(9, 1, 'mc').tag(1, ''));
+    $editor = new IO_SWF_Editor();
+    $editor->parse($data);
+    check("getMovieClip MorphShape($code) bitmap reference", "21,$code,26,1,0", tagCodes($editor->getMovieClip('mc')));
+}
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
