@@ -1,5 +1,9 @@
 # テストコード
 
+## run.php
+
+- 回帰テスト (依存なし、`php tests/run.php`、失敗すると終了コード 1)
+
 ## abc_bits.php
 
 - ABC byte u30, s32 の unit test

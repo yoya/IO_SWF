@@ -186,10 +186,13 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
         $currentLineStyle = 0;
         foreach ($shapeRecords as $shapeRecordIndex => $shapeRecord) {
             $typeFlag = $shapeRecord['TypeFlag'];
-            $writer->putUIBit($typeFlag);
+            if ($typeFlag != 0) {
+                $writer->putUIBit($typeFlag);
+            }
             if ($typeFlag == 0) {
                 if (isset($shapeRecord['EndOfShape']) && ($shapeRecord['EndOfShape']) == 0) {
                     // EndShapeRecord
+                    $writer->putUIBit(0); // TypeFlag
                     $writer->putUIBits(0, 5);
                 } else {
                     // StyleChangeRecord
@@ -251,6 +254,7 @@ class IO_SWF_Type_SHAPE implements IO_SWF_Type {
                         fprintf(STDERR, "warning: skip shape records all flags off but no end shape.\n");
                         continue;
                     }
+                    $writer->putUIBit(0); // TypeFlag
                     $writer->putUIBit($stateNewStyles);
                     $writer->putUIBit($stateLineStyle);
                     $writer->putUIBit($stateFillStyle1);
