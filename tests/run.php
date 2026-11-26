@@ -268,5 +268,34 @@ check('getVideoFrames', 'XYZW', $frames[0]['Data']);
 restore_error_handler();
 check('VideoFrame no warnings', array(), $errors);
 
+/*
+ * Lossless2PNG: PIX15, and no float to int deprecations
+ */
+if (function_exists('imagecreatefromstring')) {
+    $errors = array();
+    set_error_handler(function ($errno, $errstr) use (&$errors) {
+        $errors[] = $errstr;
+        return true;
+    });
+    // DefineBitsLossless format 4 (PIX15), 1x1 red pixel, row padded to 4 bytes
+    $pix15 = tag(20, pack('v', 1).chr(4).pack('vv', 1, 1).gzcompress(pack('n', 0x7C00)."\0\0"));
+    // DefineBitsLossless2 format 5 (ARGB), 1x1 opaque pixel
+    $argb = tag(36, pack('v', 2).chr(5).pack('vv', 1, 1).gzcompress("\xff\xfd\x00\x00"));
+    $editor = new IO_SWF_Editor();
+    $editor->parse(swf($pix15.$argb));
+    $result = array();
+    foreach (array(1, 2) as $id) {
+        try {
+            $im = imagecreatefromstring($editor->getPNGData($id));
+            $result[] = sprintf('%08x', imagecolorat($im, 0, 0));
+        } catch (Throwable $e) {
+            $result[] = get_class($e);
+        }
+    }
+    restore_error_handler();
+    check('Lossless2PNG pixels', array('00f80000', '00fd0000'), $result);
+    check('Lossless2PNG no warnings', array(), $errors);
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

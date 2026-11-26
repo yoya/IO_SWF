@@ -149,11 +149,11 @@ class IO_SWF_Lossless {
                     $blue  = ord($palette_data[$j++]);
                     $alpha = ord($palette_data[$j++]);
                     if ($alpha > 0) {
-                        $red   = min($red   * 255 / $alpha, 255);
-                        $green = min($green * 255 / $alpha, 255);
-                        $blue  = min($blue  * 255 / $alpha, 255);
+                        $red   = (int) min($red   * 255 / $alpha, 255);
+                        $green = (int) min($green * 255 / $alpha, 255);
+                        $blue  = (int) min($blue  * 255 / $alpha, 255);
                     }
-                    $alpha_gd = 127 - $alpha / 2;
+                    $alpha_gd = (int) (127 - $alpha / 2);
                     $gd_palette []= imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                 }
             }
@@ -168,8 +168,22 @@ class IO_SWF_Lossless {
                 }
                 $i += $padding;
             }
-        } else if ($format == 4) {
-            ;
+        } else if ($format == 4) { // PIX15 (DefineBitsLossless only)
+            $im = imagecreatetruecolor($width, $height);
+            $padding = ($width % 2) ? 2 : 0; // row is padded to 32 bits
+            $i = 0;
+            for ($y = 0 ; $y < $height ; $y++) {
+                for ($x = 0 ; $x < $width ; $x++) {
+                    $pix15 = (ord($lossless_bitmap_data[$i]) << 8) | ord($lossless_bitmap_data[$i + 1]);
+                    $i += 2;
+                    $red   = (($pix15 >> 10) & 0x1f) << 3;
+                    $green = (($pix15 >>  5) & 0x1f) << 3;
+                    $blue  = ( $pix15        & 0x1f) << 3;
+                    $color = imagecolorallocate($im, $red, $green, $blue);
+                    imagesetpixel($im, $x, $y, $color);
+                }
+                $i += $padding;
+            }
         } else { // format 5
             $im = imagecreatetruecolor($width, $height);
             if ($tagCode == 20) { // DefineBitsLossless
@@ -195,11 +209,11 @@ class IO_SWF_Lossless {
                         $green = ord($lossless_bitmap_data[$i++]);
                         $blue  = ord($lossless_bitmap_data[$i++]);
                         if ($alpha > 0) {
-                            $red   = min($red   * 255 / $alpha, 255);
-                            $green = min($green * 255 / $alpha, 255);
-                            $blue  = min($blue  * 255 / $alpha, 255);
+                            $red   = (int) min($red   * 255 / $alpha, 255);
+                            $green = (int) min($green * 255 / $alpha, 255);
+                            $blue  = (int) min($blue  * 255 / $alpha, 255);
                         }
-                        $alpha_gd = 127 - $alpha / 2;
+                        $alpha_gd = (int) (127 - $alpha / 2);
                         $color = imagecolorallocatealpha($im, $red, $green, $blue, $alpha_gd);
                         imagesetpixel($im, $x, $y, $color);
                     }
