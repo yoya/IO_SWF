@@ -90,6 +90,15 @@ Converts a newer SWF to an older version, such as SWF4 for Flash Lite 1.x.
 - Shape state bits are optimized by default. Use `-p` to keep the original ones.
 - Web version: `www/swftov4.php` (converts an uploaded SWF to SWF4 and returns it).
 
+# Test
+
+```
+% composer install
+% php tests/run.php
+```
+
+IO_Bit is loaded from `vendor/` (composer install) or the include_path.
+
 # More detail
 
 - https://github.com/yoya/IO_SWF/wiki

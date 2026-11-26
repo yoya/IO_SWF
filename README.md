@@ -97,6 +97,15 @@ Tags:
 - Shape の state ビットは既定で最適化する。元のまま保つには `-p`。
 - Web 版: `www/swftov4.php` (アップロードした SWF を SWF4 に変換して返す)。
 
+# Test
+
+```
+% composer install
+% php tests/run.php
+```
+
+IO_Bit は `vendor/` (composer install) か include_path から読み込む。
+
 # More detail
 
 - https://github.com/yoya/IO_SWF/wiki
