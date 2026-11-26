@@ -24,15 +24,10 @@ class IO_SWF_Tag_Action extends IO_SWF_Tag_Base {
         if (is_null($action)) {
             throw new IO_SWF_Exception("actionLength action is null");
         }
-        $length = 1;
-        $code = $action['Code'];
-        if ($code >= 0x80) {
-            if (! isset($action['Length'])) {
-                throw new Exception("! isset(action['Length']) Code:$code");
-            }
-            $length += 2 + $action['Length'];
-        }
-        return $length;
+        // build it, because 'Length' is stale once the action is edited
+        $writer = new IO_Bit();
+        IO_SWF_Type_Action::build($writer, $action);
+        return strlen($writer->output());
     }
 
     function parseContent($tagCode, $content, $opts = array()) {

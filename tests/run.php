@@ -62,5 +62,21 @@ check('shape skip no-op StyleChange: record count', 2, is_array($records) ? coun
 check('shape skip no-op StyleChange: edge', array(1, 1, 1),
       is_array($records) ? array($records[0]['TypeFlag'], $records[0]['X'], $records[0]['Y']) : null);
 
+/*
+ * DoAction: Jump offsets follow the real length of edited actions
+ */
+// Jump over Push "cd", Stop, End
+$push = chr(0x96).pack('v', 4).chr(0)."cd\0";
+$content = chr(0x99).pack('v', 2).pack('v', strlen($push)).$push.chr(0x07).chr(0x00);
+$action = new IO_SWF_Tag_Action();
+$action->parseContent(12, $content);
+$action->replaceActionStrings(array('cd' => 'longer-string'));
+$action2 = new IO_SWF_Tag_Action();
+$action2->parseContent(12, $action->buildContent(12));
+check('action jump after replaceActionStrings: offset', $action2->_byteSizeTable[1],
+      $action2->_actions[0]['BranchOffset']);
+check('action jump after replaceActionStrings: target', 2,
+      isset($action2->_branches[0]) ? $action2->_branches[0] : null);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
