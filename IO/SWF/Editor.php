@@ -627,7 +627,7 @@ class IO_SWF_Editor extends IO_SWF {
           case self::SHAPE_BITMAP_MATRIX_RESCALE:
           case self::SHAPE_BITMAP_RECT_RESIZE:
             
-          case self::SHAPE_BITMAP_TYPE_TYLED:
+          case self::SHAPE_BITMAP_TYPE_TILED:
             break ;
           default:
             trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");
@@ -639,7 +639,7 @@ class IO_SWF_Editor extends IO_SWF {
             break ;
           case self::SHAPE_BITMAP_RECT_RESIZE:
             break ;
-          case self::SHAPE_BITMAP_TYPE_TYLED:
+          case self::SHAPE_BITMAP_TYPE_TILED:
             break ;
           default:
             trigger_error("Illegal shape_adjust_mode($shape_adjust_mode)");

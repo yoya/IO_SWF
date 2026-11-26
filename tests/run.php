@@ -315,5 +315,17 @@ restore_error_handler();
 check('replaceTagByCharacterId', array(1, 1), $result);
 check('replaceTagByCharacterId no warnings', array(), $errors);
 
+/*
+ * SHAPE_BITMAP_TYPE_TILED mode
+ */
+$editor = new IO_SWF_Editor();
+$editor->setShapeAdjustMode(IO_SWF_Editor::SHAPE_BITMAP_TYPE_TILED);
+try {
+    $result = $editor->applyShapeAdjustModeByRefId(1, 10, 10);
+} catch (Throwable $e) {
+    $result = get_class($e);
+}
+check('applyShapeAdjustModeByRefId TILED', true, $result);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
