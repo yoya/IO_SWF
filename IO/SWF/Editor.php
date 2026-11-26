@@ -391,10 +391,10 @@ class IO_SWF_Editor extends IO_SWF {
                 $bytecode .= chr(0x96).pack('v', strlen($value_data)).$value_data;
                 // SetVarables
                 $bytecode .= chr(0x1d);
-                // End
-                $bytecode .= chr(0);
             }
-            $tag_action = new IO_SWF_Tag();
+            // End
+            $bytecode .= chr(0);
+            $tag_action = new IO_SWF_Tag(array('Version' => $this->_headers['Version']));
             $tag_action->code = 12; // DoAction
             $tag_action->content = $bytecode;
             // 新規タグ挿入

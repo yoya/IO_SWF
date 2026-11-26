@@ -226,5 +226,24 @@ try {
 }
 check('ActionEditor rebuild', '0,7,38,150', $codes);
 
+/*
+ * setActionVariables() without DoAction in frame 1
+ */
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(tag(9, "\xff\xff\xff").tag(1, ''), 6)); // SetBackgroundColor, ShowFrame
+try {
+    $editor->setActionVariables(array('foo' => 'bar', 'baz' => 'qux'));
+    $swf = new IO_SWF();
+    $swf->parse($editor->build());
+    $result = tagCodes($editor->build());
+    $swf->_tags[1]->parseTagContent();
+    foreach ($swf->_tags[1]->tag->_actions as $action) {
+        $result .= ' '.(isset($action['Values']) ? $action['Values'][0]['String'] : $action['Code']);
+    }
+} catch (Throwable $e) {
+    $result = get_class($e);
+}
+check('setActionVariables new DoAction', '9,12,1,0 foo bar 29 baz qux 29 0', $result);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
