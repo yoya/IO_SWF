@@ -137,6 +137,7 @@ class IO_SWF_Editor extends IO_SWF {
                 $tag->referenceId = $refIds;
             }
             break;
+        case 7:  // DefineButton
         case 34: // DefineButton2
             $refIds = array();       
             if ($tag->parseTagContent() === false) {

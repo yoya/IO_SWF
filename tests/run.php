@@ -481,5 +481,21 @@ $editor = new IO_SWF_Editor();
 $editor->parse($data);
 check('selectByCIDs DefineEditText font reference', '48,37,39,26,1,0', tagCodes($editor->selectByCIDs(array(1, 9))));
 
+/*
+ * reference tracking: DefineButton/DefineButton2 -> the characters in its button records
+ */
+// DefineButton id=4, one BUTTONRECORD (all states, CharacterID=1, depth 1, identity MATRIX), no actions
+$button = tag(7, pack('v', 4).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$data = swf(minimalShape(2, 1).$button.sprite(9, place2(4, 1).tag(1, '')).place2(9, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+check('getMovieClip DefineButton reference', '2,7,26,1,0', tagCodes($editor->getMovieClip('mc')));
+// DefineButton2 id=4, TrackAsMenu=0, ActionOffset=0, one BUTTONRECORD with CXFORMWITHALPHA, no actions
+$button = tag(34, pack('v', 4).chr(0).pack('v', 0).chr(0x0F).pack('vv', 1, 1).chr(0).chr(0).chr(0));
+$data = swf(minimalShape(2, 1).$button.sprite(9, place2(4, 1).tag(1, '')).place2(9, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+check('getMovieClip DefineButton2 reference', '2,34,26,1,0', tagCodes($editor->getMovieClip('mc')));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
