@@ -1057,9 +1057,13 @@ class IO_SWF_Editor extends IO_SWF {
                 if ($tag->parseTagContent() === false) {
                     throw new IO_SWF_Exception("failed to parseTagContent");
                 }
+                // copy before editing, the source Editor shares the tag objects.
+                $tag = clone $tag;
+                $tag->tag = clone $tag->tag;
                 foreach ($tag->tag->_controlTags as $idx_in_sprite => &$tag_in_sprite) {
                     $tag_in_sprite_keep = true;
                     if (isset($tag_in_sprite->referenceId)) {
+                        $tag_in_sprite_keep = false;
                         $refid = $tag_in_sprite->referenceId;
                         if (is_array($refid)) {
                             foreach ($refid as $id) {

@@ -429,5 +429,43 @@ $font = new IO_SWF_Tag_Font();
 $font->parseContent(48, $content, array('tagCode' => 48));
 check('DefineFont2 no glyphs no layout build', bin2hex($content), bin2hex($font->buildContent(48)));
 
+/*
+ * selectByCIDs: placements of unselected characters inside sprites are dropped,
+ * and the source Editor is not changed.
+ */
+function spritePlaces($swfdata) {
+    $swf = new IO_SWF();
+    $swf->parse($swfdata);
+    $result = array();
+    foreach ($swf->_tags as $tag) {
+        if ($tag->code == 39) {
+            $tag->parseTagContent();
+            foreach ($tag->tag->_controlTags as $tag_in_sprite) {
+                if ($tag_in_sprite->code == 26) {
+                    $tag_in_sprite->parseTagContent();
+                    $result[] = $tag_in_sprite->tag->_characterId;
+                }
+            }
+        }
+    }
+    return implode(',', $result);
+}
+// shapes 1 and 2, sprite 9 places both
+$data = swf(minimalShape(2, 1).minimalShape(2, 2).
+            sprite(9, place2(1, 1).place2(2, 2).tag(1, '')).place2(9, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+$selected = $editor->selectByCIDs(array(1, 9));
+check('selectByCIDs tags', '2,39,26,1,0', tagCodes($selected));
+check('selectByCIDs sprite places', '1', spritePlaces($selected));
+// sprite 9: place shape 1, ShowFrame, RemoveObject2(depth 1), ShowFrame
+$data = swf(minimalShape(2, 1).sprite(9, place2(1, 1).tag(1, '').tag(28, pack('v', 1)).tag(1, ''), 2).
+            place2(9, 1, 'mc').tag(1, ''));
+$editor = new IO_SWF_Editor();
+$editor->parse($data);
+$before = $editor->build();
+$editor->selectByCIDs(array(1, 9));
+check('selectByCIDs keeps source', bin2hex($before), bin2hex($editor->build()));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
