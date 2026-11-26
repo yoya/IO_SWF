@@ -300,7 +300,6 @@ class IO_SWF_Editor extends IO_SWF {
                     if (isset($replaceTag['Code'])) {
                         $tag->code = $replaceTag['Code'];
                     }
-                    $tag->length = strlen($replaceTag['Content']);
                     $tag->content = $replaceTag['Content'];
                     $ret = 1;
                     break;
@@ -321,7 +320,6 @@ class IO_SWF_Editor extends IO_SWF {
                     if (isset($replaceTag['Code'])) {
                         $tag->code = $replaceTag['Code'];
                     }
-                    $tag->length = strlen($replaceTag['Content']);
                     $tag->content = $replaceTag['Content'];
                     $ret = 1;
                     break;

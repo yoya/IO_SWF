@@ -297,5 +297,23 @@ if (function_exists('imagecreatefromstring')) {
     check('Lossless2PNG no warnings', array(), $errors);
 }
 
+/*
+ * replace(Bitmap)TagByCharacterId: no dynamic property
+ */
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    $errors[] = $errstr;
+    return true;
+});
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(tag(21, pack('v', 1)."\xff\xd8\xff\xd9")));
+$editor->setCharacterId();
+$jpeg2 = array('Code' => 21, 'Content' => pack('v', 1)."\xff\xd8\xff\xd9\x00");
+$result = array($editor->replaceTagByCharacterId(21, 1, $jpeg2),
+                $editor->replaceBitmapTagByCharacterId(21, 1, $jpeg2));
+restore_error_handler();
+check('replaceTagByCharacterId', array(1, 1), $result);
+check('replaceTagByCharacterId no warnings', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
