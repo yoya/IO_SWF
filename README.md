@@ -26,6 +26,8 @@ MIT License
 % composer require yoya/io_swf
 ```
 
+PHP 7.0.15 以降 (7.1 系は 7.1.1 以降) が必要。
+
 # Usage
 
 - swfdump.php (binary structure information dump)
@@ -75,7 +77,7 @@ Tags:
 | 図形の加工 | `swfdeformeshape.php` (短い辺をまとめて頂点を減らす), `swfsliceshaperecords.php`, `swfcountshapeedges.php` |
 | ヘッダの変更 | `swfversion.php`, `swfframerate.php`, `swfsetbgcolor.php`, `swfheader.php`, `swfcompress.php` |
 | 指定したキャラクタの抜き出し | `swfselectbycids.php` |
-| 作り直し・比較 | `swfrebuild.php` (全タグを作り直す), `swfdiff.php` |
+| 作り直し・比較 | `swfrebuild.php` (全タグを作り直す), `swfdiff.php` (xdiff 拡張が必要) |
 | ダウングレード | `swfdowngrade.php` (下記) |
 
 ## ダウングレード (swfdowngrade)

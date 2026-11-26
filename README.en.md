@@ -19,6 +19,8 @@ MIT License
 % composer require yoya/io_swf
 ```
 
+Requires PHP 7.0.15 or later (7.1.1 or later on 7.1).
+
 # Usage
 
 - swfdump.php (binary structure information dump)
@@ -68,7 +70,7 @@ Tags:
 | Shape processing | `swfdeformeshape.php` (merges short edges to reduce vertices), `swfsliceshaperecords.php`, `swfcountshapeedges.php` |
 | Changing the header | `swfversion.php`, `swfframerate.php`, `swfsetbgcolor.php`, `swfheader.php`, `swfcompress.php` |
 | Extracting specified characters | `swfselectbycids.php` |
-| Rebuilding / comparing | `swfrebuild.php` (rebuilds all tags), `swfdiff.php` |
+| Rebuilding / comparing | `swfrebuild.php` (rebuilds all tags), `swfdiff.php` (needs the xdiff extension) |
 | Downgrading | `swfdowngrade.php` (see below) |
 
 ## Downgrading (swfdowngrade)
