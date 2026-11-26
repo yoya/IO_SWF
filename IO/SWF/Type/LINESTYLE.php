@@ -165,7 +165,7 @@ class IO_SWF_Type_LINESTYLE implements IO_SWF_Type {
                     $color_str = IO_SWF_Type_RGBA::string($lineStyle['Color']);
                     $text .= "Color: $color_str  ";
                 } else {
-                    $filltype_str = IO_SWF_Type_FILLSTYLE::string($lineStyle['FillType']);
+                    $filltype_str = IO_SWF_Type_FILLSTYLE::string($lineStyle['FillType'], $opts);
                     $text .= "FillType: ".$filltype_str;
                 }
             }

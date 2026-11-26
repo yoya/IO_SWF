@@ -355,5 +355,23 @@ restore_error_handler();
 check('listMovieClip shape instance', 'shp', $list[1]['path_list'][0]['path']);
 check('listMovieClip no warnings', array(), $errors);
 
+/*
+ * LINESTYLE2 dump with a fill
+ */
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    $errors[] = $errstr;
+    return true;
+});
+// Width 20, HasFillFlag, solid fill RGBA #112233(44)
+$reader = new IO_Bit();
+$reader->input(pack('v', 20)."\x08\x00"."\x00\x11\x22\x33\x44");
+$opts = array('tagCode' => 83);
+$lineStyle = IO_SWF_Type_LINESTYLE::parse($reader, $opts);
+$text = IO_SWF_Type_LINESTYLE::string($lineStyle, $opts);
+restore_error_handler();
+check('LINESTYLE2 fill dump', true, strpos($text, 'solid fill: #112233(44)') !== false);
+check('LINESTYLE2 fill dump no warnings', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
