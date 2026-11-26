@@ -1114,8 +1114,9 @@ class IO_SWF_Editor extends IO_SWF {
                                 $depth_kept[$depth] = $tag_in_sprite_keep;
                             }
                         }
-                    } else if ($tag_in_sprite->code == 26 || $tag_in_sprite->code == 28) {
-                        // PlaceObject2 (move only), RemoveObject2: keep for a kept character
+                    } else if ($tag_in_sprite->code == 26 || $tag_in_sprite->code == 70 ||
+                               $tag_in_sprite->code == 28) {
+                        // PlaceObject2/3 (move only), RemoveObject2: keep for a kept character
                         $tag_in_sprite_keep = (! is_null($depth)) && (! empty($depth_kept[$depth]));
                         if ($tag_in_sprite->code == 28) {
                             unset($depth_kept[$depth]);

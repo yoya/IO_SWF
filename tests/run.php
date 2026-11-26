@@ -664,5 +664,13 @@ $editor->purgeUselessContents();
 $result[] = tagCodes($editor->build());
 check('purgeUselessContents button cxform/sound', array('2,26,1,0', '2,7,23,2,26,26,1,0', '2,26,1,0'), $result);
 
+// move-only PlaceObject3 is treated as move-only PlaceObject2
+$move3 = function ($depth) { return tag(70, chr(0x01).chr(0x00).pack('v', $depth)); };
+$sprite = sprite(9, place2(1, 1).place2(2, 2).tag(1, '').$move3(1).$move3(2).tag(1, ''), 2);
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(minimalShape(2, 1).minimalShape(2, 2).$sprite.place2(9, 1, 'mc').tag(1, '')));
+check('selectByCIDs sprite PlaceObject3 move by depth', '26@1,1,70@1,1,0',
+      spriteControls($editor->selectByCIDs(array(1, 9))));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
