@@ -340,5 +340,20 @@ foreach (array("\x89PNG\r\n", "GIF89a") as $data) {
 }
 check('get_bitmapsize short data', array(false, false), $result);
 
+/*
+ * listMovieClip with a named instance of a shape
+ */
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    $errors[] = $errstr;
+    return true;
+});
+$editor = new IO_SWF_Editor();
+$editor->parse(swf(minimalShape(2, 1).place2(1, 1, 'shp').tag(1, '')));
+$list = $editor->listMovieClip();
+restore_error_handler();
+check('listMovieClip shape instance', 'shp', $list[1]['path_list'][0]['path']);
+check('listMovieClip no warnings', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

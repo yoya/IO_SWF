@@ -972,8 +972,10 @@ class IO_SWF_Editor extends IO_SWF {
             $spriteTable[$spriteId]['path_list'] = array();
         }
         $spriteTable[$spriteId]['path_list'] []= array('path' => $path, 'parent_cids' => $parent_cids);
-        foreach ($spriteTable[$spriteId]['Places'] as $place) {
-            $this->listMovieClip_r($path, $place['cid'], $place['name'], array_merge($parent_cids, array($spriteId)), $spriteTable);
+        if (isset($spriteTable[$spriteId]['Places'])) { // not a sprite
+            foreach ($spriteTable[$spriteId]['Places'] as $place) {
+                $this->listMovieClip_r($path, $place['cid'], $place['name'], array_merge($parent_cids, array($spriteId)), $spriteTable);
+            }
         }
         return true;
     }
