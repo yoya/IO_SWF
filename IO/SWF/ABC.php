@@ -538,6 +538,9 @@ class IO_SWF_ABC {
             $count = count($info[$key]);
             echo "        $key(count:$count)\n";
             foreach ($info[$key] as $i => $v) {
+                if (is_float($v) && is_nan($v)) {
+                    $v = 'NAN'; // avoid "NAN value was coerced to string" (PHP >= 8.5)
+                }
                 echo "    [$i] $v\n";
             }
         }

@@ -14,6 +14,7 @@ require_once 'IO/SWF/Editor.php';
 require_once 'IO/SWF/ActionEditor.php';
 require_once 'IO/SWF/Tag/Text.php';
 require_once 'IO/SWF/Tag/Font.php';
+require_once 'IO/SWF/ABC.php';
 
 $failed = 0;
 $passed = 0;
@@ -496,6 +497,24 @@ $data = swf(minimalShape(2, 1).$button.sprite(9, place2(4, 1).tag(1, '')).place2
 $editor = new IO_SWF_Editor();
 $editor->parse($data);
 check('getMovieClip DefineButton2 reference', '2,34,26,1,0', tagCodes($editor->getMovieClip('mc')));
+
+/*
+ * ABC cpool dump: the NaN double entry is printed without a warning
+ */
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    $errors[] = $errstr;
+    return true;
+});
+$info = array('integer' => array(), 'uinteger' => array(), 'double' => array(NAN, 1.5),
+              'string' => array(), 'namespace' => array(), 'ns_set' => array(), 'multiname' => array());
+$abc = new IO_SWF_ABC();
+ob_start();
+$abc->dump_cpool_info($info);
+$text = ob_get_clean();
+restore_error_handler();
+check('ABC cpool double dump', true, strpos($text, "        double(count:2)\n    [0] NAN\n    [1] 1.5\n") !== false);
+check('ABC cpool double dump no warnings', array(), $errors);
 
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
