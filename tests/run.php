@@ -672,5 +672,14 @@ $editor->parse(swf(minimalShape(2, 1).minimalShape(2, 2).$sprite.place2(9, 1, 'm
 check('selectByCIDs sprite PlaceObject3 move by depth', '26@1,1,70@1,1,0',
       spriteControls($editor->selectByCIDs(array(1, 9))));
 
+/*
+ * ABC d64 is a little-endian double
+ */
+require_once 'IO/SWF/ABC/Bit.php';
+$abcBit = new IO_SWF_ABC_Bit();
+$abcBit->input("\x00\x00\x00\x00\x00\x00\xf8\x3f"."\x61\x71\x38\xf3\xab\x39\xfb\x3f");
+check('ABC d64 1.5', 1.5, $abcBit->get_d64());
+check('ABC d64 1.70158', 1.70158, $abcBit->get_d64());
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
