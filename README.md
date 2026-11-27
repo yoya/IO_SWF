@@ -111,3 +111,9 @@ IO_Bit は `vendor/` (composer install) か include_path から読み込む。
 # More detail
 
 - https://github.com/yoya/IO_SWF/wiki
+
+## IO_Bit の利用箇所
+
+`RECT` の座標には符号付きのビットフィールドを使い、バイト単位の項目に戻るときは `byteAlign()` で境界を揃えます。
+
+[IO_Bit Wiki](https://github.com/yoya/IO_Bit/wiki)
