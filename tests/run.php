@@ -1351,5 +1351,250 @@ check('replaceActionStrings', array('skipped-longer-string', 27, -53, array(10 =
 check('replaceActionStrings no change', bin2hex(dataFile('action.swf')),
       bin2hex((function () { $e = parseEditor(dataFile('action.swf')); $e->replaceActionStrings('none', 'x'); return $e->build(); })()));
 
+/*
+ * child php processes (with a time limit): generator, broken input, sample tools
+ */
+// array(exit status, stdout, stderr), PHP errors go to stderr
+function runPhp($args, $timeout = 60) {
+    global $root;
+    $cmd = escapeshellarg(PHP_BINARY).' -d display_errors=stderr -d log_errors=0 -d error_reporting=-1'.
+         ' -d include_path='.escapeshellarg(get_include_path());
+    foreach ($args as $arg) {
+        $cmd .= ' '.escapeshellarg($arg);
+    }
+    $proc = proc_open($cmd, array(0 => array('pipe', 'r'), 1 => array('pipe', 'w'), 2 => array('pipe', 'w')), $pipes, $root);
+    fclose($pipes[0]);
+    stream_set_blocking($pipes[1], false);
+    stream_set_blocking($pipes[2], false);
+    $out = array(1 => '', 2 => '');
+    $deadline = microtime(true) + $timeout;
+    while (! (feof($pipes[1]) && feof($pipes[2]))) {
+        if (microtime(true) > $deadline) {
+            proc_terminate($proc, 9);
+            $out[2] .= "(timeout)";
+            break;
+        }
+        $read = array($pipes[1], $pipes[2]);
+        $write = $except = null;
+        if (stream_select($read, $write, $except, 1) > 0) {
+            foreach ($read as $pipe) {
+                $out[($pipe === $pipes[1]) ? 1 : 2] .= fread($pipe, 65536);
+            }
+        }
+    }
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    $status = proc_close($proc);
+    return array($status, $out[1], $out[2]);
+}
+
+function phpErrors($stderr) {
+    preg_match_all('/^(?:PHP )?(?:Warning|Notice|Deprecated|Fatal error|Parse error|Strict Standards): .*$|\(timeout\)/m',
+                   $stderr, $m);
+    return $m[0];
+}
+
+// generator: the same bytes as the committed files
+$tmpdir = sys_get_temp_dir().'/io_swf_test_'.getmypid();
+mkdir($tmpdir);
+list($status, $out, $err) = runPhp(array("$root/tests/data/make.php", $tmpdir));
+check('make.php', array(0, array()), array($status, phpErrors($err)));
+foreach (array('shapes.swf', 'text.swf', 'sprite.swf', 'action.swf', 'abc.swf', 'truncated.swf') as $name) {
+    check("make.php $name", md5(dataFile($name)), is_readable("$tmpdir/$name") ? md5_file("$tmpdir/$name") : null);
+    if (is_file("$tmpdir/$name")) {
+        unlink("$tmpdir/$name");
+    }
+}
+rmdir($tmpdir);
+
+// broken input: every truncation of the files and of each tag content throws IO_Bit_Exception or IO_SWF_Exception
+// (or parses), without PHP errors and within the time limit
+$code = <<<'EOS'
+require_once 'IO/SWF/Editor.php';
+$errors = array();
+set_error_handler(function ($errno, $errstr) use (&$errors) {
+    if ($errno != E_USER_WARNING) { // the library reports broken offsets with trigger_error()
+        $errors[$errstr] = true;
+    }
+    return true;
+});
+$result = array();
+foreach (array_slice($argv, 1) as $file) {
+    $data = file_get_contents($file);
+    if (substr($data, 0, 3) === 'CWS') {
+        $data = 'FWS'.substr($data, 3, 5).gzuncompress(substr($data, 8));
+    }
+    for ($len = 0; $len < strlen($data); $len++) {
+        try {
+            $swf = new IO_SWF();
+            $swf->parse(substr($data, 0, $len));
+            $result['file parsed'][] = basename($file).":$len";
+        } catch (IO_Bit_Exception $e) {
+        } catch (IO_SWF_Exception $e) {
+        }
+    }
+    $swf = new IO_SWF();
+    $swf->parse($data);
+    $tags = $swf->_tags;
+    foreach ($swf->_tags as $tag) {
+        if ($tag->code == 39) {
+            $tag->parseTagContent();
+            $tags = array_merge($tags, $tag->tag->_controlTags);
+        }
+    }
+    foreach ($tags as $tag) {
+        for ($len = 0; $len < strlen($tag->content); $len++) {
+            $t = new IO_SWF_Tag(array('Version' => $swf->_headers['Version']));
+            $t->code = $tag->code;
+            $t->content = substr($tag->content, 0, $len);
+            try {
+                $t->parseTagContent(array('abcparse' => true));
+                $r = 'parsed';
+            } catch (IO_Bit_Exception $e) {
+                $r = 'IO_Bit_Exception';
+            } catch (IO_SWF_Exception $e) {
+                $r = 'IO_SWF_Exception';
+            }
+            $result[$r] = isset($result[$r]) ? $result[$r] + 1 : 1;
+        }
+    }
+}
+echo json_encode(array('errors' => array_keys($errors), 'files parsed' => isset($result['file parsed']) ? $result['file parsed'] : array(),
+                       'thrown' => (isset($result['IO_Bit_Exception']) ? $result['IO_Bit_Exception'] : 0) +
+                                   (isset($result['IO_SWF_Exception']) ? $result['IO_SWF_Exception'] : 0)));
+EOS;
+$files = array();
+foreach (array_keys($dataFiles) as $name) {
+    $files[] = "$root/tests/data/$name";
+}
+list($status, $out, $err) = runPhp(array_merge(array('-r', $code), $files), 120);
+$result = json_decode($out, true);
+check('truncated input: child process', array(0, array()), array($status, phpErrors($err)));
+check('truncated input: no PHP errors', array(), isset($result['errors']) ? $result['errors'] : $out);
+check('truncated input: every truncated file throws', array(), isset($result['files parsed']) ? $result['files parsed'] : $out);
+check('truncated input: truncated tag contents throw', true, isset($result['thrown']) && $result['thrown'] > 1000);
+
+/*
+ * sample tools
+ */
+// array(exit status, stdout, PHP errors)
+function runSample($script, $args) {
+    global $root;
+    list($status, $out, $err) = runPhp(array_merge(array("$root/sample/$script"), $args));
+    return array($status, $out, phpErrors($err));
+}
+function dataPath($name) {
+    global $root;
+    return "$root/tests/data/$name";
+}
+
+foreach (array_keys($dataFiles) as $name) {
+    $path = dataPath($name);
+    $data = dataFile($name);
+    $runs = array(
+        array('swfdump.php', array('-f', $path)),
+        array('swfdump.php', array('-f', $path, '-h', '-l')),
+        array('swfheader.php', array($path)),
+        array('swfversion.php', array('-f', $path, '-v', '4')),
+        array('swflistaction.php', array($path)),
+        array('swfactiondump.php', array('-f', $path)),
+        array('swfdecompile.php', array('-f', $path)),
+        array('swfcountshapeedges.php', array($path)),
+        array('swfsliceshaperecords.php', array($path)),
+        array('swftreematrix.php', array($path)),
+        array('swfwireframe.php', array($path)),
+        array('swfgreptags.php', array('Define', $path)),
+        array('swfactioneditor.php', array($path)),
+    );
+    if ($name !== 'text.swf') { // a named DefineEditText instance has no FrameCount (sample warns)
+        $runs[] = array('swflistmovieclip.php', array($path));
+    }
+    if ($name !== 'abc.swf') { // the sample does not parse the ABC (warns)
+        $runs[] = array('swfhistaction.php', array($path));
+    }
+    foreach ($runs as $run) {
+        list($script, $args) = $run;
+        list($status, $out, $errors) = runSample($script, $args);
+        check("$script ".str_replace("$root/tests/data/", '', implode(' ', $args)), array(0, array()), array($status, $errors));
+    }
+    // tools that write the SWF
+    foreach (array(array('swfcopy.php', array($path)), array('swfrebuild.php', array('-f', $path)),
+                   array('swfdeformeshape.php', array($path, '1'))) as $run) {
+        list($script, $args) = $run;
+        list($status, $out, $errors) = runSample($script, $args);
+        check("$script $name", array(0, array(), bin2hex($data)), array($status, $errors, bin2hex($out)));
+    }
+    list($status, $out, $errors) = runSample('swfcompress.php', array('-d', '-f', $path));
+    check("swfcompress.php -d $name", array(0, array(), bin2hex(fws($data))), array($status, $errors, bin2hex($out)));
+    list($status, $out, $errors) = runSample('swfcompress.php', array('-c', '-f', $path));
+    check("swfcompress.php -c $name", array(0, array(), 'CWS', bin2hex(fws($data))),
+          array($status, $errors, substr($out, 0, 3), bin2hex(fws($out))));
+}
+
+list($status, $out, $errors) = runSample('swfdump.php', array('-f', dataPath('shapes.swf')));
+check('swfdump.php output', array(true, true), array(strpos($out, "Code: 83(DefineShape4)  Length: 69\n") !== false,
+      strpos($out, "        FocalPoint: -0.5\n") !== false));
+list($status, $out, $errors) = runSample('swfheader.php', array(dataPath('shapes.swf')));
+check('swfheader.php', true, strpos($out, "   Signature:FWS\n   Version:8\n   FileLength:484\n   FrameSize.Xmin:0\n".
+                                      "   FrameSize.Xmax:4000\n   FrameSize.Ymin:0\n   FrameSize.Ymax:3000\n".
+                                      "   FrameRate:6144\n   FrameCount:1\n") !== false);
+list($status, $out, $errors) = runSample('swfheader.php', array(dataPath('shapes.swf'), 'FrameRate=3072', 'FrameSize.Xmax=8000'));
+$h = parseSWF($out)->_headers;
+check('swfheader.php set', array(0, array(), 3072, 8000), array($status, $errors, $h['FrameRate'], $h['FrameSize']['Xmax']));
+list($status, $out, $errors) = runSample('swfframerate.php', array(dataPath('sprite.swf'), '12'));
+check('swfframerate.php', array(0, array(), 12 << 8, 'CWS'), array($status, $errors, parseSWF($out)->_headers['FrameRate'], substr($out, 0, 3)));
+list($status, $out, $errors) = runSample('swfframerate.php', array(dataPath('sprite.swf')));
+check('swfframerate.php get', "FrameRate:30\n", $out);
+list($status, $out, $errors) = runSample('swfversion.php', array('-f', dataPath('action.swf'), '-v', '4'));
+check('swfversion.php', array(0, array(), true, true, false), array($status, $errors,
+      strpos($out, "SWF Version:5  Check Version:4\n") === 0, strpos($out, "    DefineFunction2(0x8E):6\n") !== false,
+      strpos($out, "GotoFrame2") !== false));
+list($status, $out, $errors) = runSample('swfsetbgcolor.php', array(dataPath('shapes.swf'), '0', '0', '255'));
+$bg = tagObjects(parseSWF($out)->_tags, 9);
+check('swfsetbgcolor.php', array(0, array(), array('Red' => 0, 'Green' => 0, 'Blue' => 255)), array($status, $errors, $bg[0]->_color));
+list($status, $out, $errors) = runSample('swfcountshapeedges.php', array(dataPath('shapes.swf')));
+check('swfcountshapeedges.php', "shape_id: 1 => edges_count: 3\nshape_id: 2 => edges_count: 5\nshape_id: 3 => edges_count: 10\n", $out);
+list($status, $out, $errors) = runSample('swfsliceshaperecords.php', array(dataPath('shapes.swf'), '3', '1', '1'));
+check('swfsliceshaperecords.php', array(0, array(), array(1 => 3, 2 => 5, 3 => 3)),
+      array($status, $errors, parseEditor($out)->countShapeEdges()));
+list($status, $out, $errors) = runSample('swfgreptags.php', array('DefineShape', dataPath('shapes.swf')));
+check('swfgreptags.php', 4, substr_count($out, ': DefineShape'));
+list($status, $out, $errors) = runSample('swfgettagdata.php', array(dataPath('shapes.swf'), '10'));
+check('swfgettagdata.php', array(0, array(), true, 20), array($status, $errors, strpos(dataFile('shapes.swf'), $out) !== false,
+      unpack('v', $out)[1] >> 6));
+if (function_exists('imagecreatefromstring')) {
+    list($status, $out, $errors) = runSample('swfgetpngdata.php', array(dataPath('shapes.swf'), '12'));
+    check('swfgetpngdata.php', array(0, array(), '3fff0000'), array($status, $errors, pngPixel($out, 1, 0)));
+}
+list($status, $out, $errors) = runSample('swflistmovieclip.php', array(dataPath('sprite.swf')));
+check('swflistmovieclip.php', true, strpos($out, "SpriteId:4 FrameCount:3 TagCount:12 name:mc\n\tmc\n") !== false &&
+      strpos($out, "\tmc/inner (4)\n") !== false);
+list($status, $out, $errors) = runSample('swfgetmovieclip.php', array(dataPath('sprite.swf'), 'mc'));
+check('swfgetmovieclip.php', array(0, array(), bin2hex(parseEditor(dataFile('sprite.swf'))->getMovieClip('mc'))),
+      array($status, $errors, bin2hex($out)));
+list($status, $out, $errors) = runSample('swfselectbycids.php', array(dataPath('shapes.swf'), '3', '10'));
+check('swfselectbycids.php', array(0, array(), '9,20,32,26,1,0'), array($status, $errors, tagCodes($out)));
+list($status, $out, $errors) = runSample('swfreplacemovieclip.php', array(dataPath('sprite.swf'), 'mc/inner', dataPath('shapes.swf')));
+check('swfreplacemovieclip.php', array(0, array(), '1:5,2:6,3:7,4:8'), array($status, $errors, placements($out, 3)));
+list($status, $out, $errors) = runSample('swfgeteditstring.php', array(dataPath('text.swf'), 'msg'));
+check('swfgeteditstring.php', array(0, array(), "Hello\n"), array($status, $errors, $out));
+list($status, $out, $errors) = runSample('swfreplaceeditstring.php', array(dataPath('text.swf'), 'v2', 'World'));
+check('swfreplaceeditstring.php', array(0, array(), 'World'), array($status, $errors, parseEditor($out)->getEditString('v2')));
+list($status, $out, $errors) = runSample('swflistaction.php', array(dataPath('action.swf')));
+check('swflistaction.php action.swf', "spriteId:(root)  frame:1\t=> instruction:18  length=132\n".
+      "spriteId:(root)  frame:1\t=> instruction:15  length=78\nspriteId:(root)  frame:2\t=> instruction:2  length=2\n", $out);
+list($status, $out, $errors) = runSample('swflistaction.php', array(dataPath('abc.swf')));
+check('swflistaction.php abc.swf', "spriteId:(root)  frame:1\t=> method:4  length=215\n  symbol: spriteId:0 name:pkg.Main\n".
+      "    frame:1 => method_lines:18  method_size=27\n", $out);
+list($status, $out, $errors) = runSample('swfactiondump.php', array('-f', dataPath('abc.swf')));
+check('swfactiondump.php abc.swf', true, strpos($out, "=== frame:1\n    method_body(3/4):\n") !== false &&
+      strpos($out, "[12] pushstring 5(frame1)\n") !== false);
+list($status, $out, $errors) = runSample('swfdecompile.php', array('-f', dataPath('action.swf')));
+check('swfdecompile.php', true, strpos($out, "SetTarget \"/mc\"\n") !== false && strpos($out, "\tJump (LABEL9)\n") !== false);
+list($status, $out, $errors) = runSample('swfsetactionvariables.php', array(dataPath('action.swf'), 'foo', 'bar'));
+$doActions = tagObjects(parseSWF($out)->_tags, 12);
+check('swfsetactionvariables.php', array(0, array(), 'foo', 'bar'),
+      array($status, $errors, $doActions[0]->_actions[0]['Values'][0]['String'], $doActions[0]->_actions[1]['Values'][0]['String']));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
