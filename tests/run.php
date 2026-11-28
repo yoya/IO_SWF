@@ -1099,5 +1099,257 @@ foreach (array('', 'FWS', "FWS\x08", "FWS\x08\x10\x00\x00\x00", "FWS\x08\x10\x00
 }
 checkThrows('ZWS', 'IO_SWF_Exception', function () { parseSWF("ZWS\x0d".pack('V', 100)."\x00\x00\x00\x00"); });
 
+/*
+ * IO_SWF_Editor operations on the test data
+ */
+// character ids defined by a tag
+function definedIdsOfTag($tag) {
+    if (in_array($tag->code, array(2, 22, 32, 83, 46, 84, 6, 21, 35, 20, 36, 90, 10, 48, 75, 91,
+                                   11, 33, 37, 39, 7, 34, 14, 60, 87))) {
+        return array(unpack('v', $tag->content)[1]);
+    }
+    return array();
+}
+
+// character ids defined in the SWF, in order
+function definedIds($swfdata) {
+    $ids = array();
+    foreach (parseSWF($swfdata)->_tags as $tag) {
+        $ids = array_merge($ids, definedIdsOfTag($tag));
+    }
+    return $ids;
+}
+
+// characters referenced (placed, bitmap fills, button records, edit text fonts) before they are defined
+function undefinedRefs($swfdata) {
+    $defined = array();
+    $undefined = array();
+    $walk = function ($tags) use (&$walk, &$defined, &$undefined) {
+        foreach ($tags as $tag) {
+            $refs = array();
+            if (in_array($tag->code, array(2, 22, 32, 83, 46, 84, 7, 34, 37, 39, 4, 5, 26, 70))) {
+                $tag->parseTagContent();
+                $obj = $tag->tag;
+            }
+            switch ($tag->code) {
+              case 4: case 5: case 26: case 70:
+                if (! is_null($obj->_characterId)) {
+                    $refs[] = $obj->_characterId;
+                }
+                break;
+              case 2: case 22: case 32: case 83:
+                $styles = $obj->_fillStyles;
+                foreach ($obj->_shapeRecords as $record) {
+                    if (isset($record['FillStyles'])) {
+                        $styles = array_merge($styles, $record['FillStyles']);
+                    }
+                }
+                foreach ($styles as $style) {
+                    if (isset($style['BitmapId']) && $style['BitmapId'] != 65535) {
+                        $refs[] = $style['BitmapId'];
+                    }
+                }
+                break;
+              case 7: case 34:
+                $refs = array_column($obj->_characters, 'CharacterID');
+                break;
+              case 37:
+                if (! is_null($obj->FontID)) {
+                    $refs[] = $obj->FontID;
+                }
+                break;
+              case 39:
+                $walk($obj->_controlTags);
+                break;
+            }
+            foreach ($refs as $id) {
+                if (! isset($defined[$id])) {
+                    $undefined[] = $id;
+                }
+            }
+            foreach (definedIdsOfTag($tag) as $id) {
+                $defined[$id] = true;
+            }
+        }
+    };
+    $walk(parseSWF($swfdata)->_tags);
+    return $undefined;
+}
+// depth:character of PlaceObject2 tags (in sprite $spriteId, or the main timeline)
+function placements($swfdata, $spriteId = null) {
+    $tags = parseSWF($swfdata)->_tags;
+    if (! is_null($spriteId)) {
+        foreach (tagObjects($tags, 39) as $sprite) {
+            if ($sprite->_spriteId == $spriteId) {
+                $tags = $sprite->_controlTags;
+            }
+        }
+    }
+    $result = array();
+    foreach ($tags as $tag) {
+        if ($tag->code == 26) {
+            $tag->parseTagContent();
+            $result[] = $tag->tag->_depth.':'.(is_null($tag->tag->_characterId) ? '-' : $tag->tag->_characterId);
+        }
+    }
+    return implode(',', $result);
+}
+
+// GD color of a pixel: aarrggbb (GD alpha 0-127)
+function pngPixel($png, $x, $y) {
+    $im = imagecreatefromstring($png);
+    $c = imagecolorsforindex($im, imagecolorat($im, $x, $y));
+    return sprintf('%02x%02x%02x%02x', $c['alpha'], $c['red'], $c['green'], $c['blue']);
+}
+
+// getPNGData: DefineBitsLossless formats 3/4/5, DefineBitsLossless2 formats 3/5 (premultiplied alpha)
+if (function_exists('imagecreatefromstring')) {
+    $editor = parseEditor(dataFile('shapes.swf'));
+    $pixels = array();
+    foreach (array(10 => array(array(0, 0), array(1, 0), array(2, 0), array(0, 1), array(1, 1), array(2, 1)),
+                   11 => array(array(0, 0), array(1, 0)),
+                   14 => array(array(0, 0)),
+                   12 => array(array(0, 0), array(1, 0), array(0, 1), array(1, 1)),
+                   13 => array(array(0, 0))) as $id => $points) {
+        list($png, $errors) = withErrors(function () use ($editor, $id) { return $editor->getPNGData($id); });
+        $pixels[$id] = array(substr($png, 0, 8) === "\x89PNG\r\n\x1a\n", $errors);
+        foreach ($points as $p) {
+            $pixels[$id][] = pngPixel($png, $p[0], $p[1]);
+        }
+    }
+    check('getPNGData pixels', array(
+        10 => array(true, array(), '00ff0000', '000000ff', '00ff0000', '000000ff', '00ff0000', '000000ff'),
+        11 => array(true, array(), '00102030', '00405060'),
+        14 => array(true, array(), '00f80000'),
+        // half transparent red 0x80 premultiplied: red 255, GD alpha 127 - 128 / 2
+        12 => array(true, array(), '00ff0000', '3fff0000', '7f000000', '0000ff00'),
+        13 => array(true, array(), '0000ff00')), $pixels);
+}
+$editor = parseEditor(dataFile('shapes.swf'));
+check('getPNGData not a lossless bitmap', false, $editor->getPNGData(1));
+check('getJpegData not a jpeg', false, $editor->getJpegData(10));
+
+// countShapeEdges / countShapeRecords (DefineShape 1-3)
+$editor = parseEditor(dataFile('shapes.swf'));
+check('countShapeEdges', array(1 => 3, 2 => 5, 3 => 10), $editor->countShapeEdges());
+$counts = $editor->countShapeRecords();
+check('countShapeRecords', array(array(0, 1, 1, 3, 0), array(1, 0, 0, 1, 1), array(2, 0, 1, 3, 0)),
+      array(array_values($counts[1][0]), array_values($counts[2][0]), array_values($counts[2][1])));
+check('countShapeRecords DefineShape3', array(array(1, 1, 4), array(2, 1, 3), array(3, 0, 3)),
+      array_map(function ($c) { return array($c['FillStyle0'], $c['LineStyle'], $c['Straight']); }, $counts[3]));
+// deformeShape with a threshold shorter than every edge changes nothing
+$editor = parseEditor(dataFile('shapes.swf'));
+$editor->deformeShape(1);
+check('deformeShape small threshold', bin2hex(dataFile('shapes.swf')), bin2hex($editor->build()));
+
+// tag content access
+$editor = parseEditor(dataFile('shapes.swf'));
+check('getTagContent', "\x33\x66\x99", $editor->getTagContent(9));
+check('replaceTagContent', 1, $editor->replaceTagContent(9, "\x00\x00\xff"));
+$bg = tagObjects(parseSWF($editor->build())->_tags, 9);
+check('replaceTagContent SetBackgroundColor', array('Red' => 0, 'Green' => 0, 'Blue' => 255), $bg[0]->_color);
+$editor = parseEditor(dataFile('shapes.swf'));
+$editor->setCharacterId();
+$content = $editor->getTagContentByCharacterId(20, 11);
+check('getTagContentByCharacterId', array(11, 5), array(unpack('v', $content)[1], ord($content[2])));
+check('getTagContentByCharacterId other code', null, $editor->getTagContentByCharacterId(36, 11));
+
+// selectByCIDs keeps the selected characters and their placements
+$editor = parseEditor(dataFile('shapes.swf'));
+$selected = $editor->selectByCIDs(array(3, 10));
+check('selectByCIDs shapes.swf', array('9,20,32,26,1,0', array(10, 3), '3:3', array()),
+      array(tagCodes($selected), definedIds($selected), placements($selected), undefinedRefs($selected)));
+$editor = parseEditor(dataFile('text.swf'));
+$selected = $editor->selectByCIDs(array(1, 4));
+check('selectByCIDs text.swf', array('48,37,26,1,0', array(1, 4), '1:4', array()),
+      array(tagCodes($selected), definedIds($selected), placements($selected), undefinedRefs($selected)));
+$editor = parseEditor(dataFile('sprite.swf'));
+$selected = $editor->selectByCIDs(array(1, 3));
+check('selectByCIDs sprite.swf', array(true, true, false, array(), '1:1'),
+      array(in_array(1, definedIds($selected)), in_array(3, definedIds($selected)), in_array(2, definedIds($selected)),
+            undefinedRefs($selected), placements($selected, 3)));
+check('selectByCIDs keeps source', bin2hex(dataFile('sprite.swf')), bin2hex($editor->build()));
+
+// purgeUselessContents removes characters that are not used
+$editor = parseEditor(dataFile('shapes.swf'));
+$editor->purgeUselessContents();
+check('purgeUselessContents shapes.swf', array('9,20,2,22,32,83,26,26,26,26,1,0', array(10, 1, 2, 3, 4)),
+      array(tagCodes($editor->build()), definedIds($editor->build())));
+$editor = parseEditor(dataFile('text.swf'));
+$editor->purgeUselessContents();
+check('purgeUselessContents text.swf', array(1, 4, 5), definedIds($editor->build()));
+$editor = parseEditor(dataFile('sprite.swf'));
+$editor->purgeUselessContents();
+check('purgeUselessContents all used', bin2hex(dataFile('sprite.swf')), bin2hex($editor->build()));
+
+// listMovieClip / getMovieClip / grepMovieClip
+$editor = parseEditor(dataFile('sprite.swf'));
+$list = $editor->listMovieClip();
+check('listMovieClip', array(array(1, 3, 'inner'), array(3, 12, 'mc', array('mc')), true),
+      array(array($list[3]['FrameCount'], $list[3]['TagCount'], $list[3]['name']),
+            array($list[4]['FrameCount'], $list[4]['TagCount'], $list[4]['name'], array_column($list[4]['path_list'], 'path')),
+            in_array('mc/inner', array_column($list[3]['path_list'], 'path'))));
+$mc = parseEditor(dataFile('sprite.swf'))->getMovieClip('mc');
+check('getMovieClip mc', array('2,2,39,26,4,12,1,26,70,43,1,5,28,1,0', array(1, 2, 3), array(), '1:3,1:-'),
+      array(tagCodes($mc), definedIds($mc), undefinedRefs($mc), placements($mc)));
+$inner = parseEditor(dataFile('sprite.swf'))->getMovieClip('mc/inner');
+check('getMovieClip mc/inner', array('2,26,1,0', array(1), '1:1'), array(tagCodes($inner), definedIds($inner), placements($inner)));
+check('getMovieClip by character id', bin2hex($inner), bin2hex(parseEditor(dataFile('sprite.swf'))->getMovieClip('3')));
+list($ret, $errors) = withErrors(function () { return parseEditor(dataFile('sprite.swf'))->getMovieClip('nothing'); });
+check('getMovieClip unknown path', array(false, 1), array($ret, count($errors)));
+$grep = parseEditor(dataFile('sprite.swf'))->grepMovieClip('mc');
+check('grepMovieClip mc', array(array(1, 2, 3, 4), array(), '1:4'), array(definedIds($grep), undefinedRefs($grep), placements($grep)));
+
+// replaceMovieClip: the characters of the new movie clip are renumbered after the used ids
+$editor = parseEditor(dataFile('sprite.swf'));
+check('replaceMovieClip', true, $editor->replaceMovieClip('mc/inner', dataFile('shapes.swf')));
+$replaced = $editor->build();
+$sprites = tagObjects(parseSWF($replaced)->_tags, 39);
+$shapes = tagObjects(parseSWF($replaced)->_tags, 32);
+check('replaceMovieClip result', array(array(1, 2, 10, 11, 14, 12, 13, 5, 6, 7, 8, 3, 4), array(),
+                                       '1:5,2:6,3:7,4:8', array(3, 1), array(7, 10), '1:3'),
+      array(definedIds($replaced), undefinedRefs($replaced), placements($replaced, 3),
+            array($sprites[0]->_spriteId, $sprites[0]->_frameCount),
+            array($shapes[0]->_shapeId, $shapes[0]->_fillStyles[2]['BitmapId']), explode(',', placements($replaced, 4))[0]));
+check('replaceMovieClip no SetBackgroundColor from the movie clip', '2,2,20,20,20,36,36,2,22,32,83,39,39,26,26,1,26,28,1,0',
+      tagCodes($replaced));
+
+// getEditString / replaceEditString by character id and variable name
+$editor = parseEditor(dataFile('text.swf'));
+check('getEditString', array('Hello', 'Hello', null, null), array($editor->getEditString(4), $editor->getEditString('msg'),
+      $editor->getEditString(5), $editor->getEditString('v2')));
+check('replaceEditString', array(true, true), array($editor->replaceEditString('v2', 'World'), $editor->replaceEditString(4, 'Bye')));
+$edited = parseEditor($editor->build());
+check('replaceEditString result', array('Bye', 'World'), array($edited->getEditString('msg'), $edited->getEditString(5)));
+// HasText is set (flags byte after the 7 byte RECT) and InitialText follows VariableName
+$orig = parseSWF(dataFile('text.swf'))->_tags[4]->content;
+check('replaceEditString HasText', bin2hex(substr($orig, 0, 9).chr(0x88).substr($orig, 10)."World\0"),
+      bin2hex(parseSWF($editor->build())->_tags[4]->content));
+
+// setActionVariables inserts Push, Push, SetVariable in the DoAction of frame 1, branches keep their targets
+$editor = parseEditor(dataFile('action.swf'));
+$editor->setActionVariables(array('foo' => 'bar'));
+$doActions = tagObjects(parseSWF($editor->build())->_tags, 12);
+$actions = $doActions[0]->_actions;
+check('setActionVariables', array(array('foo', 'bar', 0x1D), 21, array(13 => 16, 19 => 12), 13, -39, 15, 2),
+      array(array($actions[0]['Values'][0]['String'], $actions[1]['Values'][0]['String'], $actions[2]['Code']),
+            count($actions), $doActions[0]->_branches, $actions[13]['Offset'], $actions[19]['BranchOffset'],
+            count($doActions[1]->_actions), count($doActions[2]->_actions)));
+
+// replaceActionStrings: DoAction (Push, ConstantPool) and DefineButton2, branch offsets follow the new lengths
+$editor = parseEditor(dataFile('action.swf'));
+$editor->replaceActionStrings(array('skipped' => 'skipped-longer-string', 'a' => 'AA'));
+$swf = parseSWF($editor->build());
+$doActions = tagObjects($swf->_tags, 12);
+$actions = $doActions[0]->_actions;
+$buttons = tagObjects($swf->_tags, 34);
+// If skips 26 + 1 bytes now, the Jump back is 14 bytes longer
+check('replaceActionStrings', array('skipped-longer-string', 27, -53, array(10 => 13, 16 => 9), array('AA', 'b', 'f'), 13, 'AA', 0),
+      array($actions[11]['Values'][0]['String'], $actions[10]['Offset'], $actions[16]['BranchOffset'], $doActions[0]->_branches,
+            $doActions[1]->_actions[0]['ConstantPool'], $buttons[0]->_actions[0]['CondActionSize'],
+            $buttons[0]->_actions[0]['Actions'][0]['Values'][0]['String'], $buttons[0]->_actions[1]['CondActionSize']));
+check('replaceActionStrings no change', bin2hex(dataFile('action.swf')),
+      bin2hex((function () { $e = parseEditor(dataFile('action.swf')); $e->replaceActionStrings('none', 'x'); return $e->build(); })()));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
