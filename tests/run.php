@@ -681,5 +681,423 @@ $abcBit->input("\x00\x00\x00\x00\x00\x00\xf8\x3f"."\x61\x71\x38\xf3\xab\x39\xfb\
 check('ABC d64 1.5', 1.5, $abcBit->get_d64());
 check('ABC d64 1.70158', 1.70158, $abcBit->get_d64());
 
+/*
+ * synthetic test data (tests/data/make.php): parse, dump, build round trips
+ */
+function dataFile($name) {
+    global $root;
+    return file_get_contents("$root/tests/data/$name");
+}
+
+function checkThrows($name, $class, $func) {
+    try {
+        $func();
+        $actual = 'no exception';
+    } catch (Throwable $e) {
+        $actual = ($e instanceof $class) ? $class : get_class($e).': '.$e->getMessage();
+    }
+    check($name, $class, $actual);
+}
+
+// array(return value of $func, PHP errors raised in it)
+function withErrors($func) {
+    $errors = array();
+    set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$errors) {
+        $errors[] = "$errstr (".basename($errfile).":$errline)";
+        return true;
+    });
+    try {
+        $ret = $func();
+    } finally {
+        restore_error_handler();
+    }
+    return array($ret, $errors);
+}
+
+function parseSWF($swfdata, $opts = array()) {
+    $swf = new IO_SWF();
+    $swf->parse($swfdata, $opts);
+    return $swf;
+}
+
+function parseEditor($swfdata) {
+    $editor = new IO_SWF_Editor();
+    $editor->parse($swfdata);
+    return $editor;
+}
+
+// parsed tag objects with the code, the ones in sprites included
+function tagObjects($tags, $code, $opts = array()) {
+    $objects = array();
+    foreach ($tags as $tag) {
+        if ($tag->code == $code) {
+            $tag->parseTagContent($opts);
+            $objects[] = $tag->tag;
+        }
+        if ($tag->code == 39) {
+            $tag->parseTagContent($opts);
+            $objects = array_merge($objects, tagObjects($tag->tag->_controlTags, $code, $opts));
+        }
+    }
+    return $objects;
+}
+
+// parse every tag content (in sprites too) and build it again
+function rebuildAll($tags) {
+    foreach ($tags as $tag) {
+        if ($tag->parseTagContent()) {
+            if ($tag->code == 39) {
+                rebuildAll($tag->tag->_controlTags);
+            }
+            $tag->content = null;
+        }
+    }
+}
+
+// uncompressed SWF data
+function fws($swfdata) {
+    if (substr($swfdata, 0, 3) === 'CWS') {
+        return 'FWS'.substr($swfdata, 3, 5).gzuncompress(substr($swfdata, 8));
+    }
+    return $swfdata;
+}
+
+function dumpText($swfdata, $opts = array()) {
+    return withErrors(function () use ($swfdata, $opts) {
+        $swf = parseSWF($swfdata, $opts);
+        $level = ob_get_level();
+        ob_start();
+        try {
+            $swf->dump($opts);
+        } finally {
+            // dumpSWF() leaves its SJIS conversion buffer open for SWF < 6
+            while (ob_get_level() > $level + 1) {
+                ob_end_flush();
+            }
+            $text = ob_get_clean();
+        }
+        return $text;
+    });
+}
+
+$dataFiles = array(
+    // Signature, Version, FrameSize (twips), FrameRate (8.8), FrameCount, tag codes
+    'shapes.swf' => array('FWS', 8, array(0, 4000, 0, 3000), 24 << 8, 1, '9,20,20,20,36,36,2,22,32,83,26,26,26,26,1,0'),
+    'text.swf'   => array('FWS', 8, array(0, 2000, 0, 1000), 0x0C80, 1, '48,75,75,37,37,26,26,1,0'),
+    'sprite.swf' => array('CWS', 8, array(0, 4000, 0, 3000), 30 << 8, 2, '2,2,39,39,26,26,1,26,28,1,0'),
+    'action.swf' => array('FWS', 5, array(0, 2000, 0, 1500), 12 << 8, 2, '2,12,12,7,34,26,26,1,12,1,0'),
+    'abc.swf'    => array('CWS', 10, array(0, 11000, 0, 8000), 24 << 8, 1, '69,9,82,76,1,0'),
+);
+foreach ($dataFiles as $name => $expect) {
+    list($signature, $version, $frameSize, $frameRate, $frameCount, $codes) = $expect;
+    $data = dataFile($name);
+    $swf = parseSWF($data);
+    $h = $swf->_headers;
+    check("$name header", array($signature, $version, strlen(fws($data)), $frameSize, $frameRate, $frameCount),
+          array($h['Signature'], $h['Version'], $h['FileLength'],
+                array_values($h['FrameSize']), $h['FrameRate'], $h['FrameCount']));
+    check("$name tags", $codes, tagCodes($data));
+    check("$name size < 4KB", true, strlen($data) < 4096);
+    // round trips: as parsed, Editor::rebuild(), every tag (in sprites too) rebuilt
+    check("$name build", bin2hex($data), bin2hex($swf->build()));
+    $editor = parseEditor($data);
+    $editor->rebuild();
+    check("$name Editor rebuild", bin2hex($data), bin2hex($editor->build()));
+    $swf = parseSWF($data);
+    list($built, $errors) = withErrors(function () use ($swf) {
+        rebuildAll($swf->_tags);
+        return $swf->build();
+    });
+    check("$name rebuild all tags", bin2hex($data), bin2hex($built));
+    check("$name rebuild all tags no warnings", array(), $errors);
+    // FWS <=> CWS
+    $swf = parseSWF($data);
+    $swf->_headers['Signature'] = ($signature === 'FWS') ? 'CWS' : 'FWS';
+    $other = $swf->build();
+    check("$name to ".$swf->_headers['Signature'], bin2hex(fws($data)), bin2hex(fws($other)));
+    check("$name to ".$swf->_headers['Signature'].' header', $swf->_headers['Signature'].substr($data, 3, 5),
+          substr($other, 0, 8));
+    // dump
+    list($text, $errors) = dumpText($data, array('abcdump' => true));
+    check("$name dump no warnings", array(), $errors);
+    check("$name dump header", "Signature: $signature\nVersion: $version\nFileLength: ".strlen(fws($data))."\n",
+          substr($text, 0, strlen("Signature: $signature\nVersion: $version\nFileLength: ".strlen(fws($data))."\n")));
+    preg_match_all('/^ *Code: (\d+)\(/m', $text, $m);
+    check("$name dump tags", true, count($m[1]) >= count(explode(',', $codes)));
+}
+// dump with hexdump
+list($text, $errors) = dumpText(dataFile('shapes.swf'), array('hexdump' => true));
+check('dump hexdump no warnings', array(), $errors);
+check('dump hexdump header bytes', true, strpos($text, "0000  46 57 53 08 e4 01 00 00") !== false);
+
+/*
+ * shapes.swf: SetBackgroundColor, DefineBitsLossless(2), DefineShape1-4
+ */
+$swf = parseSWF(dataFile('shapes.swf'));
+$bg = tagObjects($swf->_tags, 9);
+check('SetBackgroundColor', array('Red' => 0x33, 'Green' => 0x66, 'Blue' => 0x99), $bg[0]->_color);
+$bitmaps = array();
+foreach (array_merge(tagObjects($swf->_tags, 20), tagObjects($swf->_tags, 36)) as $b) {
+    $bitmaps[] = array($b->_CharacterID, $b->_BitmapFormat, $b->_BitmapWidth, $b->_BitmapHeight, $b->_BitmapColorTableSize);
+}
+check('DefineBitsLossless(2) fields', array(array(10, 3, 3, 2, 2), array(11, 5, 2, 1, null), array(14, 4, 1, 1, null),
+                                             array(12, 5, 2, 2, null), array(13, 3, 1, 1, 2)), $bitmaps);
+$shapes = tagObjects($swf->_tags, 2);
+$shape = $shapes[0];
+check('DefineShape bounds', array('Xmin' => 0, 'Xmax' => 400, 'Ymin' => 0, 'Ymax' => 400), $shape->_shapeBounds);
+check('DefineShape styles', array(array(array('FillStyleType' => 0, 'Color' => array('Red' => 255, 'Green' => 0, 'Blue' => 0))),
+                                  array(array('Width' => 20, 'Color' => array('Red' => 0, 'Green' => 0, 'Blue' => 0)))),
+      array($shape->_fillStyles, $shape->_lineStyles));
+$r = $shape->_shapeRecords;
+check('DefineShape records', array(5, 20, 20, 0, 1, 1, array(380, 20), array(380, 380), array(20, 20), 0),
+      array(count($r), $r[0]['MoveX'], $r[0]['MoveY'], $r[0]['FillStyle0'], $r[0]['FillStyle1'], $r[0]['LineStyle'],
+            array($r[1]['X'], $r[1]['Y']), array($r[2]['X'], $r[2]['Y']), array($r[3]['X'], $r[3]['Y']), $r[4]['EndOfShape']));
+$shapes = tagObjects($swf->_tags, 22);
+$r = $shapes[0]->_shapeRecords;
+check('DefineShape2 curved edge', array(0, 200, 0, 200, 100), array($r[1]['StraightFlag'], $r[1]['ControlX'], $r[1]['ControlY'],
+                                                                      $r[1]['AnchorX'], $r[1]['AnchorY']));
+check('DefineShape2 new styles', array(1, 2, 40, 1, 0, 0),
+      array($r[3]['StateNewStyles'], count($r[3]['FillStyles']), $r[3]['LineStyles'][0]['Width'],
+            $r[3]['FillStyle0'], $r[3]['FillStyle1'], $r[3]['LineStyle']));
+check('DefineShape2 styles after new styles', array(2, 1, array(200, 200)),
+      array($r[4]['FillStyle0'], $r[4]['LineStyle'], array($r[6]['X'], $r[6]['Y'])));
+$shapes = tagObjects($swf->_tags, 32);
+$fills = $shapes[0]->_fillStyles;
+check('DefineShape3 linear gradient', array(0x10, 0x4000, 0x4000, 400, 300, 0, 0, 2,
+                                            array('Red' => 255, 'Green' => 0, 'Blue' => 0, 'Alpha' => 0x80), 255),
+      array($fills[0]['FillStyleType'], $fills[0]['GradientMatrix']['ScaleX'], $fills[0]['GradientMatrix']['ScaleY'],
+            $fills[0]['GradientMatrix']['TranslateX'], $fills[0]['GradientMatrix']['TranslateY'],
+            $fills[0]['SpreadMode'], $fills[0]['InterpolationMode'], count($fills[0]['GradientRecords']),
+            $fills[0]['GradientRecords'][0]['Color'], $fills[0]['GradientRecords'][1]['Ratio']));
+check('DefineShape3 radial gradient', array(0x12, 0x10000, 0, 1, 1, array(0, 128, 255)),
+      array($fills[1]['FillStyleType'], $fills[1]['GradientMatrix']['ScaleX'], $fills[1]['GradientMatrix']['TranslateX'],
+            $fills[1]['SpreadMode'], $fills[1]['InterpolationMode'],
+            array_column($fills[1]['GradientRecords'], 'Ratio')));
+check('DefineShape3 bitmap fill', array(0x41, 10, 20 << 16, 20 << 16, 0x100, -0x100),
+      array($fills[2]['FillStyleType'], $fills[2]['BitmapId'], $fills[2]['BitmapMatrix']['ScaleX'],
+            $fills[2]['BitmapMatrix']['ScaleY'], $fills[2]['BitmapMatrix']['RotateSkew0'],
+            $fills[2]['BitmapMatrix']['RotateSkew1']));
+$r = $shapes[0]->_shapeRecords;
+check('DefineShape3 style changes', array(array(1, 1), array(2, 1, 100, 100), array(3, 0, 300, 300), 14),
+      array(array($r[0]['FillStyle0'], $r[0]['LineStyle']), array($r[5]['FillStyle0'], $r[5]['LineStyle'], $r[5]['MoveX'], $r[5]['MoveY']),
+            array($r[9]['FillStyle0'], $r[9]['LineStyle'], $r[9]['MoveX'], $r[9]['MoveY']), count($r)));
+$shapes = tagObjects($swf->_tags, 83);
+$shape = $shapes[0];
+check('DefineShape4 bounds and flags', array(array(-20, 420, -20, 420), array(0, 400, 0, 400), 0, 0, 0),
+      array(array_values($shape->_shapeBounds), array_values($shape->_edgeBounds),
+            $shape->_usesFillWindingRule, $shape->_usesNonScalingStrokes, $shape->_usesScalingStrokes));
+check('DefineShape4 focal gradient', array(0x13, -128, 2), array($shape->_fillStyles[0]['FillStyleType'],
+      $shape->_fillStyles[0]['FocalPoint'], count($shape->_fillStyles[0]['GradientRecords'])));
+$l = $shape->_lineStyles;
+check('DefineShape4 LINESTYLE2 miter', array(30, 1, 2, 0, 1, 0, 1, 1, 2, 0x0300, array('Red' => 0x11, 'Green' => 0x22, 'Blue' => 0x33, 'Alpha' => 0xff)),
+      array($l[0]['Width'], $l[0]['StartCapStyle'], $l[0]['JoinStyle'], $l[0]['HasFillFlag'], $l[0]['NoHScaleFlag'],
+            $l[0]['NoVScaleFlag'], $l[0]['PixelHintingFlag'], $l[0]['NoClose'], $l[0]['EndCapStyle'],
+            $l[0]['MiterLimitFactor'], $l[0]['Color']));
+check('DefineShape4 LINESTYLE2 fill', array(40, 1, 1, 1, false, array('Red' => 0x44, 'Green' => 0x55, 'Blue' => 0x66, 'Alpha' => 0x77)),
+      array($l[1]['Width'], $l[1]['JoinStyle'], $l[1]['HasFillFlag'], $l[1]['NoVScaleFlag'],
+            isset($l[1]['MiterLimitFactor']), $l[1]['FillType']['Color']));
+$r = $shape->_shapeRecords;
+check('DefineShape4 records', array(2, 200, 0, 0, 400), array($r[3]['LineStyle'], $r[4]['ControlX'], $r[4]['ControlY'],
+                                                                  $r[4]['AnchorX'], $r[4]['AnchorY']));
+$places = array();
+foreach (tagObjects($swf->_tags, 26) as $p) {
+    $places[] = $p->_depth.':'.$p->_characterId.(is_null($p->_matrix) ? '' : ':'.$p->_matrix['TranslateX'].','.$p->_matrix['TranslateY']);
+}
+check('shapes.swf PlaceObject2', array('1:1', '2:2', '3:3:200,100', '4:4'), $places);
+
+/*
+ * text.swf: DefineFont2/3, DefineEditText
+ */
+$swf = parseSWF(dataFile('text.swf'));
+$fonts = array_merge(tagObjects($swf->_tags, 48), tagObjects($swf->_tags, 75));
+$font = $fonts[0];
+check('DefineFont2 flags', array(1, 0, 0, 0, 0, 1, 0, 1, 1, 'Test'),
+      array($font->FontID, $font->FontFlagsShiftJIS, $font->FontFlagsSmallText, $font->FontFlagsANSI,
+            $font->FontFlagsWideOffsets, $font->FontFlagsWideCodes, $font->FontFlagsItalic, $font->FontFlagsBold,
+            $font->LanguageCode['LanguageCode'], $font->FontName));
+// OffsetTable: 2 UI16 offsets + CodeTableOffset, glyph 0 is 124 bits (16 bytes)
+check('DefineFont2 OffsetTable', array(6, 22), $font->OffsetTable);
+$g = $font->GlyphShapeTable;
+check('DefineFont2 glyphs', array(6, 100, -700, 1, array(100, -700), 5, array(512, 100, 0, 0)),
+      array(count($g[0]), $g[0][0]['MoveX'], $g[0][0]['MoveY'], $g[0][0]['FillStyle1'], array($g[0][4]['X'], $g[0][4]['Y']),
+            count($g[1]), array($g[1][3]['ControlX'], $g[1][3]['ControlY'], $g[1][3]['AnchorX'], $g[1][3]['AnchorY'])));
+check('DefineFont2 layout', array(array(0x41, 0x3042), 800, 200, 40, array(800, 1024),
+                                  array('Xmin' => 0, 'Xmax' => 1024, 'Ymin' => -800, 'Ymax' => 100),
+                                  array(array('FontKerningCode1' => 0x41, 'FontKerningCode2' => 0x3042, 'FontKerningAdjustment' => -50))),
+      array($font->CodeTable, $font->FontAscent, $font->FontDescent, $font->FontLeading, $font->FontAdvanceTable,
+            $font->FontBoundsTable[1], $font->FontKerningTable));
+check('DefineFont3 no glyphs', array(2, 'Empty', array(), array(), null),
+      array($fonts[1]->FontID, $fonts[1]->FontName, $fonts[1]->OffsetTable, $fonts[1]->CodeTable, $fonts[1]->FontAscent));
+check('DefineFont3 no glyphs wide offsets layout', array(3, 1, 1, '', 1024, 256, 0, array(), null),
+      array($fonts[2]->FontID, $fonts[2]->FontFlagsWideOffsets, $fonts[2]->FontFlagsWideCodes, $fonts[2]->FontName,
+            $fonts[2]->FontAscent, $fonts[2]->FontDescent, $fonts[2]->FontLeading, $fonts[2]->FontAdvanceTable,
+            $fonts[2]->FontKerningTable));
+$edits = tagObjects($swf->_tags, 37);
+$e = $edits[0];
+check('DefineEditText', array(4, array(-40, 2000, -40, 400), 1, 1, 0, 0, 1, 240, array(0x10, 0x20, 0x30, 0xff), 32,
+                              1, 20, 40, 0, -20, 0, 1, 0, 0, 1, 'msg', 'Hello', null),
+      array($e->CharacterID, array_values($e->Bounds), $e->WordWrap, $e->Multiline, $e->Password, $e->ReadOnly,
+            $e->FontID, $e->FontHeight, array_values($e->TextColor), $e->MaxLength,
+            $e->Align, $e->LeftMargin, $e->RightMargin, $e->Indent, $e->Leading,
+            $e->AutoSize, $e->Border, $e->WasStatic, $e->HTML, $e->UseOutlines, $e->VariableName, $e->InitialText, $e->FontClass));
+$e = $edits[1];
+check('DefineEditText FontClass, no text', array(5, 1, 1, 1, 1, 1, 0, 'MyFont', null, null, null, null, null, 'v2', null),
+      array($e->CharacterID, $e->ReadOnly, $e->AutoSize, $e->NoSelect, $e->WasStatic, $e->HTML, $e->Border,
+            $e->FontClass, $e->FontID, $e->FontHeight, $e->TextColor, $e->MaxLength, $e->Align, $e->VariableName, $e->InitialText));
+
+/*
+ * sprite.swf: DefineSprite, PlaceObject/2/3, RemoveObject/2, FrameLabel
+ */
+$swf = parseSWF(dataFile('sprite.swf'));
+$sprites = tagObjects($swf->_tags, 39);
+check('DefineSprite', array(array(3, 1, '26,1,0'), array(4, 3, '26,4,12,1,26,70,43,1,5,28,1,0')),
+      array_map(function ($s) {
+          return array($s->_spriteId, $s->_frameCount, implode(',', array_map(function ($t) { return $t->code; }, $s->_controlTags)));
+      }, $sprites));
+$controls = $sprites[1]->_controlTags;
+foreach ($controls as $t) {
+    $t->parseTagContent();
+}
+$p = $controls[0]->tag;
+check('PlaceObject2 in sprite', array(1, 3, 'inner', 100, 50, 0x10000, 0), array($p->_depth, $p->_characterId, $p->_name,
+      $p->_matrix['TranslateX'], $p->_matrix['TranslateY'], $p->_matrix['ScaleX'], $p->_placeFlagMove));
+$p = $controls[1]->tag;
+check('PlaceObject', array(2, 2, 0x20000, 0x8000, array(1, 1, 256, 128, 64, -10, 0, 10)),
+      array($p->_characterId, $p->_depth, $p->_matrix['ScaleX'], $p->_matrix['ScaleY'], array_values($p->_colorTransform)));
+$p = $controls[4]->tag;
+check('PlaceObject2 move', array(1, 1, null, 5, -20, 300), array($p->_placeFlagMove, $p->_depth, $p->_characterId,
+      $p->_ratio, $p->_matrix['TranslateX'], $p->_matrix['TranslateY']));
+$p = $controls[5]->tag;
+check('PlaceObject3', array(3, 1, 3, 1, null, null, 0), array($p->_depth, $p->_characterId, $p->_blendMode, $p->_bitmapCache,
+      $p->_className, $p->_matrix, $p->_placeFlagMove));
+check('FrameLabel', array('second', null), array($controls[6]->tag->_label, $controls[6]->tag->_namedAnchor));
+check('RemoveObject / RemoveObject2', array(2, 2, null, 3), array($controls[8]->tag->_characterId, $controls[8]->tag->_depth,
+      $controls[9]->tag->_characterId, $controls[9]->tag->_depth));
+$places = tagObjects(array($swf->_tags[4], $swf->_tags[5], $swf->_tags[7]), 26);
+check('PlaceObject2 CXFORMWITHALPHA, name', array(4, 'mc', array(1, 0, 0, 0, 0, -128)),
+      array($places[0]->_characterId, $places[0]->_name, array_values($places[0]->_colorTransform)));
+check('PlaceObject2 ClipDepth', array(2, 3), array($places[1]->_characterId, $places[1]->_clipDepth));
+check('PlaceObject2 move only', array(1, null, 10, 10), array($places[2]->_placeFlagMove, $places[2]->_characterId,
+      $places[2]->_matrix['TranslateX'], $places[2]->_matrix['TranslateY']));
+
+/*
+ * action.swf: DoAction (SWF 4 and 5 actions), DefineButton, DefineButton2
+ */
+$swf = parseSWF(dataFile('action.swf'));
+$doActions = tagObjects($swf->_tags, 12);
+$actions = $doActions[0]->_actions;
+check('DoAction SWF4 codes', '81,83,8b,8c,8b,8a,6,96,1d,96,9d,96,26,9a,9f,7,99,0',
+      implode(',', array_map(function ($a) { return dechex($a['Code']); }, $actions)));
+check('DoAction SWF4 fields', array(1, 'http://example.com/', '_blank', '/mc', 'lbl', '', 1, 1),
+      array($actions[0]['Frame'], $actions[1]['UrlString'], $actions[1]['TargetString'], $actions[2]['TargetName'],
+            $actions[3]['Label'], $actions[4]['TargetName'], $actions[5]['Frame'], $actions[5]['SkipCount']));
+check('ActionPush values', array(array('Type' => 0, 'String' => 'v'), array('Type' => 1, 'Float' => 1.5),
+                                 array('Type' => 2, 'null' => null), array('Type' => 3, 'undefined' => null),
+                                 array('Type' => 4, 'RegisterNumber' => 1), array('Type' => 5, 'Boolean' => 1),
+                                 array('Type' => 6, 'Double' => 3.25), array('Type' => 7, 'Integer' => 7)),
+      $actions[7]['Values']);
+// If skips Push "skipped" (12 bytes) and Trace (1 byte), Jump goes back to [9]
+check('ActionIf / ActionJump', array(13, -39, array(10 => 13, 16 => 9)),
+      array($actions[10]['Offset'], $actions[16]['BranchOffset'], $doActions[0]->_branches));
+check('ActionGetURL2 / ActionGotoFrame2', array(0, 1, 2, 1, 1, 2),
+      array($actions[13]['LoadVariablesFlag'], $actions[13]['LoadTargetFlag'], $actions[13]['SendVarsMethod'],
+            $actions[14]['SceneBiasFlag'], $actions[14]['PlayFlag'], $actions[14]['SceneBias']));
+$actions = $doActions[1]->_actions;
+check('DoAction SWF5 codes', '88,9b,96,1c,3e,96,3d,87,17,96,47,17,8e,3e,0',
+      implode(',', array_map(function ($a) { return dechex($a['Code']); }, $actions)));
+check('ActionConstantPool', array(3, array('a', 'b', 'f')), array($actions[0]['Count'], $actions[0]['ConstantPool']));
+check('ActionDefineFunction / StoreRegister data', array("f\0\x01\x00x\0\x08\x00", "\0"),
+      array($actions[1]['Data'], $actions[7]['Data']));
+check('ActionPush constants', array(array('Type' => 7, 'Integer' => 1), array('Type' => 7, 'Integer' => 1),
+                                    array('Type' => 8, 'Constant8' => 2), array('Type' => 9, 'Constant16' => 0),
+                                    array('Type' => 8, 'Constant8' => 1)),
+      array_merge($actions[5]['Values'], $actions[9]['Values']));
+$a = $actions[12];
+check('ActionDefineFunction2', array('g', 1, 2, 1, 1, 0, 0, array(array('Register' => 1, 'ParamName' => 'y')), 1),
+      array($a['FunctionName'], $a['NumParams'], $a['RegisterCount'], $a['PreloadThisFlag'], $a['PreloadGlobalFlag'],
+            $a['PreloadParentFlag'], $a['SuppressThisFlag'], $a['Parameters'], $a['codeSize']));
+$buttons = tagObjects($swf->_tags, 7);
+$c = $buttons[0]->_characters[0];
+check('DefineButton', array(2, 1, array(1, 1, 1, 1), 1, 1, 20, 20, array(0x83), 'next.html'),
+      array($buttons[0]->_buttonId, count($buttons[0]->_characters),
+            array($c['ButtonStateHitTest'], $c['ButtonStateDown'], $c['ButtonStateOver'], $c['ButtonStateUp']),
+            $c['CharacterID'], $c['PlaceDepth'], $c['PlaceMatrix']['TranslateX'], $c['PlaceMatrix']['TranslateY'],
+            array_column($buttons[0]->_actions, 'Code'), $buttons[0]->_actions[0]['UrlString']));
+$buttons = tagObjects($swf->_tags, 34);
+$b = $buttons[0];
+// ActionOffset: the field (2) + records (12 + 7 bytes) + the end flag (1)
+check('DefineButton2', array(3, 1, 22, 2), array($b->_buttonId, $b->_trackAsMenu, $b->_actionOffset, count($b->_characters)));
+$c = $b->_characters;
+check('DefineButton2 records', array(array(0, 0, 1, 1), 1, 256, 128, 256, array(1, 0, 0, 0), 2, 0, 0),
+      array(array($c[0]['ButtonStateHitTest'], $c[0]['ButtonStateDown'], $c[0]['ButtonStateOver'], $c[0]['ButtonStateUp']),
+            $c[0]['ColorTransform']['HasMultiTerms'], $c[0]['ColorTransform']['RedMultiTerm'],
+            $c[0]['ColorTransform']['GreenMultiTerm'], $c[0]['ColorTransform']['AlphaMultiTerm'],
+            array($c[1]['ButtonStateHitTest'], $c[1]['ButtonStateDown'], $c[1]['ButtonStateOver'], $c[1]['ButtonStateUp']),
+            $c[1]['PlaceDepth'], $c[1]['ColorTransform']['HasMultiTerms'], $c[1]['ColorTransform']['HasAddTerms']));
+$conds = $b->_actions;
+check('DefineButton2 BUTTONCONDACTION', array(array(12, 1, 0, 0, array(0x96, 0x26)), array(0, 0, 0, 13, array(0x07))),
+      array_map(function ($c) {
+          return array($c['CondActionSize'], $c['CondOverUpToOverDown'], $c['CondIdleToOverUp'], $c['CondKeyPress'],
+                       array_column($c['Actions'], 'Code'));
+      }, $conds));
+
+/*
+ * abc.swf: FileAttributes, DoABC (minimal ABC), SymbolClass
+ */
+$swf = parseSWF(dataFile('abc.swf'));
+$attrs = tagObjects($swf->_tags, 69);
+check('FileAttributes', array(1, 1, 0, 0, 0), array($attrs[0]->ActionScript3, $attrs[0]->UseNetwork, $attrs[0]->HasMetadata,
+                                                     $attrs[0]->UseGPU, $attrs[0]->UseDirectBlit));
+$symbols = tagObjects($swf->_tags, 76);
+check('SymbolClass', array(array('Tag' => 0, 'Name' => 'pkg.Main')), $symbols[0]->_Symbols);
+$doABCs = tagObjects($swf->_tags, 82, array('abcparse' => true));
+$abc = $doABCs[0]->_ABC;
+check('DoABC', array(1, 'frame1', 16, 46), array($doABCs[0]->_Flags, $doABCs[0]->_Name, $abc->_minor_version, $abc->_major_version));
+$cpool = $abc->_constant_pool;
+check('ABC cpool numbers', array(array(0, -5, 1000), array(0, 4294967295), true, 1.5, -0.25),
+      array($cpool['integer'], $cpool['uinteger'], is_nan($cpool['double'][0]), $cpool['double'][1], $cpool['double'][2]));
+check('ABC cpool strings, namespaces', array(array('*', 'pkg', 'Main', '', 'Object', 'frame1', 'pkg:Main'),
+                                             array(array(), array('kind' => 0x16, 'name' => 1), array('kind' => 0x16, 'name' => 3),
+                                                   array('kind' => 0x18, 'name' => 6)),
+                                             array(array(), array(1, 2))),
+      array($cpool['string'], $cpool['namespace'], $cpool['ns_set']));
+check('ABC cpool multinames', array(array(), array('kind' => 7, 'ns' => 1, 'name' => 2), array('kind' => 7, 'ns' => 2, 'name' => 4),
+                                    array('kind' => 7, 'ns' => 2, 'name' => 5), array('kind' => 9, 'name' => 4, 'ns_set' => 1)),
+      $cpool['multiname']);
+$inst = $abc->instance[0];
+check('ABC instance', array(4, 1, 2, 0x09, 3, 1, array('name' => 3, 'kind' => 1, 'disp_id' => 1, 'method' => 3, 'metadata' => null)),
+      array(count($abc->method), $inst['name'], $inst['super_name'], $inst['flags'], $inst['protectedNs'], $inst['iinit'],
+            $inst['trait'][0]));
+check('ABC class, script', array(2, 0, 0, 4, 0), array($abc->klass[0]['cinit'], $abc->klass[0]['trait_count'],
+      $abc->script[0]['init'], $abc->script[0]['trait'][0]['kind'], $abc->script[0]['trait'][0]['classi']));
+$body = $abc->method_body[3];
+// getlocal_0 pushscope (pushdouble pop) x2 (pushint pop) (pushuint pop) (pushbyte pop) (pushstring pop) pushtrue iffalse nop returnvoid
+check('ABC method body', array(4, 3, 27, 18, array(15 => 17), array(17 => 17)),
+      array(count($abc->method_body), $body['method'], strlen($body['code']->codeData), count($body['code']->codeArray),
+            $body['code']->branches, $body['code']->labels));
+$main = $abc->getInstanceByName('Main', 'pkg');
+check('ABC getInstanceByName', array(1, null), array($main['name'], $abc->getInstanceByName('Main', 'other')));
+check('ABC frame methods', array(array(array(1, 3)), 3, 18),
+      array($abc->getFrameAndCodeByInstance($main), $abc->getMethodIdByTraitName($main, 'frame1'),
+            count($abc->getCodeByMethodId(3)->codeArray)));
+$editor = new IO_SWF_Editor();
+$editor->parse(dataFile('abc.swf'));
+$tags = $editor->_tags;
+$tags[2]->parseTagContent(array('abcparse' => true));
+$tags[3]->parseTagContent();
+check('listABCmethodIdToActionFrame', array(0 => array(1 => 3)), $editor->listABCmethodIdToActionFrame($tags[2], $tags[3]));
+list($text, $errors) = dumpText(dataFile('abc.swf'), array('abcdump' => true));
+check('ABC dump', array(true, true, true), array(strpos($text, "    [1] -5\n    [2] 1000\n") !== false,
+      strpos($text, "    [1] 1.5\n    [2] -0.25\n") !== false, strpos($text, "[15] iffalse 1 (Branchs:[17])") !== false));
+
+/*
+ * truncated input
+ */
+checkThrows('truncated.swf', 'IO_Bit_Exception', function () { parseSWF(dataFile('truncated.swf')); });
+foreach (array('', 'FWS', "FWS\x08", "FWS\x08\x10\x00\x00\x00", "FWS\x08\x10\x00\x00\x00\x00\x00\x0c\x01\x00") as $data) {
+    checkThrows('truncated header '.bin2hex($data), 'IO_Bit_Exception', function () use ($data) { parseSWF($data); });
+}
+checkThrows('ZWS', 'IO_SWF_Exception', function () { parseSWF("ZWS\x0d".pack('V', 100)."\x00\x00\x00\x00"); });
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
